@@ -1,7 +1,31 @@
 
-import { Calendar, Heart, Mail } from 'lucide-react';
+import { Calendar, Heart, Mail, User, Settings, Bell } from 'lucide-react';
 
 const FeaturesSection = () => {
+  const steps = [
+    {
+      number: "01",
+      icon: <User className="h-8 w-8 text-rose-500" />,
+      title: "Tell us about your relationships",
+      description: "Add the important people in your life and share key dates like birthdays, anniversaries, and special moments.",
+      gradient: "from-rose-100 to-rose-50"
+    },
+    {
+      number: "02",
+      icon: <Settings className="h-8 w-8 text-rose-500" />,
+      title: "Set your preferences",
+      description: "Choose how often you want reminders, your favorite date activities, and communication style preferences.",
+      gradient: "from-cream-100 to-cream-50"
+    },
+    {
+      number: "03",
+      icon: <Bell className="h-8 w-8 text-rose-500" />,
+      title: "Receive thoughtful nudges",
+      description: "Get timely reminders, personalized date ideas, and gentle prompts to reach out and show you care.",
+      gradient: "from-sage-100 to-sage-50"
+    }
+  ];
+
   const features = [
     {
       icon: <Calendar className="h-8 w-8 text-rose-500" />,
@@ -38,36 +62,79 @@ const FeaturesSection = () => {
           </p>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <div 
-              key={index}
-              className="group animate-fade-in"
-              style={{ animationDelay: `${index * 200}ms` }}
-            >
-              <div className={`bg-gradient-to-br ${feature.gradient} p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 h-full`}>
-                {/* Icon */}
-                <div className="mb-6">
-                  <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl w-fit shadow-md group-hover:scale-110 transition-transform duration-300">
-                    {feature.icon}
+        {/* How It Works Steps */}
+        <div className="mb-20">
+          <h3 className="text-3xl font-playfair font-bold text-rose-800 text-center mb-12">
+            How it works
+          </h3>
+          <div className="grid md:grid-cols-3 gap-8">
+            {steps.map((step, index) => (
+              <div 
+                key={index}
+                className="group animate-fade-in relative"
+                style={{ animationDelay: `${index * 200}ms` }}
+              >
+                <div className={`bg-gradient-to-br ${step.gradient} p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 h-full`}>
+                  {/* Step Number */}
+                  <div className="text-6xl font-playfair font-bold text-rose-300/40 absolute top-4 right-6">
+                    {step.number}
                   </div>
-                </div>
+                  
+                  {/* Icon */}
+                  <div className="mb-6">
+                    <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl w-fit shadow-md group-hover:scale-110 transition-transform duration-300">
+                      {step.icon}
+                    </div>
+                  </div>
 
-                {/* Content */}
-                <h3 className="text-2xl font-playfair font-semibold text-rose-800 mb-4">
-                  {feature.title}
-                </h3>
-                <p className="text-rose-700/80 leading-relaxed">
-                  {feature.description}
-                </p>
+                  {/* Content */}
+                  <h4 className="text-xl font-playfair font-semibold text-rose-800 mb-4">
+                    {step.title}
+                  </h4>
+                  <p className="text-rose-700/80 leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* Features Grid */}
+        <div className="mb-20">
+          <h3 className="text-3xl font-playfair font-bold text-rose-800 text-center mb-12">
+            What you get
+          </h3>
+          <div className="grid md:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <div 
+                key={index}
+                className="group animate-fade-in"
+                style={{ animationDelay: `${index * 200 + 600}ms` }}
+              >
+                <div className={`bg-gradient-to-br ${feature.gradient} p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 h-full`}>
+                  {/* Icon */}
+                  <div className="mb-6">
+                    <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl w-fit shadow-md group-hover:scale-110 transition-transform duration-300">
+                      {feature.icon}
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <h4 className="text-xl font-playfair font-semibold text-rose-800 mb-4">
+                    {feature.title}
+                  </h4>
+                  <p className="text-rose-700/80 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Feature Highlight */}
-        <div className="mt-20 bg-gradient-to-r from-rose-50 to-cream-50 rounded-3xl p-8 md:p-12 text-center animate-scale-in">
+        <div className="bg-gradient-to-r from-rose-50 to-cream-50 rounded-3xl p-8 md:p-12 text-center animate-scale-in">
           <h3 className="text-3xl font-playfair font-bold text-rose-800 mb-4">
             Built for real relationships
           </h3>

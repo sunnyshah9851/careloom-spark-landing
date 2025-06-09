@@ -13,7 +13,7 @@ const CallToActionSection = () => {
     if (email) {
       toast({
         title: "You're all set! 🎉",
-        description: "We'll keep you updated on our launch and send you exclusive early access.",
+        description: "Welcome to Careloom! Start adding your important relationships and dates to begin.",
       });
       setEmail('');
     }
@@ -50,7 +50,7 @@ const CallToActionSection = () => {
               size="lg"
               className="h-14 px-8 text-lg rounded-2xl bg-rose-500 hover:bg-rose-600 shadow-lg transform transition-all duration-200 hover:scale-105"
             >
-              Join Waitlist
+              Get Started
             </Button>
           </form>
         </div>
@@ -59,8 +59,8 @@ const CallToActionSection = () => {
         <div className="grid md:grid-cols-3 gap-6 text-center animate-fade-in [animation-delay:200ms]">
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-md">
             <div className="text-2xl mb-2">🚀</div>
-            <h3 className="font-semibold text-rose-800 mb-2">Early Access</h3>
-            <p className="text-sm text-rose-700/70">Be among the first to try Careloom</p>
+            <h3 className="font-semibold text-rose-800 mb-2">Start Immediately</h3>
+            <p className="text-sm text-rose-700/70">Begin strengthening relationships today</p>
           </div>
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-md">
             <div className="text-2xl mb-2">💝</div>
@@ -69,8 +69,8 @@ const CallToActionSection = () => {
           </div>
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-md">
             <div className="text-2xl mb-2">✨</div>
-            <h3 className="font-semibold text-rose-800 mb-2">Exclusive Updates</h3>
-            <p className="text-sm text-rose-700/70">Get tips for better relationships</p>
+            <h3 className="font-semibold text-rose-800 mb-2">Personalized Experience</h3>
+            <p className="text-sm text-rose-700/70">AI that learns your relationships</p>
           </div>
         </div>
 

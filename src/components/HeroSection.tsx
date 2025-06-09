@@ -14,7 +14,7 @@ const HeroSection = () => {
     if (email) {
       toast({
         title: "Welcome to Careloom! 💕",
-        description: "We'll send you early access when we launch. Thank you for joining our community!",
+        description: "Account created successfully! You can now start using Careloom to strengthen your relationships.",
       });
       setEmail('');
     }
@@ -62,11 +62,11 @@ const HeroSection = () => {
               size="lg"
               className="h-14 px-8 text-lg rounded-2xl bg-rose-500 hover:bg-rose-600 shadow-lg transform transition-all duration-200 hover:scale-105"
             >
-              Get Early Access
+              Get Started
             </Button>
           </form>
           <p className="text-sm text-rose-600/70 mt-4">
-            Join 1,000+ couples already on our waitlist ✨
+            Join 1,000+ couples already using Careloom ✨
           </p>
         </div>
 
