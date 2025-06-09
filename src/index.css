@@ -1,94 +1,118 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
+/* Careloom.ai Design System - Warm, romantic, and modern */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 254 252 250;
+    --foreground: 76 51 62;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 255 253 251;
+    --card-foreground: 76 51 62;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 255 253 251;
+    --popover-foreground: 76 51 62;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 219 136 155;
+    --primary-foreground: 254 252 250;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 249 228 233;
+    --secondary-foreground: 76 51 62;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 246 239 241;
+    --muted-foreground: 139 120 127;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 253 236 239;
+    --accent-foreground: 157 78 101;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 239 68 68;
+    --destructive-foreground: 254 252 250;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 240 220 225;
+    --input: 240 220 225;
+    --ring: 219 136 155;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Custom Careloom colors */
+    --rose-50: 254 252 250;
+    --rose-100: 253 236 239;
+    --rose-200: 249 228 233;
+    --rose-300: 244 198 210;
+    --rose-400: 236 160 180;
+    --rose-500: 219 136 155;
+    --rose-600: 192 106 130;
+    --rose-700: 157 78 101;
+    --rose-800: 127 65 85;
+    --rose-900: 76 51 62;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    --cream-50: 254 252 250;
+    --cream-100: 252 247 243;
+    --cream-200: 248 237 227;
+    --cream-300: 242 220 200;
+    --cream-400: 233 196 164;
+    
+    --sage-50: 247 250 248;
+    --sage-100: 237 243 240;
+    --sage-200: 214 230 222;
+    --sage-300: 183 209 196;
+    --sage-400: 144 182 165;
+    --sage-500: 103 151 131;
+    --sage-600: 72 121 98;
+    --sage-700: 52 94 74;
+    --sage-800: 42 75 59;
+    --sage-900: 33 56 46;
 
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 254 252 250;
+    --sidebar-foreground: 76 51 62;
+    --sidebar-primary: 219 136 155;
+    --sidebar-primary-foreground: 254 252 250;
+    --sidebar-accent: 253 236 239;
+    --sidebar-accent-foreground: 76 51 62;
+    --sidebar-border: 240 220 225;
+    --sidebar-ring: 219 136 155;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 33 30 32;
+    --foreground: 254 252 250;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 45 40 43;
+    --card-foreground: 254 252 250;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 45 40 43;
+    --popover-foreground: 254 252 250;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 219 136 155;
+    --primary-foreground: 33 30 32;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 58 50 54;
+    --secondary-foreground: 254 252 250;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 58 50 54;
+    --muted-foreground: 185 175 179;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 76 65 70;
+    --accent-foreground: 254 252 250;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 239 68 68;
+    --destructive-foreground: 254 252 250;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 76 65 70;
+    --input: 76 65 70;
+    --ring: 219 136 155;
+
+    --sidebar-background: 33 30 32;
+    --sidebar-foreground: 254 252 250;
+    --sidebar-primary: 219 136 155;
+    --sidebar-primary-foreground: 33 30 32;
+    --sidebar-accent: 76 65 70;
+    --sidebar-accent-foreground: 254 252 250;
+    --sidebar-border: 76 65 70;
+    --sidebar-ring: 219 136 155;
   }
 }
 
@@ -98,6 +122,27 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-inter;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-playfair;
+  }
+}
+
+@layer utilities {
+  .gradient-warm {
+    background: linear-gradient(135deg, rgb(var(--rose-50)) 0%, rgb(var(--cream-100)) 50%, rgb(var(--sage-50)) 100%);
+  }
+  
+  .gradient-rose {
+    background: linear-gradient(135deg, rgb(var(--rose-100)) 0%, rgb(var(--rose-200)) 100%);
+  }
+  
+  .text-gradient {
+    background: linear-gradient(135deg, rgb(var(--rose-600)) 0%, rgb(var(--rose-700)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
