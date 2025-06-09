@@ -33,7 +33,7 @@ const Header = () => {
               Log In
             </Button>
             <Button 
-              className="bg-rose-500 hover:bg-rose-600 text-white px-6"
+              className="bg-rose-500 hover:bg-rose-600 text-white px-6 border-0"
             >
               Sign Up
             </Button>
