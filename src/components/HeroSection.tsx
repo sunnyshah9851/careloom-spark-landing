@@ -21,7 +21,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section className="min-h-screen gradient-warm flex items-center justify-center px-4 py-20">
+    <section className="min-h-screen gradient-warm flex items-center justify-center px-4 py-20 pt-32">
       <div className="max-w-4xl mx-auto text-center">
         {/* Floating Heart Icon */}
         <div className="mb-8 flex justify-center">
