@@ -1,9 +1,11 @@
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import CareloomLogo from './CareloomLogo';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Header = () => {
+  const { signInWithGoogle } = useAuth();
+
   return (
     <header className="absolute top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-rose-100/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,11 +30,13 @@ const Header = () => {
           <div className="flex items-center space-x-4">
             <Button 
               variant="ghost" 
+              onClick={signInWithGoogle}
               className="text-rose-700 hover:text-rose-900 hover:bg-rose-50"
             >
               Log In
             </Button>
             <Button 
+              onClick={signInWithGoogle}
               className="bg-rose-500 hover:bg-rose-600 text-white px-6 border-0"
             >
               Sign Up

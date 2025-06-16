@@ -1,23 +1,9 @@
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const CallToActionSection = () => {
-  const [email, setEmail] = useState('');
-  const { toast } = useToast();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      toast({
-        title: "You're all set! 🎉",
-        description: "Welcome to Careloom! Start adding your important relationships and dates to begin.",
-      });
-      setEmail('');
-    }
-  };
+  const { signInWithGoogle } = useAuth();
 
   return (
     <section className="py-24 gradient-warm">
@@ -34,25 +20,15 @@ const CallToActionSection = () => {
           </p>
         </div>
 
-        {/* Email Signup Form */}
+        {/* Get Started Button */}
         <div className="max-w-lg mx-auto mb-12 animate-scale-in">
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
-            <Input
-              type="email"
-              placeholder="Your email address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 h-14 text-lg rounded-2xl bg-white/90 backdrop-blur-sm border-rose-200 focus:border-rose-400 shadow-lg"
-              required
-            />
-            <Button 
-              type="submit"
-              size="lg"
-              className="h-14 px-8 text-lg rounded-2xl bg-rose-500 hover:bg-rose-600 shadow-lg transform transition-all duration-200 hover:scale-105"
-            >
-              Get Started
-            </Button>
-          </form>
+          <Button 
+            onClick={signInWithGoogle}
+            size="lg"
+            className="h-14 px-8 text-lg rounded-2xl bg-rose-500 hover:bg-rose-600 shadow-lg transform transition-all duration-200 hover:scale-105"
+          >
+            Get Started with Google
+          </Button>
         </div>
 
         {/* Benefits */}

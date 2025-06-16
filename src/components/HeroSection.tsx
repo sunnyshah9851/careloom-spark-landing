@@ -1,24 +1,10 @@
 
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Heart } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const HeroSection = () => {
-  const [email, setEmail] = useState('');
-  const { toast } = useToast();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      toast({
-        title: "Welcome to Careloom! 💕",
-        description: "Account created successfully! You can now start using Careloom to strengthen your relationships.",
-      });
-      setEmail('');
-    }
-  };
+  const { signInWithGoogle } = useAuth();
 
   return (
     <section className="min-h-screen gradient-warm flex items-center justify-center px-4 py-20 pt-32">
@@ -46,25 +32,15 @@ const HeroSection = () => {
           curated date ideas, and helps you celebrate every special moment with the people you love.
         </p>
 
-        {/* Email Signup Form */}
+        {/* Get Started Button */}
         <div className="max-w-md mx-auto animate-scale-in [animation-delay:400ms]">
-          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 h-14 text-lg rounded-2xl bg-white/90 backdrop-blur-sm border-rose-200 focus:border-rose-400 shadow-lg"
-              required
-            />
-            <Button 
-              type="submit"
-              size="lg"
-              className="h-14 px-8 text-lg rounded-2xl bg-rose-500 hover:bg-rose-600 shadow-lg transform transition-all duration-200 hover:scale-105"
-            >
-              Get Started
-            </Button>
-          </form>
+          <Button 
+            onClick={signInWithGoogle}
+            size="lg"
+            className="h-14 px-8 text-lg rounded-2xl bg-rose-500 hover:bg-rose-600 shadow-lg transform transition-all duration-200 hover:scale-105"
+          >
+            Get Started with Google
+          </Button>
           <p className="text-sm text-rose-600/70 mt-4">
             Join 1,000+ couples already using Careloom ✨
           </p>
