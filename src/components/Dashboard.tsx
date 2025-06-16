@@ -1,13 +1,13 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import CareloomLogo from './CareloomLogo';
+import DashboardStats from './dashboard/DashboardStats';
+import UpcomingEvents from './dashboard/UpcomingEvents';
+import ProfileEditor from './dashboard/ProfileEditor';
 
 interface Profile {
   full_name: string;
@@ -16,6 +16,13 @@ interface Profile {
   partner_birthday: string;
   anniversary_date: string;
   reminder_frequency: string;
+}
+
+interface Event {
+  type: 'birthday' | 'anniversary';
+  name: string;
+  date: string;
+  daysUntil: number;
 }
 
 const Dashboard = () => {
@@ -29,14 +36,22 @@ const Dashboard = () => {
     anniversary_date: '',
     reminder_frequency: 'weekly'
   });
-  const [loading, setLoading] = useState(false);
-  const [hasProfile, setHasProfile] = useState(false);
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [stats, setStats] = useState({
+    totalNudges: 12,
+    anniversaryWishes: 3,
+    daysToNextEvent: 0
+  });
 
   useEffect(() => {
     if (user) {
       fetchProfile();
     }
   }, [user]);
+
+  useEffect(() => {
+    calculateUpcomingEvents();
+  }, [profile]);
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -61,44 +76,75 @@ const Dashboard = () => {
         anniversary_date: data.anniversary_date || '',
         reminder_frequency: data.reminder_frequency || 'weekly'
       });
-      setHasProfile(true);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
+  const calculateUpcomingEvents = () => {
+    const events: Event[] = [];
+    const today = new Date();
+    const currentYear = today.getFullYear();
 
-    setLoading(true);
+    // Helper function to calculate days until event
+    const getDaysUntil = (eventDate: Date) => {
+      const diffTime = eventDate.getTime() - today.getTime();
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    };
 
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: user.id,
-        ...profile,
-        updated_at: new Date().toISOString()
-      });
+    // Helper function to get next occurrence of a date this year or next
+    const getNextOccurrence = (dateString: string) => {
+      const date = new Date(dateString);
+      const thisYear = new Date(currentYear, date.getMonth(), date.getDate());
+      const nextYear = new Date(currentYear + 1, date.getMonth(), date.getDate());
+      
+      return thisYear >= today ? thisYear : nextYear;
+    };
 
-    if (error) {
-      console.error('Error saving profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save your profile. Please try again.",
-        variant: "destructive"
+    // Add user birthday
+    if (profile.user_birthday) {
+      const nextBirthday = getNextOccurrence(profile.user_birthday);
+      events.push({
+        type: 'birthday',
+        name: `${profile.full_name || 'Your'} Birthday`,
+        date: nextBirthday.toISOString(),
+        daysUntil: getDaysUntil(nextBirthday)
       });
-    } else {
-      toast({
-        title: "Success! 💕",
-        description: "Your relationship details have been saved successfully.",
-      });
-      setHasProfile(true);
     }
 
-    setLoading(false);
+    // Add partner birthday
+    if (profile.partner_birthday) {
+      const nextBirthday = getNextOccurrence(profile.partner_birthday);
+      events.push({
+        type: 'birthday',
+        name: `${profile.partner_name || 'Partner'}'s Birthday`,
+        date: nextBirthday.toISOString(),
+        daysUntil: getDaysUntil(nextBirthday)
+      });
+    }
+
+    // Add anniversary
+    if (profile.anniversary_date) {
+      const nextAnniversary = getNextOccurrence(profile.anniversary_date);
+      events.push({
+        type: 'anniversary',
+        name: 'Anniversary',
+        date: nextAnniversary.toISOString(),
+        daysUntil: getDaysUntil(nextAnniversary)
+      });
+    }
+
+    // Sort by days until event
+    events.sort((a, b) => a.daysUntil - b.daysUntil);
+
+    setUpcomingEvents(events);
+
+    // Update stats with next event
+    if (events.length > 0) {
+      setStats(prev => ({ ...prev, daysToNextEvent: events[0].daysUntil }));
+    }
   };
 
-  const handleInputChange = (field: keyof Profile, value: string) => {
-    setProfile(prev => ({ ...prev, [field]: value }));
+  const handleProfileUpdate = (updatedProfile: Profile) => {
+    setProfile(updatedProfile);
   };
 
   return (
@@ -122,100 +168,31 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <Card className="shadow-lg">
-          <CardHeader className="text-center">
-            <CardTitle className="text-3xl font-playfair text-rose-800">
-              {hasProfile ? 'Your Relationship Details' : 'Tell us about your relationship'}
-            </CardTitle>
-            <CardDescription className="text-lg text-rose-600">
-              {hasProfile ? 'Update your information anytime' : 'Help us personalize your Careloom experience'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="full_name">Your Name</Label>
-                  <Input
-                    id="full_name"
-                    value={profile.full_name}
-                    onChange={(e) => handleInputChange('full_name', e.target.value)}
-                    placeholder="Enter your name"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="partner_name">Partner's Name</Label>
-                  <Input
-                    id="partner_name"
-                    value={profile.partner_name}
-                    onChange={(e) => handleInputChange('partner_name', e.target.value)}
-                    placeholder="Enter partner's name"
-                    required
-                  />
-                </div>
-              </div>
+      {/* Main Dashboard Content */}
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-playfair font-bold text-rose-800 mb-2">
+            Your Relationship Dashboard
+          </h1>
+          <p className="text-rose-600 text-lg">
+            Keep track of the moments that matter most
+          </p>
+        </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="user_birthday">Your Birthday</Label>
-                  <Input
-                    id="user_birthday"
-                    type="date"
-                    value={profile.user_birthday}
-                    onChange={(e) => handleInputChange('user_birthday', e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="partner_birthday">Partner's Birthday</Label>
-                  <Input
-                    id="partner_birthday"
-                    type="date"
-                    value={profile.partner_birthday}
-                    onChange={(e) => handleInputChange('partner_birthday', e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
+        {/* Dashboard Stats */}
+        <DashboardStats stats={stats} />
 
-              <div>
-                <Label htmlFor="anniversary_date">Anniversary Date</Label>
-                <Input
-                  id="anniversary_date"
-                  type="date"
-                  value={profile.anniversary_date}
-                  onChange={(e) => handleInputChange('anniversary_date', e.target.value)}
-                  required
-                />
-              </div>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Upcoming Events */}
+          <UpcomingEvents events={upcomingEvents} />
 
-              <div>
-                <Label htmlFor="reminder_frequency">Reminder Frequency</Label>
-                <select
-                  id="reminder_frequency"
-                  value={profile.reminder_frequency}
-                  onChange={(e) => handleInputChange('reminder_frequency', e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                </select>
-              </div>
-
-              <Button 
-                type="submit" 
-                disabled={loading}
-                className="w-full bg-rose-500 hover:bg-rose-600 text-white"
-              >
-                {loading ? 'Saving...' : hasProfile ? 'Update Details' : 'Save Details'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+          {/* Profile Editor */}
+          <ProfileEditor 
+            profile={profile} 
+            onProfileUpdate={handleProfileUpdate}
+          />
+        </div>
       </div>
     </div>
   );
