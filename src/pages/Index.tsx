@@ -9,6 +9,8 @@ import Dashboard from '@/components/Dashboard';
 const Index = () => {
   const { user, loading } = useAuth();
 
+  console.log('Index page render - user:', user?.email, 'loading:', loading);
+
   if (loading) {
     return (
       <div className="min-h-screen gradient-warm flex items-center justify-center">
@@ -21,9 +23,11 @@ const Index = () => {
   }
 
   if (user) {
+    console.log('Rendering Dashboard for user:', user.email);
     return <Dashboard />;
   }
 
+  console.log('Rendering landing page - no user');
   return (
     <div className="min-h-screen">
       <Header />

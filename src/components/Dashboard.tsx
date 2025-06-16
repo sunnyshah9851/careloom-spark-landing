@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,6 +27,9 @@ interface Event {
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { toast } = useToast();
+
+  console.log('Dashboard render - user:', user?.email);
+
   const [profile, setProfile] = useState<Profile>({
     full_name: '',
     partner_name: '',
@@ -44,6 +46,7 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
+    console.log('Dashboard useEffect - user changed:', user?.email);
     if (user) {
       fetchProfile();
     }
@@ -54,7 +57,12 @@ const Dashboard = () => {
   }, [profile]);
 
   const fetchProfile = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user for fetchProfile');
+      return;
+    }
+
+    console.log('Fetching profile for user:', user.id);
 
     const { data, error } = await supabase
       .from('profiles')
@@ -66,6 +74,8 @@ const Dashboard = () => {
       console.error('Error fetching profile:', error);
       return;
     }
+
+    console.log('Profile data:', data);
 
     if (data) {
       setProfile({
@@ -146,6 +156,13 @@ const Dashboard = () => {
   const handleProfileUpdate = (updatedProfile: Profile) => {
     setProfile(updatedProfile);
   };
+
+  if (!user) {
+    console.log('Dashboard: No user, returning null');
+    return null;
+  }
+
+  console.log('Dashboard: Rendering dashboard UI');
 
   return (
     <div className="min-h-screen gradient-warm">
