@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -7,6 +8,7 @@ import CareloomLogo from './CareloomLogo';
 import DashboardStats from './dashboard/DashboardStats';
 import UpcomingEvents from './dashboard/UpcomingEvents';
 import ProfileEditor from './dashboard/ProfileEditor';
+import { Heart, Plus, Lightbulb } from 'lucide-react';
 
 interface Profile {
   full_name: string;
@@ -157,6 +159,28 @@ const Dashboard = () => {
     setProfile(updatedProfile);
   };
 
+  const getThoughtfulnessScore = () => {
+    // Simple scoring based on profile completeness and upcoming events
+    let score = 0;
+    if (profile.partner_name) score += 25;
+    if (profile.partner_birthday) score += 25;
+    if (profile.anniversary_date) score += 25;
+    if (upcomingEvents.length > 0) score += 25;
+    return score;
+  };
+
+  const getDateIdea = () => {
+    const ideas = [
+      "Plan a cozy movie night with their favorite snacks 🍿",
+      "Take a sunset walk together and share your favorite memories 🌅",
+      "Cook their favorite meal together 👨‍🍳",
+      "Write them a heartfelt letter about what they mean to you 💌",
+      "Plan a surprise picnic in your favorite spot 🧺",
+      "Create a playlist of songs that remind you of them 🎵"
+    ];
+    return ideas[Math.floor(Math.random() * ideas.length)];
+  };
+
   if (!user) {
     console.log('Dashboard: No user, returning null');
     return null;
@@ -172,7 +196,7 @@ const Dashboard = () => {
           <div className="flex justify-between items-center h-16">
             <CareloomLogo />
             <div className="flex items-center space-x-4">
-              <span className="text-rose-700">Welcome, {user?.user_metadata?.full_name || user?.email}</span>
+              <span className="text-rose-700">Welcome, {user?.user_metadata?.full_name || profile.full_name || user?.email}</span>
               <Button 
                 variant="ghost" 
                 onClick={signOut}
@@ -200,11 +224,75 @@ const Dashboard = () => {
         <DashboardStats stats={stats} />
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Upcoming Events */}
-          <UpcomingEvents events={upcomingEvents} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Upcoming Events - spans 2 columns */}
+          <div className="lg:col-span-2">
+            <UpcomingEvents events={upcomingEvents} />
+          </div>
 
-          {/* Profile Editor */}
+          {/* Right sidebar with thoughtfulness score and suggestions */}
+          <div className="space-y-6">
+            {/* Thoughtfulness Score */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-rose-800">
+                  <Heart className="h-5 w-5 text-rose-500" />
+                  Thoughtfulness Score
+                </CardTitle>
+                <CardDescription>
+                  How connected you are
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-rose-600 mb-2">
+                    {getThoughtfulnessScore()}%
+                  </div>
+                  <p className="text-sm text-rose-500">
+                    {getThoughtfulnessScore() === 100 ? "You're doing amazing! 🌟" : 
+                     getThoughtfulnessScore() >= 75 ? "Great job staying connected! 💝" :
+                     getThoughtfulnessScore() >= 50 ? "You're on the right track! 💕" :
+                     "Let's add more details to help you stay close! 💌"}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Date Idea Suggestion */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-rose-800">
+                  <Lightbulb className="h-5 w-5 text-rose-500" />
+                  Today's Suggestion
+                </CardTitle>
+                <CardDescription>
+                  A thoughtful way to connect
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-rose-700 leading-relaxed">
+                  {getDateIdea()}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Add Someone Else Card */}
+            <Card className="border-dashed border-2 border-rose-200 hover:border-rose-300 transition-colors cursor-pointer">
+              <CardContent className="p-6 text-center">
+                <Plus className="h-8 w-8 text-rose-400 mx-auto mb-3" />
+                <h3 className="font-medium text-rose-800 mb-2">
+                  Add someone else you care about
+                </h3>
+                <p className="text-sm text-rose-600">
+                  Family, friends, or other special people in your life
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Profile Editor - Full width at bottom */}
+        <div className="mt-8">
           <ProfileEditor 
             profile={profile} 
             onProfileUpdate={handleProfileUpdate}

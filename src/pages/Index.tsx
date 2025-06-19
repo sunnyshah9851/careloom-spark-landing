@@ -1,17 +1,60 @@
-
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import CallToActionSection from '@/components/CallToActionSection';
 import Dashboard from '@/components/Dashboard';
+import Onboarding from '@/components/Onboarding';
 
 const Index = () => {
   const { user, loading } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(true);
 
   console.log('Index page render - user:', user?.email, 'loading:', loading);
 
-  if (loading) {
+  useEffect(() => {
+    const checkUserProfile = async () => {
+      if (!user) {
+        setCheckingProfile(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('partner_name')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error checking profile:', error);
+          setShowOnboarding(true);
+        } else if (!data || !data.partner_name) {
+          // New user or incomplete profile - show onboarding
+          setShowOnboarding(true);
+        } else {
+          // Existing user with profile - show dashboard
+          setShowOnboarding(false);
+        }
+      } catch (error) {
+        console.error('Error in checkUserProfile:', error);
+        setShowOnboarding(true);
+      } finally {
+        setCheckingProfile(false);
+      }
+    };
+
+    if (user && !loading) {
+      checkUserProfile();
+    } else if (!loading) {
+      setCheckingProfile(false);
+    }
+  }, [user, loading]);
+
+  if (loading || checkingProfile) {
     return (
       <div className="min-h-screen gradient-warm flex items-center justify-center">
         <div className="text-center">
@@ -23,8 +66,13 @@ const Index = () => {
   }
 
   if (user) {
-    console.log('Rendering Dashboard for user:', user.email);
-    return <Dashboard />;
+    if (showOnboarding) {
+      console.log('Rendering Onboarding for new user:', user.email);
+      return <Onboarding onComplete={() => setShowOnboarding(false)} />;
+    } else {
+      console.log('Rendering Dashboard for existing user:', user.email);
+      return <Dashboard />;
+    }
   }
 
   console.log('Rendering landing page - no user');
