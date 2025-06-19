@@ -13,9 +13,11 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { Label } from '@/components/ui/label';
 
 interface OnboardingData {
-  partnerName: string;
+  partnerFirstName: string;
+  partnerLastName: string;
   partnerBirthday: Date | null;
   anniversaryDate: Date | null;
   reminderFrequency: string;
@@ -30,7 +32,8 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [data, setData] = useState<OnboardingData>({
-    partnerName: '',
+    partnerFirstName: '',
+    partnerLastName: '',
     partnerBirthday: null,
     anniversaryDate: null,
     reminderFrequency: 'weekly'
@@ -55,11 +58,13 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
     if (!user) return;
 
     try {
+      const partnerName = `${data.partnerFirstName} ${data.partnerLastName}`.trim();
+      
       const { error } = await supabase
         .from('profiles')
         .upsert({
           id: user.id,
-          partner_name: data.partnerName,
+          partner_name: partnerName,
           partner_birthday: data.partnerBirthday?.toISOString().split('T')[0] || null,
           anniversary_date: data.anniversaryDate?.toISOString().split('T')[0] || null,
           reminder_frequency: data.reminderFrequency,
@@ -87,7 +92,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return data.partnerName.trim().length > 0;
+        return data.partnerFirstName.trim().length > 0 && data.partnerLastName.trim().length > 0;
       case 2:
         return data.partnerBirthday !== null;
       case 3:
@@ -120,13 +125,29 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                 <p className="text-rose-600 mb-6">
                   This could be your partner, best friend, or anyone special in your life
                 </p>
-                <Input
-                  value={data.partnerName}
-                  onChange={(e) => setData({ ...data, partnerName: e.target.value })}
-                  placeholder="Their name..."
-                  className="text-lg py-3 text-center border-rose-200 focus:border-rose-400"
-                  autoFocus
-                />
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="firstName" className="text-rose-700 text-sm font-medium">First Name</Label>
+                    <Input
+                      id="firstName"
+                      value={data.partnerFirstName}
+                      onChange={(e) => setData({ ...data, partnerFirstName: e.target.value })}
+                      placeholder="Their first name..."
+                      className="text-lg py-3 text-center border-rose-200 focus:border-rose-400 mt-1"
+                      autoFocus
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="lastName" className="text-rose-700 text-sm font-medium">Last Name</Label>
+                    <Input
+                      id="lastName"
+                      value={data.partnerLastName}
+                      onChange={(e) => setData({ ...data, partnerLastName: e.target.value })}
+                      placeholder="Their last name..."
+                      className="text-lg py-3 text-center border-rose-200 focus:border-rose-400 mt-1"
+                    />
+                  </div>
+                </div>
               </div>
             )}
 
@@ -135,7 +156,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
               <div className="text-center space-y-6">
                 <div className="text-6xl mb-4">🎂</div>
                 <h2 className="text-2xl font-playfair text-rose-800 mb-2">
-                  When's {data.partnerName}'s birthday?
+                  When's {data.partnerFirstName}'s birthday?
                 </h2>
                 <p className="text-rose-600 mb-6">
                   We'll make sure you never miss this special day
@@ -164,6 +185,10 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                       onSelect={(date) => setData({ ...data, partnerBirthday: date || null })}
                       className="pointer-events-auto"
                       initialFocus
+                      defaultMonth={new Date(1990, 0)}
+                      captionLayout="dropdown-buttons"
+                      fromYear={1950}
+                      toYear={new Date().getFullYear()}
                     />
                   </PopoverContent>
                 </Popover>
@@ -204,6 +229,10 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                       onSelect={(date) => setData({ ...data, anniversaryDate: date || null })}
                       className="pointer-events-auto"
                       initialFocus
+                      defaultMonth={new Date(2020, 0)}
+                      captionLayout="dropdown-buttons"
+                      fromYear={1980}
+                      toYear={new Date().getFullYear()}
                     />
                   </PopoverContent>
                 </Popover>
@@ -237,15 +266,19 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                     { value: 'biweekly', label: 'Every 2 weeks', desc: 'Just the right amount' },
                     { value: 'monthly', label: 'Monthly', desc: 'For the important moments' }
                   ].map((option) => (
-                    <div key={option.value} className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-rose-50 cursor-pointer">
+                    <Label 
+                      key={option.value} 
+                      htmlFor={option.value}
+                      className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-rose-50 cursor-pointer"
+                    >
                       <RadioGroupItem value={option.value} id={option.value} />
                       <div className="flex-1 text-left">
-                        <label htmlFor={option.value} className="font-medium text-rose-800 cursor-pointer">
+                        <div className="font-medium text-rose-800">
                           {option.label}
-                        </label>
+                        </div>
                         <p className="text-sm text-rose-600">{option.desc}</p>
                       </div>
-                    </div>
+                    </Label>
                   ))}
                 </RadioGroup>
               </div>
