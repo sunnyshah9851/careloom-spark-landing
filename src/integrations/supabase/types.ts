@@ -51,6 +51,42 @@ export type Database = {
         }
         Relationships: []
       }
+      relationships: {
+        Row: {
+          anniversary_date: string | null
+          created_at: string
+          id: string
+          partner_birthday: string | null
+          partner_first_name: string
+          partner_last_name: string
+          reminder_frequency: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anniversary_date?: string | null
+          created_at?: string
+          id?: string
+          partner_birthday?: string | null
+          partner_first_name: string
+          partner_last_name: string
+          reminder_frequency?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anniversary_date?: string | null
+          created_at?: string
+          id?: string
+          partner_birthday?: string | null
+          partner_first_name?: string
+          partner_last_name?: string
+          reminder_frequency?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
