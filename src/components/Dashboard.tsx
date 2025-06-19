@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +10,15 @@ import DashboardStats from './dashboard/DashboardStats';
 import UpcomingEvents from './dashboard/UpcomingEvents';
 import ProfileEditor from './dashboard/ProfileEditor';
 import { Heart, Plus, Lightbulb } from 'lucide-react';
+
+interface Relationship {
+  id: string;
+  partner_first_name: string;
+  partner_last_name: string;
+  partner_birthday: string | null;
+  anniversary_date: string | null;
+  reminder_frequency: string;
+}
 
 interface Profile {
   full_name: string;
@@ -32,6 +42,7 @@ const Dashboard = () => {
 
   console.log('Dashboard render - user:', user?.email);
 
+  const [relationship, setRelationship] = useState<Relationship | null>(null);
   const [profile, setProfile] = useState<Profile>({
     full_name: '',
     partner_name: '',
@@ -42,7 +53,7 @@ const Dashboard = () => {
   });
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [stats, setStats] = useState({
-    totalNudges: 12,
+    totalNudges: 0,
     anniversaryWishes: 3,
     daysToNextEvent: 0
   });
@@ -50,13 +61,51 @@ const Dashboard = () => {
   useEffect(() => {
     console.log('Dashboard useEffect - user changed:', user?.email);
     if (user) {
+      fetchRelationship();
       fetchProfile();
     }
   }, [user]);
 
   useEffect(() => {
-    calculateUpcomingEvents();
-  }, [profile]);
+    if (relationship) {
+      calculateUpcomingEvents();
+      calculateStats();
+    }
+  }, [relationship]);
+
+  const fetchRelationship = async () => {
+    if (!user) {
+      console.log('No user for fetchRelationship');
+      return;
+    }
+
+    console.log('Fetching relationship for user:', user.id);
+
+    const { data, error } = await supabase
+      .from('relationships')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching relationship:', error);
+      return;
+    }
+
+    console.log('Relationship data:', data);
+    setRelationship(data);
+
+    // Convert relationship data to profile format for compatibility
+    if (data) {
+      setProfile(prev => ({
+        ...prev,
+        partner_name: `${data.partner_first_name} ${data.partner_last_name}`,
+        partner_birthday: data.partner_birthday || '',
+        anniversary_date: data.anniversary_date || '',
+        reminder_frequency: data.reminder_frequency || 'weekly'
+      }));
+    }
+  };
 
   const fetchProfile = async () => {
     if (!user) {
@@ -80,18 +129,39 @@ const Dashboard = () => {
     console.log('Profile data:', data);
 
     if (data) {
-      setProfile({
+      setProfile(prev => ({
+        ...prev,
         full_name: data.full_name || '',
-        partner_name: data.partner_name || '',
-        user_birthday: data.user_birthday || '',
-        partner_birthday: data.partner_birthday || '',
-        anniversary_date: data.anniversary_date || '',
-        reminder_frequency: data.reminder_frequency || 'weekly'
-      });
+        user_birthday: data.user_birthday || ''
+      }));
     }
   };
 
+  const calculateStats = () => {
+    if (!relationship) return;
+
+    let daysTogether = 0;
+    
+    // Calculate days together from anniversary date
+    if (relationship.anniversary_date) {
+      const anniversaryDate = new Date(relationship.anniversary_date);
+      const today = new Date();
+      const timeDifference = today.getTime() - anniversaryDate.getTime();
+      daysTogether = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+    }
+
+    setStats(prev => ({
+      ...prev,
+      totalNudges: Math.max(0, daysTogether) // Use days together instead of nudges
+    }));
+  };
+
   const calculateUpcomingEvents = () => {
+    if (!relationship) {
+      setUpcomingEvents([]);
+      return;
+    }
+
     const events: Event[] = [];
     const today = new Date();
     const currentYear = today.getFullYear();
@@ -123,19 +193,19 @@ const Dashboard = () => {
     }
 
     // Add partner birthday
-    if (profile.partner_birthday) {
-      const nextBirthday = getNextOccurrence(profile.partner_birthday);
+    if (relationship.partner_birthday) {
+      const nextBirthday = getNextOccurrence(relationship.partner_birthday);
       events.push({
         type: 'birthday',
-        name: `${profile.partner_name || 'Partner'}'s Birthday`,
+        name: `${relationship.partner_first_name}'s Birthday`,
         date: nextBirthday.toISOString(),
         daysUntil: getDaysUntil(nextBirthday)
       });
     }
 
     // Add anniversary
-    if (profile.anniversary_date) {
-      const nextAnniversary = getNextOccurrence(profile.anniversary_date);
+    if (relationship.anniversary_date) {
+      const nextAnniversary = getNextOccurrence(relationship.anniversary_date);
       events.push({
         type: 'anniversary',
         name: 'Anniversary',
@@ -162,9 +232,9 @@ const Dashboard = () => {
   const getThoughtfulnessScore = () => {
     // Simple scoring based on profile completeness and upcoming events
     let score = 0;
-    if (profile.partner_name) score += 25;
-    if (profile.partner_birthday) score += 25;
-    if (profile.anniversary_date) score += 25;
+    if (relationship?.partner_first_name) score += 25;
+    if (relationship?.partner_birthday) score += 25;
+    if (relationship?.anniversary_date) score += 25;
     if (upcomingEvents.length > 0) score += 25;
     return score;
   };
@@ -179,6 +249,16 @@ const Dashboard = () => {
       "Create a playlist of songs that remind you of them 🎵"
     ];
     return ideas[Math.floor(Math.random() * ideas.length)];
+  };
+
+  // Calculate days together for the stat
+  const getDaysTogether = () => {
+    if (!relationship?.anniversary_date) return 0;
+    
+    const anniversaryDate = new Date(relationship.anniversary_date);
+    const today = new Date();
+    const timeDifference = today.getTime() - anniversaryDate.getTime();
+    return Math.max(0, Math.floor(timeDifference / (1000 * 60 * 60 * 24)));
   };
 
   if (!user) {
@@ -221,7 +301,11 @@ const Dashboard = () => {
         </div>
 
         {/* Dashboard Stats */}
-        <DashboardStats stats={stats} />
+        <DashboardStats stats={{
+          totalNudges: getDaysTogether(),
+          anniversaryWishes: stats.anniversaryWishes,
+          daysToNextEvent: stats.daysToNextEvent
+        }} />
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
