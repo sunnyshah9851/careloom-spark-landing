@@ -5,7 +5,7 @@ import { Heart, Calendar, Clock } from 'lucide-react';
 interface DashboardStatsProps {
   stats: {
     daysTogether: number;
-    anniversaryWishes: number;
+    thoughtfulActions: number;
     daysToNextEvent: number;
   };
 }
@@ -28,13 +28,13 @@ const DashboardStats = ({ stats }: DashboardStatsProps) => {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Anniversary Wishes</CardTitle>
+          <CardTitle className="text-sm font-medium">Thoughtful Actions</CardTitle>
           <Heart className="h-4 w-4 text-rose-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-rose-700">{stats.anniversaryWishes}</div>
+          <div className="text-2xl font-bold text-rose-700">{stats.thoughtfulActions}</div>
           <p className="text-xs text-muted-foreground">
-            Special moments celebrated
+            Ways you've shown love
           </p>
         </CardContent>
       </Card>

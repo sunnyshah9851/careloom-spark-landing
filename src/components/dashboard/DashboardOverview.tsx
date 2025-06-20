@@ -1,8 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import DashboardStats from './DashboardStats';
 import { Heart, Plus, Lightbulb, Bell } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Relationship {
   id: string;
@@ -35,9 +36,10 @@ interface DashboardOverviewProps {
 }
 
 const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) => {
+  const { user } = useAuth();
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [stats, setStats] = useState({
-    anniversaryWishes: 3,
+    thoughtfulActions: 0,
     daysToNextEvent: 0
   });
 
@@ -45,7 +47,45 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
     if (relationship) {
       calculateUpcomingEvents();
     }
-  }, [relationship, profile]);
+    if (user) {
+      fetchThoughtfulActions();
+    }
+  }, [relationship, profile, user]);
+
+  const fetchThoughtfulActions = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('thoughtful_actions')
+      .select('id')
+      .eq('user_id', user.id);
+
+    if (error) {
+      console.error('Error fetching thoughtful actions:', error);
+      return;
+    }
+
+    setStats(prev => ({ ...prev, thoughtfulActions: data?.length || 0 }));
+  };
+
+  const recordThoughtfulAction = async (actionType: string, description?: string) => {
+    if (!user) return;
+
+    const { error } = await supabase
+      .from('thoughtful_actions')
+      .insert({
+        user_id: user.id,
+        action_type: actionType,
+        action_description: description
+      });
+
+    if (error) {
+      console.error('Error recording thoughtful action:', error);
+    } else {
+      // Refresh the count
+      fetchThoughtfulActions();
+    }
+  };
 
   const calculateUpcomingEvents = () => {
     if (!relationship) {
@@ -143,7 +183,12 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
       "Plan a surprise picnic in your favorite spot 🧺",
       "Create a playlist of songs that remind you of them 🎵"
     ];
-    return ideas[Math.floor(Math.random() * ideas.length)];
+    const idea = ideas[Math.floor(Math.random() * ideas.length)];
+    
+    // Record that user viewed a suggestion
+    recordThoughtfulAction('suggestion_viewed', idea);
+    
+    return idea;
   };
 
   const getNudgeFrequencyName = (frequency: string) => {
@@ -199,7 +244,7 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
       {/* Dashboard Stats */}
       <DashboardStats stats={{
         daysTogether: getDaysTogether(),
-        anniversaryWishes: stats.anniversaryWishes,
+        thoughtfulActions: stats.thoughtfulActions,
         daysToNextEvent: stats.daysToNextEvent
       }} />
 
@@ -218,7 +263,11 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
               {upcomingEvents.length > 0 ? (
                 <div className="space-y-4">
                   {upcomingEvents.slice(0, 3).map((event, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-rose-50 rounded-lg">
+                    <div 
+                      key={index} 
+                      className="flex items-center justify-between p-4 bg-rose-50 rounded-lg cursor-pointer hover:bg-rose-100 transition-colors"
+                      onClick={() => recordThoughtfulAction('event_acknowledged', `Acknowledged ${event.name}`)}
+                    >
                       <div className="flex items-center space-x-3">
                         <div className="text-2xl">
                           {event.type === 'birthday' ? '🎂' : '💖'}
@@ -324,7 +373,10 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
           </Card>
 
           {/* Add Someone Else Card */}
-          <Card className="border-dashed border-2 border-rose-200 hover:border-rose-300 transition-colors cursor-pointer">
+          <Card 
+            className="border-dashed border-2 border-rose-200 hover:border-rose-300 transition-colors cursor-pointer"
+            onClick={() => recordThoughtfulAction('add_person_clicked', 'Clicked to add another person')}
+          >
             <CardContent className="p-6 text-center">
               <Plus className="h-8 w-8 text-rose-400 mx-auto mb-3" />
               <h3 className="font-medium text-rose-800 mb-2">
