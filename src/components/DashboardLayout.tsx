@@ -22,7 +22,7 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutProps) => {
   const { user, signOut } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Default to closed on mobile
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const navigationItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -51,7 +51,7 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
         {/* Sidebar Header */}
         <div className="p-4 border-b border-rose-100/50">
           <div className="flex items-center justify-between">
-            {(sidebarOpen || window.innerWidth >= 768) && <CareloomLogo />}
+            {sidebarOpen && <CareloomLogo />}
             <Button
               variant="ghost"
               size="sm"
@@ -73,7 +73,7 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
                   key={item.id}
                   onClick={() => {
                     onTabChange(item.id);
-                    setSidebarOpen(false); // Close sidebar on mobile after selection
+                    setSidebarOpen(false);
                   }}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left",
@@ -83,7 +83,7 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
                   )}
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
-                  {(sidebarOpen || window.innerWidth >= 768) && (
+                  {sidebarOpen && (
                     <span className="font-medium">{item.label}</span>
                   )}
                 </button>
@@ -96,12 +96,12 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
         <div className="p-4 border-t border-rose-100/50">
           <div className={cn(
             "flex items-center gap-3",
-            (!sidebarOpen && window.innerWidth >= 768) && "justify-center"
+            !sidebarOpen && "justify-center"
           )}>
             <div className="w-8 h-8 bg-rose-200 rounded-full flex items-center justify-center flex-shrink-0">
               <User className="h-4 w-4 text-rose-700" />
             </div>
-            {(sidebarOpen || window.innerWidth >= 768) && (
+            {sidebarOpen && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-rose-800 truncate">
                   {user?.user_metadata?.full_name || user?.email}

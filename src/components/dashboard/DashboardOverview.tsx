@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import DashboardStats from './DashboardStats';
@@ -43,8 +42,9 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
     thoughtfulActions: 0,
     daysToNextEvent: 0
   });
+  const [hasViewedSuggestion, setHasViewedSuggestion] = useState(false);
 
-  // Memoize the daily suggestion so it doesn't change on every render
+  // Create a stable suggestion for the entire day using date as seed
   const todaysSuggestion = useMemo(() => {
     const ideas = [
       "Plan a cozy movie night with their favorite snacks 🍿",
@@ -54,11 +54,13 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
       "Plan a surprise picnic in your favorite spot 🧺",
       "Create a playlist of songs that remind you of them 🎵"
     ];
-    // Use a consistent seed based on the current date to get the same suggestion all day
-    const today = new Date().toDateString();
-    const seed = today.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    
+    // Use today's date to create a consistent seed
+    const today = new Date();
+    const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+    const seed = dateString.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return ideas[seed % ideas.length];
-  }, []);
+  }, []); // Empty dependency array ensures this only runs once per component mount
 
   useEffect(() => {
     if (relationship) {
@@ -191,11 +193,6 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
     return score;
   };
 
-  const handleViewSuggestion = () => {
-    // Only record when user actually clicks to view the suggestion
-    recordThoughtfulAction('suggestion_viewed', todaysSuggestion);
-  };
-
   const getNudgeFrequencyName = (frequency: string) => {
     const frequencyNames = {
       'daily': 'Daily Love Taps ❤️',
@@ -233,6 +230,13 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
       day: 'numeric',
       year: 'numeric'
     });
+  };
+
+  const handleViewSuggestion = async () => {
+    if (!hasViewedSuggestion) {
+      await recordThoughtfulAction('suggestion_viewed', todaysSuggestion);
+      setHasViewedSuggestion(true);
+    }
   };
 
   return (
@@ -376,12 +380,19 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
               <p className="text-rose-700 leading-relaxed text-sm md:text-base mb-3">
                 {todaysSuggestion}
               </p>
-              <button
-                onClick={handleViewSuggestion}
-                className="text-xs text-rose-500 hover:text-rose-700 underline"
-              >
-                Mark as viewed
-              </button>
+              {!hasViewedSuggestion && (
+                <button
+                  onClick={handleViewSuggestion}
+                  className="text-xs text-rose-500 hover:text-rose-700 underline"
+                >
+                  Mark as viewed
+                </button>
+              )}
+              {hasViewedSuggestion && (
+                <p className="text-xs text-rose-400 italic">
+                  ✓ Viewed today
+                </p>
+              )}
             </CardContent>
           </Card>
 
