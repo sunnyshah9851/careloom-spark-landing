@@ -58,10 +58,10 @@ const Index = () => {
 
   if (loading || checkingProfile) {
     return (
-      <div className="min-h-screen gradient-warm flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto mb-4"></div>
-          <p className="text-rose-700">Loading...</p>
+          <p className="text-rose-700 mobile-text-fix">Loading...</p>
         </div>
       </div>
     );
@@ -70,7 +70,11 @@ const Index = () => {
   if (user) {
     if (showOnboarding) {
       console.log('Rendering Onboarding for new user:', user.email);
-      return <Onboarding onComplete={() => setShowOnboarding(false)} />;
+      return (
+        <div className="min-h-screen bg-background">
+          <Onboarding onComplete={() => setShowOnboarding(false)} />
+        </div>
+      );
     } else {
       console.log('Rendering Dashboard for existing user:', user.email);
       return <Dashboard />;
@@ -79,11 +83,13 @@ const Index = () => {
 
   console.log('Rendering landing page - no user');
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Header />
-      <HeroSection />
-      <FeaturesSection />
-      <CallToActionSection />
+      <main className="mobile-text-fix">
+        <HeroSection />
+        <FeaturesSection />
+        <CallToActionSection />
+      </main>
     </div>
   );
 };

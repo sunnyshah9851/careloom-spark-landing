@@ -22,7 +22,7 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutProps) => {
   const { user, signOut } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Default to closed on mobile
 
   const navigationItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -33,16 +33,25 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
   ];
 
   return (
-    <div className="min-h-screen gradient-warm flex">
+    <div className="min-h-screen bg-background flex relative">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div className={cn(
-        "bg-white/90 backdrop-blur-md border-r border-rose-100/50 transition-all duration-300 flex flex-col",
-        sidebarOpen ? "w-64" : "w-16"
+        "bg-white/95 backdrop-blur-md border-r border-rose-100/50 transition-all duration-300 flex flex-col z-50",
+        "fixed md:relative inset-y-0 left-0",
+        sidebarOpen ? "w-64 translate-x-0" : "w-64 -translate-x-full md:translate-x-0 md:w-16"
       )}>
         {/* Sidebar Header */}
         <div className="p-4 border-b border-rose-100/50">
           <div className="flex items-center justify-between">
-            {sidebarOpen && <CareloomLogo />}
+            {(sidebarOpen || window.innerWidth >= 768) && <CareloomLogo />}
             <Button
               variant="ghost"
               size="sm"
@@ -62,7 +71,10 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
               return (
                 <button
                   key={item.id}
-                  onClick={() => onTabChange(item.id)}
+                  onClick={() => {
+                    onTabChange(item.id);
+                    setSidebarOpen(false); // Close sidebar on mobile after selection
+                  }}
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors text-left",
                     activeTab === item.id
@@ -71,7 +83,7 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
                   )}
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
-                  {sidebarOpen && (
+                  {(sidebarOpen || window.innerWidth >= 768) && (
                     <span className="font-medium">{item.label}</span>
                   )}
                 </button>
@@ -84,12 +96,12 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
         <div className="p-4 border-t border-rose-100/50">
           <div className={cn(
             "flex items-center gap-3",
-            !sidebarOpen && "justify-center"
+            (!sidebarOpen && window.innerWidth >= 768) && "justify-center"
           )}>
-            <div className="w-8 h-8 bg-rose-200 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-rose-200 rounded-full flex items-center justify-center flex-shrink-0">
               <User className="h-4 w-4 text-rose-700" />
             </div>
-            {sidebarOpen && (
+            {(sidebarOpen || window.innerWidth >= 768) && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-rose-800 truncate">
                   {user?.user_metadata?.full_name || user?.email}
@@ -109,7 +121,18 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto bg-background">
+        <div className="md:hidden p-4 border-b border-rose-100/50 bg-white/95 backdrop-blur-md">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarOpen(true)}
+            className="text-rose-700 hover:text-rose-900 hover:bg-rose-50"
+          >
+            <Menu className="h-4 w-4 mr-2" />
+            Menu
+          </Button>
+        </div>
         {children}
       </div>
     </div>

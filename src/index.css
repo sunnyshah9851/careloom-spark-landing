@@ -94,20 +94,35 @@
 
   body {
     @apply bg-background text-foreground font-inter;
+    /* Ensure consistent background on all devices */
+    min-height: 100vh;
+    background-color: hsl(var(--background));
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-playfair;
+    @apply font-playfair text-foreground;
+    /* Ensure headings are readable on mobile */
+    color: hsl(var(--foreground));
+  }
+
+  /* Fix for mobile viewport */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
   }
 }
 
 @layer utilities {
   .gradient-warm {
-    background: linear-gradient(135deg, #fefcfa 0%, #fcf7f3 50%, #f7faf8 100%);
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--card)) 50%, hsl(var(--muted)) 100%);
+    /* Fallback for better mobile support */
+    background-color: hsl(var(--background));
   }
   
   .gradient-rose {
-    background: linear-gradient(135deg, #fdecef 0%, #f9e4e9 100%);
+    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--secondary)) 100%);
+    /* Fallback for better mobile support */
+    background-color: hsl(var(--secondary));
   }
   
   .text-gradient {
@@ -115,6 +130,32 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    color: transparent;
+    /* Fallback for better mobile support */
+    color: hsl(var(--primary));
+  }
+
+  /* Mobile-specific fixes */
+  @media (max-width: 768px) {
+    .gradient-warm {
+      background: hsl(var(--background));
+    }
+    
+    .gradient-rose {
+      background: hsl(var(--secondary));
+    }
+    
+    .text-gradient {
+      background: none;
+      -webkit-background-clip: unset;
+      -webkit-text-fill-color: unset;
+      background-clip: unset;
+      color: hsl(var(--primary));
+    }
+  }
+
+  /* Ensure proper text contrast on mobile */
+  .mobile-text-fix {
+    color: hsl(var(--foreground)) !important;
+    background-color: transparent;
   }
 }
