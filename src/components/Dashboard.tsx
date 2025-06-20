@@ -302,7 +302,7 @@ const Dashboard = () => {
 
         {/* Dashboard Stats */}
         <DashboardStats stats={{
-          totalNudges: getDaysTogether(),
+          daysTogether: getDaysTogether(),
           anniversaryWishes: stats.anniversaryWishes,
           daysToNextEvent: stats.daysToNextEvent
         }} />

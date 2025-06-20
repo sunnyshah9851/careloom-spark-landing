@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,17 +24,18 @@ const Index = () => {
       }
 
       try {
+        // Check if user has completed onboarding by looking for relationships
         const { data, error } = await supabase
-          .from('profiles')
-          .select('partner_name')
-          .eq('id', user.id)
+          .from('relationships')
+          .select('id')
+          .eq('user_id', user.id)
           .maybeSingle();
 
         if (error) {
-          console.error('Error checking profile:', error);
+          console.error('Error checking relationships:', error);
           setShowOnboarding(true);
-        } else if (!data || !data.partner_name) {
-          // New user or incomplete profile - show onboarding
+        } else if (!data) {
+          // No relationship found - show onboarding
           setShowOnboarding(true);
         } else {
           // Existing user with profile - show dashboard

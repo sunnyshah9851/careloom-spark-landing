@@ -107,7 +107,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       <div className="w-full max-w-lg">
         {/* Progress indicator */}
         <div className="mb-8 text-center">
-          <p className="text-rose-600 text-sm mb-3">Step {currentStep} of {totalSteps}</p>
+          <p className="text-rose-700 text-sm mb-3 font-medium">Step {currentStep} of {totalSteps}</p>
           <Progress value={progress} className="h-2 bg-rose-100">
             <div 
               className="h-full bg-gradient-to-r from-rose-400 to-rose-500 rounded-full transition-all duration-300 ease-out"
@@ -125,7 +125,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                 <h2 className="text-2xl font-playfair text-rose-800 mb-2">
                   Who's someone really important to you?
                 </h2>
-                <p className="text-rose-600 mb-8 text-lg">
+                <p className="text-rose-700 mb-8 text-lg">
                   This could be your partner, best friend, or anyone special in your life
                 </p>
                 <div className="space-y-5">
@@ -134,19 +134,19 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                       value={data.partnerFirstName}
                       onChange={(e) => setData({ ...data, partnerFirstName: e.target.value })}
                       placeholder="What do you call them?"
-                      className="text-xl py-4 text-center border-2 border-rose-200 focus:border-rose-400 rounded-2xl bg-rose-50/50 placeholder:text-rose-400"
+                      className="text-xl py-4 text-center border-2 border-rose-200 focus:border-rose-400 rounded-2xl bg-rose-50/50 placeholder:text-rose-500 text-rose-800"
                       autoFocus
                     />
-                    <p className="text-xs text-rose-500 mt-2 opacity-75">Their first name</p>
+                    <p className="text-xs text-rose-600 mt-2 opacity-75">Their first name</p>
                   </div>
                   <div>
                     <Input
                       value={data.partnerLastName}
                       onChange={(e) => setData({ ...data, partnerLastName: e.target.value })}
                       placeholder="And their family name?"
-                      className="text-xl py-4 text-center border-2 border-rose-200 focus:border-rose-400 rounded-2xl bg-rose-50/50 placeholder:text-rose-400"
+                      className="text-xl py-4 text-center border-2 border-rose-200 focus:border-rose-400 rounded-2xl bg-rose-50/50 placeholder:text-rose-500 text-rose-800"
                     />
-                    <p className="text-xs text-rose-500 mt-2 opacity-75">Their last name</p>
+                    <p className="text-xs text-rose-600 mt-2 opacity-75">Their last name</p>
                   </div>
                 </div>
               </div>
@@ -159,7 +159,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                 <h2 className="text-2xl font-playfair text-rose-800 mb-2">
                   When's {data.partnerFirstName}'s birthday?
                 </h2>
-                <p className="text-rose-600 mb-8 text-lg">
+                <p className="text-rose-700 mb-8 text-lg">
                   We'll make sure you never miss this special day
                 </p>
                 <Popover>
@@ -167,10 +167,10 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full py-6 text-xl justify-center rounded-2xl border-2 transition-all duration-200 hover:scale-105",
+                        "w-full py-6 text-xl justify-center rounded-2xl border-2 transition-all duration-200 hover:scale-105 text-rose-800",
                         data.partnerBirthday 
-                          ? "bg-rose-50 border-rose-300 text-rose-800 shadow-lg" 
-                          : "border-rose-200 text-rose-500 hover:border-rose-300 hover:bg-rose-50"
+                          ? "bg-rose-50 border-rose-300 shadow-lg" 
+                          : "border-rose-200 hover:border-rose-300 hover:bg-rose-50"
                       )}
                     >
                       {data.partnerBirthday ? (
@@ -200,19 +200,19 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                         caption: "flex justify-center pt-1 relative items-center",
                         caption_label: "text-lg font-medium text-rose-800",
                         nav: "space-x-1 flex items-center",
-                        nav_button: "h-8 w-8 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition-colors",
+                        nav_button: "h-8 w-8 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl transition-colors",
                         nav_button_previous: "absolute left-1",
                         nav_button_next: "absolute right-1",
                         table: "w-full border-collapse space-y-1",
                         head_row: "flex",
-                        head_cell: "text-rose-600 rounded-lg w-10 font-normal text-sm",
+                        head_cell: "text-rose-700 rounded-lg w-10 font-normal text-sm",
                         row: "flex w-full mt-2",
                         cell: "h-10 w-10 text-center text-sm p-0 relative hover:bg-rose-100 rounded-lg transition-colors",
-                        day: "h-10 w-10 p-0 font-normal rounded-lg hover:bg-rose-200 transition-colors",
+                        day: "h-10 w-10 p-0 font-normal rounded-lg hover:bg-rose-200 transition-colors text-rose-800",
                         day_selected: "bg-rose-500 text-white hover:bg-rose-600 font-medium",
                         day_today: "bg-rose-100 text-rose-800 font-medium",
-                        day_outside: "text-rose-300 opacity-50",
-                        day_disabled: "text-rose-200 opacity-30",
+                        day_outside: "text-rose-400 opacity-50",
+                        day_disabled: "text-rose-300 opacity-30",
                       }}
                     />
                   </PopoverContent>
@@ -227,7 +227,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                 <h2 className="text-2xl font-playfair text-rose-800 mb-2">
                   Do you two celebrate an anniversary?
                 </h2>
-                <p className="text-rose-600 mb-8 text-lg">
+                <p className="text-rose-700 mb-8 text-lg">
                   We can help you remember this special milestone too
                 </p>
                 <Popover>
@@ -235,10 +235,10 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full py-6 text-xl justify-center rounded-2xl border-2 mb-6 transition-all duration-200 hover:scale-105",
+                        "w-full py-6 text-xl justify-center rounded-2xl border-2 mb-6 transition-all duration-200 hover:scale-105 text-rose-800",
                         data.anniversaryDate 
-                          ? "bg-rose-50 border-rose-300 text-rose-800 shadow-lg" 
-                          : "border-rose-200 text-rose-500 hover:border-rose-300 hover:bg-rose-50"
+                          ? "bg-rose-50 border-rose-300 shadow-lg" 
+                          : "border-rose-200 hover:border-rose-300 hover:bg-rose-50"
                       )}
                     >
                       {data.anniversaryDate ? (
@@ -268,19 +268,19 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                         caption: "flex justify-center pt-1 relative items-center",
                         caption_label: "text-lg font-medium text-rose-800",
                         nav: "space-x-1 flex items-center",
-                        nav_button: "h-8 w-8 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl transition-colors",
+                        nav_button: "h-8 w-8 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl transition-colors",
                         nav_button_previous: "absolute left-1",
                         nav_button_next: "absolute right-1",
                         table: "w-full border-collapse space-y-1",
                         head_row: "flex",
-                        head_cell: "text-rose-600 rounded-lg w-10 font-normal text-sm",
+                        head_cell: "text-rose-700 rounded-lg w-10 font-normal text-sm",
                         row: "flex w-full mt-2",
                         cell: "h-10 w-10 text-center text-sm p-0 relative hover:bg-rose-100 rounded-lg transition-colors",
-                        day: "h-10 w-10 p-0 font-normal rounded-lg hover:bg-rose-200 transition-colors",
+                        day: "h-10 w-10 p-0 font-normal rounded-lg hover:bg-rose-200 transition-colors text-rose-800",
                         day_selected: "bg-rose-500 text-white hover:bg-rose-600 font-medium",
                         day_today: "bg-rose-100 text-rose-800 font-medium",
-                        day_outside: "text-rose-300 opacity-50",
-                        day_disabled: "text-rose-200 opacity-30",
+                        day_outside: "text-rose-400 opacity-50",
+                        day_disabled: "text-rose-300 opacity-30",
                       }}
                     />
                   </PopoverContent>
@@ -288,7 +288,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                 <Button
                   variant="ghost"
                   onClick={() => setData({ ...data, anniversaryDate: null })}
-                  className="text-rose-500 hover:text-rose-700 text-lg py-3 px-6 rounded-2xl hover:bg-rose-50"
+                  className="text-rose-600 hover:text-rose-700 text-lg py-3 px-6 rounded-2xl hover:bg-rose-50"
                 >
                   Skip for now 💫
                 </Button>
@@ -302,7 +302,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                 <h2 className="text-2xl font-playfair text-rose-800 mb-2">
                   How often would you like thoughtful nudges?
                 </h2>
-                <p className="text-rose-600 mb-8 text-lg">
+                <p className="text-rose-700 mb-8 text-lg">
                   We'll send gentle reminders to help you stay connected
                 </p>
                 <RadioGroup
@@ -331,7 +331,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                         <div className="font-medium text-rose-800 text-lg">
                           {option.label}
                         </div>
-                        <p className="text-sm text-rose-600">{option.desc}</p>
+                        <p className="text-sm text-rose-700">{option.desc}</p>
                       </div>
                     </label>
                   ))}
@@ -345,7 +345,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                 variant="ghost"
                 onClick={handleBack}
                 disabled={currentStep === 1}
-                className="text-rose-600 text-lg py-3 px-6 rounded-2xl hover:bg-rose-50"
+                className="text-rose-700 text-lg py-3 px-6 rounded-2xl hover:bg-rose-50"
               >
                 Back
               </Button>
