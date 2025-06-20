@@ -54,6 +54,12 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
     }
   };
 
+  const handleSkip = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
   const handleComplete = async () => {
     if (!user) return;
 
@@ -287,7 +293,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                 </Popover>
                 <Button
                   variant="ghost"
-                  onClick={() => setData({ ...data, anniversaryDate: null })}
+                  onClick={handleSkip}
                   className="text-rose-600 hover:text-rose-700 text-lg py-3 px-6 rounded-2xl hover:bg-rose-50"
                 >
                   Skip for now 💫
