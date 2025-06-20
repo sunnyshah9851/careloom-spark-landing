@@ -17,13 +17,13 @@ const Header = () => {
           
           {/* Navigation - Hidden on mobile, shown on tablet+ */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-rose-700 hover:text-rose-900 transition-colors mobile-text-fix">
+            <a href="#features" className="text-rose-700 hover:text-rose-900 transition-colors">
               Features
             </a>
-            <a href="#how-it-works" className="text-rose-700 hover:text-rose-900 transition-colors mobile-text-fix">
+            <a href="#how-it-works" className="text-rose-700 hover:text-rose-900 transition-colors">
               How it Works
             </a>
-            <a href="#pricing" className="text-rose-700 hover:text-rose-900 transition-colors mobile-text-fix">
+            <a href="#pricing" className="text-rose-700 hover:text-rose-900 transition-colors">
               Pricing
             </a>
           </nav>
@@ -33,7 +33,7 @@ const Header = () => {
             <Button 
               variant="ghost" 
               onClick={signInWithGoogle}
-              className="text-rose-700 hover:text-rose-900 hover:bg-rose-50 mobile-text-fix text-sm sm:text-base px-2 sm:px-4"
+              className="text-rose-700 hover:text-rose-900 hover:bg-rose-50 text-sm sm:text-base px-2 sm:px-4"
               size="sm"
             >
               Log In

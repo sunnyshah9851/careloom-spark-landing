@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -61,7 +60,7 @@ const Index = () => {
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto mb-4"></div>
-          <p className="text-rose-700 mobile-text-fix">Loading...</p>
+          <p className="text-rose-700">Loading...</p>
         </div>
       </div>
     );
@@ -85,7 +84,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <main className="mobile-text-fix">
+      <main>
         <HeroSection />
         <FeaturesSection />
         <CallToActionSection />

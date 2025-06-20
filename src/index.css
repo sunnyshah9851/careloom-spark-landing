@@ -94,35 +94,32 @@
 
   body {
     @apply bg-background text-foreground font-inter;
-    /* Ensure consistent background on all devices */
     min-height: 100vh;
-    background-color: hsl(var(--background));
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-playfair text-foreground;
-    /* Ensure headings are readable on mobile */
-    color: hsl(var(--foreground));
   }
 
-  /* Fix for mobile viewport */
+  /* Mobile viewport fixes */
   html {
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
+  }
+
+  /* Ensure safe area for mobile devices */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
   }
 }
 
 @layer utilities {
   .gradient-warm {
     background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--card)) 50%, hsl(var(--muted)) 100%);
-    /* Fallback for better mobile support */
-    background-color: hsl(var(--background));
   }
   
   .gradient-rose {
     background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--secondary)) 100%);
-    /* Fallback for better mobile support */
-    background-color: hsl(var(--secondary));
   }
   
   .text-gradient {
@@ -130,11 +127,9 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    /* Fallback for better mobile support */
-    color: hsl(var(--primary));
   }
 
-  /* Mobile-specific fixes */
+  /* Mobile-specific gradient fallbacks */
   @media (max-width: 768px) {
     .gradient-warm {
       background: hsl(var(--background));
@@ -151,11 +146,5 @@
       background-clip: unset;
       color: hsl(var(--primary));
     }
-  }
-
-  /* Ensure proper text contrast on mobile */
-  .mobile-text-fix {
-    color: hsl(var(--foreground)) !important;
-    background-color: transparent;
   }
 }
