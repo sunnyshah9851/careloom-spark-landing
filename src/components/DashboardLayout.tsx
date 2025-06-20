@@ -83,9 +83,12 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
                   )}
                 >
                   <Icon className="h-5 w-5 flex-shrink-0" />
-                  {sidebarOpen && (
-                    <span className="font-medium">{item.label}</span>
-                  )}
+                  <span className={cn(
+                    "font-medium transition-opacity duration-300",
+                    sidebarOpen ? "opacity-100" : "opacity-0 md:hidden"
+                  )}>
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
@@ -101,21 +104,22 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
             <div className="w-8 h-8 bg-rose-200 rounded-full flex items-center justify-center flex-shrink-0">
               <User className="h-4 w-4 text-rose-700" />
             </div>
-            {sidebarOpen && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-rose-800 truncate">
-                  {user?.user_metadata?.full_name || user?.email}
-                </p>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={signOut}
-                  className="text-xs text-rose-600 hover:text-rose-700 p-0 h-auto"
-                >
-                  Sign Out
-                </Button>
-              </div>
-            )}
+            <div className={cn(
+              "flex-1 min-w-0 transition-opacity duration-300",
+              sidebarOpen ? "opacity-100" : "opacity-0 md:hidden"
+            )}>
+              <p className="text-sm font-medium text-rose-800 truncate">
+                {user?.user_metadata?.full_name || user?.email}
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={signOut}
+                className="text-xs text-rose-600 hover:text-rose-700 p-0 h-auto"
+              >
+                Sign Out
+              </Button>
+            </div>
           </div>
         </div>
       </div>
