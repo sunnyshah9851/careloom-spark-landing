@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import DashboardStats from './DashboardStats';
 import { Heart, Plus, Lightbulb, Bell } from 'lucide-react';
@@ -42,6 +43,22 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
     thoughtfulActions: 0,
     daysToNextEvent: 0
   });
+
+  // Memoize the daily suggestion so it doesn't change on every render
+  const todaysSuggestion = useMemo(() => {
+    const ideas = [
+      "Plan a cozy movie night with their favorite snacks 🍿",
+      "Take a sunset walk together and share your favorite memories 🌅",
+      "Cook their favorite meal together 👨‍🍳",
+      "Write them a heartfelt letter about what they mean to you 💌",
+      "Plan a surprise picnic in your favorite spot 🧺",
+      "Create a playlist of songs that remind you of them 🎵"
+    ];
+    // Use a consistent seed based on the current date to get the same suggestion all day
+    const today = new Date().toDateString();
+    const seed = today.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return ideas[seed % ideas.length];
+  }, []);
 
   useEffect(() => {
     if (relationship) {
@@ -174,21 +191,9 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
     return score;
   };
 
-  const getDateIdea = () => {
-    const ideas = [
-      "Plan a cozy movie night with their favorite snacks 🍿",
-      "Take a sunset walk together and share your favorite memories 🌅",
-      "Cook their favorite meal together 👨‍🍳",
-      "Write them a heartfelt letter about what they mean to you 💌",
-      "Plan a surprise picnic in your favorite spot 🧺",
-      "Create a playlist of songs that remind you of them 🎵"
-    ];
-    const idea = ideas[Math.floor(Math.random() * ideas.length)];
-    
-    // Record that user viewed a suggestion
-    recordThoughtfulAction('suggestion_viewed', idea);
-    
-    return idea;
+  const handleViewSuggestion = () => {
+    // Only record when user actually clicks to view the suggestion
+    recordThoughtfulAction('suggestion_viewed', todaysSuggestion);
   };
 
   const getNudgeFrequencyName = (frequency: string) => {
@@ -231,12 +236,12 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
   };
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-playfair font-bold text-rose-800 mb-2">
+    <div className="p-4 md:p-8">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-playfair font-bold text-rose-800 mb-2">
           Your Relationship Dashboard
         </h1>
-        <p className="text-rose-600 text-lg">
+        <p className="text-rose-600 text-base md:text-lg">
           Keep track of the moments that matter most
         </p>
       </div>
@@ -249,8 +254,8 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
       }} />
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Upcoming Events - spans 2 columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
+        {/* Upcoming Events - spans 2 columns on large screens */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
@@ -265,7 +270,7 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
                   {upcomingEvents.slice(0, 3).map((event, index) => (
                     <div 
                       key={index} 
-                      className="flex items-center justify-between p-4 bg-rose-50 rounded-lg cursor-pointer hover:bg-rose-100 transition-colors"
+                      className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-rose-50 rounded-lg cursor-pointer hover:bg-rose-100 transition-colors gap-3"
                       onClick={() => recordThoughtfulAction('event_acknowledged', `Acknowledged ${event.name}`)}
                     >
                       <div className="flex items-center space-x-3">
@@ -283,7 +288,7 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right sm:text-left">
                         <div className="text-lg font-bold text-rose-700">
                           {event.daysUntil === 0 ? 'Today!' : `${event.daysUntil} days`}
                         </div>
@@ -307,7 +312,9 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-rose-800">
                 <Bell className="h-5 w-5 text-rose-500" />
-                {getNudgeFrequencyName(relationship?.reminder_frequency || 'weekly')}
+                <span className="text-sm md:text-base">
+                  {getNudgeFrequencyName(relationship?.reminder_frequency || 'weekly')}
+                </span>
               </CardTitle>
               <CardDescription>
                 Your next thoughtful reminder
@@ -315,13 +322,13 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
             </CardHeader>
             <CardContent>
               <div className="text-center">
-                <div className="text-lg font-semibold text-rose-600 mb-2">
+                <div className="text-sm md:text-base font-semibold text-rose-600 mb-2">
                   Next nudge coming on:
                 </div>
-                <div className="text-2xl font-bold text-rose-700 mb-2">
+                <div className="text-lg md:text-xl font-bold text-rose-700 mb-2">
                   {getNextNudgeDate(relationship?.reminder_frequency || 'weekly')}
                 </div>
-                <p className="text-sm text-rose-500">
+                <p className="text-xs md:text-sm text-rose-500">
                   We'll send you a gentle reminder to show some love! 💌
                 </p>
               </div>
@@ -341,10 +348,10 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
             </CardHeader>
             <CardContent>
               <div className="text-center">
-                <div className="text-4xl font-bold text-rose-600 mb-2">
+                <div className="text-3xl md:text-4xl font-bold text-rose-600 mb-2">
                   {getThoughtfulnessScore()}%
                 </div>
-                <p className="text-sm text-rose-500">
+                <p className="text-xs md:text-sm text-rose-500">
                   {getThoughtfulnessScore() === 100 ? "You're doing amazing! 🌟" : 
                    getThoughtfulnessScore() >= 75 ? "Great job staying connected! 💝" :
                    getThoughtfulnessScore() >= 50 ? "You're on the right track! 💕" :
@@ -366,9 +373,15 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-rose-700 leading-relaxed">
-                {getDateIdea()}
+              <p className="text-rose-700 leading-relaxed text-sm md:text-base mb-3">
+                {todaysSuggestion}
               </p>
+              <button
+                onClick={handleViewSuggestion}
+                className="text-xs text-rose-500 hover:text-rose-700 underline"
+              >
+                Mark as viewed
+              </button>
             </CardContent>
           </Card>
 
@@ -377,12 +390,12 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
             className="border-dashed border-2 border-rose-200 hover:border-rose-300 transition-colors cursor-pointer"
             onClick={() => recordThoughtfulAction('add_person_clicked', 'Clicked to add another person')}
           >
-            <CardContent className="p-6 text-center">
-              <Plus className="h-8 w-8 text-rose-400 mx-auto mb-3" />
-              <h3 className="font-medium text-rose-800 mb-2">
+            <CardContent className="p-4 md:p-6 text-center">
+              <Plus className="h-6 md:h-8 w-6 md:w-8 text-rose-400 mx-auto mb-3" />
+              <h3 className="font-medium text-rose-800 mb-2 text-sm md:text-base">
                 Add someone else you care about
               </h3>
-              <p className="text-sm text-rose-600">
+              <p className="text-xs md:text-sm text-rose-600">
                 Family, friends, or other special people in your life
               </p>
             </CardContent>
