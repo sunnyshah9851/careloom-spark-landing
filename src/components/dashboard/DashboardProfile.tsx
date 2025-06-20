@@ -12,7 +12,7 @@ interface Profile {
 
 interface DashboardProfileProps {
   profile: Profile;
-  onProfileUpdate: (profile: Profile) => void;
+  onProfileUpdate: (profile: Profile) => Promise<void>;
 }
 
 const DashboardProfile = ({ profile, onProfileUpdate }: DashboardProfileProps) => {

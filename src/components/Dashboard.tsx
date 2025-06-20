@@ -45,77 +45,118 @@ const Dashboard = () => {
   useEffect(() => {
     console.log('Dashboard useEffect - user changed:', user?.email);
     if (user) {
-      fetchRelationship();
-      fetchProfile();
+      fetchUserData();
     }
   }, [user]);
 
-  const fetchRelationship = async () => {
+  const fetchUserData = async () => {
     if (!user) {
-      console.log('No user for fetchRelationship');
+      console.log('No user for fetchUserData');
       return;
     }
 
-    console.log('Fetching relationship for user:', user.id);
+    console.log('Fetching user data for:', user.id);
 
-    const { data, error } = await supabase
-      .from('relationships')
-      .select('*')
-      .eq('user_id', user.id)
-      .maybeSingle();
+    // Fetch both profile and relationship data
+    const [profileResult, relationshipResult] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle(),
+      supabase
+        .from('relationships')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle()
+    ]);
 
-    if (error) {
-      console.error('Error fetching relationship:', error);
-      return;
+    if (profileResult.error) {
+      console.error('Error fetching profile:', profileResult.error);
     }
 
-    console.log('Relationship data:', data);
-    setRelationship(data);
-
-    // Convert relationship data to profile format for compatibility
-    if (data) {
-      setProfile(prev => ({
-        ...prev,
-        partner_name: `${data.partner_first_name} ${data.partner_last_name}`,
-        partner_birthday: data.partner_birthday || '',
-        anniversary_date: data.anniversary_date || '',
-        reminder_frequency: data.reminder_frequency || 'weekly'
-      }));
+    if (relationshipResult.error) {
+      console.error('Error fetching relationship:', relationshipResult.error);
     }
+
+    console.log('Profile data:', profileResult.data);
+    console.log('Relationship data:', relationshipResult.data);
+
+    // Set relationship data
+    setRelationship(relationshipResult.data);
+
+    // Combine profile and relationship data into the profile format
+    const profileData = profileResult.data;
+    const relationshipData = relationshipResult.data;
+
+    setProfile({
+      full_name: profileData?.full_name || '',
+      user_birthday: profileData?.user_birthday || '',
+      partner_name: relationshipData ? `${relationshipData.partner_first_name} ${relationshipData.partner_last_name}` : '',
+      partner_birthday: relationshipData?.partner_birthday || '',
+      anniversary_date: relationshipData?.anniversary_date || '',
+      reminder_frequency: relationshipData?.reminder_frequency || 'weekly'
+    });
   };
 
-  const fetchProfile = async () => {
-    if (!user) {
-      console.log('No user for fetchProfile');
-      return;
+  const handleProfileUpdate = async (updatedProfile: Profile) => {
+    if (!user) return;
+
+    try {
+      // Update profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          full_name: updatedProfile.full_name,
+          user_birthday: updatedProfile.user_birthday || null,
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Parse partner name
+      const nameParts = updatedProfile.partner_name.trim().split(' ');
+      const partner_first_name = nameParts[0] || '';
+      const partner_last_name = nameParts.slice(1).join(' ') || '';
+
+      // Update or create relationship
+      if (relationship) {
+        // Update existing relationship
+        const { error: relationshipError } = await supabase
+          .from('relationships')
+          .update({
+            partner_first_name,
+            partner_last_name,
+            partner_birthday: updatedProfile.partner_birthday || null,
+            anniversary_date: updatedProfile.anniversary_date || null,
+            reminder_frequency: updatedProfile.reminder_frequency,
+          })
+          .eq('id', relationship.id);
+
+        if (relationshipError) throw relationshipError;
+      } else {
+        // Create new relationship
+        const { error: relationshipError } = await supabase
+          .from('relationships')
+          .insert({
+            user_id: user.id,
+            partner_first_name,
+            partner_last_name,
+            partner_birthday: updatedProfile.partner_birthday || null,
+            anniversary_date: updatedProfile.anniversary_date || null,
+            reminder_frequency: updatedProfile.reminder_frequency,
+          });
+
+        if (relationshipError) throw relationshipError;
+      }
+
+      // Refresh data after update
+      await fetchUserData();
+      
+      console.log('Profile updated successfully');
+    } catch (error) {
+      console.error('Error updating profile:', error);
     }
-
-    console.log('Fetching profile for user:', user.id);
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error fetching profile:', error);
-      return;
-    }
-
-    console.log('Profile data:', data);
-
-    if (data) {
-      setProfile(prev => ({
-        ...prev,
-        full_name: data.full_name || '',
-        user_birthday: data.user_birthday || ''
-      }));
-    }
-  };
-
-  const handleProfileUpdate = (updatedProfile: Profile) => {
-    setProfile(updatedProfile);
   };
 
   const renderContent = () => {
