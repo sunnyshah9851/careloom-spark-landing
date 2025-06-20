@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import DashboardStats from './DashboardStats';
-import { Heart, Plus, Lightbulb } from 'lucide-react';
+import { Heart, Plus, Lightbulb, Bell } from 'lucide-react';
 
 interface Relationship {
   id: string;
@@ -146,6 +146,45 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
     return ideas[Math.floor(Math.random() * ideas.length)];
   };
 
+  const getNudgeFrequencyName = (frequency: string) => {
+    const frequencyNames = {
+      'daily': 'Daily Love Taps ❤️',
+      'weekly': 'Weekly Heart Nudges 💝',
+      'biweekly': 'Bi-Weekly Sweet Reminders 🌸',
+      'monthly': 'Monthly Romance Boosts 🌹'
+    };
+    return frequencyNames[frequency as keyof typeof frequencyNames] || 'Love Reminders 💕';
+  };
+
+  const getNextNudgeDate = (frequency: string) => {
+    const today = new Date();
+    let nextNudge = new Date(today);
+
+    switch (frequency) {
+      case 'daily':
+        nextNudge.setDate(today.getDate() + 1);
+        break;
+      case 'weekly':
+        nextNudge.setDate(today.getDate() + 7);
+        break;
+      case 'biweekly':
+        nextNudge.setDate(today.getDate() + 14);
+        break;
+      case 'monthly':
+        nextNudge.setMonth(today.getMonth() + 1);
+        break;
+      default:
+        nextNudge.setDate(today.getDate() + 7);
+    }
+
+    return nextNudge.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -214,6 +253,32 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
 
         {/* Right sidebar with thoughtfulness score and suggestions */}
         <div className="space-y-6">
+          {/* Nudge Settings Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-rose-800">
+                <Bell className="h-5 w-5 text-rose-500" />
+                {getNudgeFrequencyName(relationship?.reminder_frequency || 'weekly')}
+              </CardTitle>
+              <CardDescription>
+                Your next thoughtful reminder
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center">
+                <div className="text-lg font-semibold text-rose-600 mb-2">
+                  Next nudge coming on:
+                </div>
+                <div className="text-2xl font-bold text-rose-700 mb-2">
+                  {getNextNudgeDate(relationship?.reminder_frequency || 'weekly')}
+                </div>
+                <p className="text-sm text-rose-500">
+                  We'll send you a gentle reminder to show some love! 💌
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Thoughtfulness Score */}
           <Card>
             <CardHeader>
