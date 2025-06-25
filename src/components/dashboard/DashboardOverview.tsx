@@ -4,6 +4,7 @@ import DashboardStats from './DashboardStats';
 import { Heart, Plus, Lightbulb, Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import TryNudgeCard from './TryNudgeCard';
 
 interface Relationship {
   id: string;
@@ -320,6 +321,12 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
 
         {/* Right sidebar with thoughtfulness score and suggestions */}
         <div className="space-y-6">
+          {/* Try a Nudge Card */}
+          <TryNudgeCard 
+            partnerName={relationship?.partner_first_name}
+            onNudgeSent={() => recordThoughtfulAction('nudge_requested', 'Requested personalized date ideas via email')}
+          />
+
           {/* Nudge Settings Card */}
           <Card>
             <CardHeader>
