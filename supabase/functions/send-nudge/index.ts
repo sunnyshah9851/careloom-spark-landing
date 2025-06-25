@@ -26,7 +26,35 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { userId, userEmail, userName, partnerName, city }: NudgeRequest = await req.json();
+    // Get the authorization header to verify the user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+
+    // Initialize Supabase client with the user's token
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: {
+        headers: {
+          Authorization: authHeader,
+        },
+      },
+    });
+
+    // Get the authenticated user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    console.log('Authenticated user email:', user.email);
+
+    const { userId, userName, partnerName, city }: NudgeRequest = await req.json();
+
+    // Use the authenticated user's email instead of the one from the request
+    const userEmail = user.email!;
 
     // Generate personalized date ideas
     const dateIdeas = [
@@ -83,6 +111,8 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
+    console.log('Sending email to:', userEmail);
+
     const emailResponse = await resend.emails.send({
       from: "Careloom <careloom@resend.dev>",
       to: [userEmail],
@@ -93,10 +123,6 @@ const handler = async (req: Request): Promise<Response> => {
     console.log("Nudge email sent successfully:", emailResponse);
 
     // Record this as a thoughtful action
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
     await supabase
       .from('thoughtful_actions')
       .insert({
