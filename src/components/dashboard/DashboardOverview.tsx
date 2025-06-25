@@ -74,6 +74,8 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
   const fetchThoughtfulActions = async () => {
     if (!user) return;
 
+    console.log('Fetching thoughtful actions for user:', user.id);
+
     const { data, error } = await supabase
       .from('thoughtful_actions')
       .select('id')
@@ -84,11 +86,17 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
       return;
     }
 
-    setStats(prev => ({ ...prev, thoughtfulActions: data?.length || 0 }));
+    console.log('Thoughtful actions data:', data);
+    const count = data?.length || 0;
+    console.log('Thoughtful actions count:', count);
+
+    setStats(prev => ({ ...prev, thoughtfulActions: count }));
   };
 
   const recordThoughtfulAction = async (actionType: string, description?: string) => {
     if (!user) return;
+
+    console.log('Recording thoughtful action:', actionType, description);
 
     const { error } = await supabase
       .from('thoughtful_actions')
@@ -101,6 +109,7 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
     if (error) {
       console.error('Error recording thoughtful action:', error);
     } else {
+      console.log('Thoughtful action recorded successfully');
       // Refresh the count
       fetchThoughtfulActions();
     }
