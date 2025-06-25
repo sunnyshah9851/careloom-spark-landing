@@ -84,7 +84,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "Careloom <hello@careloom.ai>",
+      from: "Careloom <careloom@resend.dev>",
       to: [userEmail],
       subject: "🎁 Your Personalized Date Ideas from Careloom",
       html: emailHtml,
