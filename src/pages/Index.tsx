@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,7 +28,7 @@ const Index = () => {
         const { data, error } = await supabase
           .from('relationships')
           .select('id')
-          .eq('user_id', user.id)
+          .eq('profile_id', user.id)
           .maybeSingle();
 
         if (error) {
