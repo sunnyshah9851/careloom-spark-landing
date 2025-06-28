@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import DashboardStats from './DashboardStats';
 import { Heart, Plus, Lightbulb, Bell, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -250,8 +249,8 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-4">
-      <div className="mb-4">
+    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-3">
+      <div className="mb-3">
         <h1 className="text-2xl md:text-3xl font-playfair font-bold text-rose-800 mb-2">
           Your Relationship Dashboard
         </h1>
@@ -260,18 +259,11 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
         </p>
       </div>
 
-      {/* Dashboard Stats */}
-      <DashboardStats stats={{
-        daysTogether: getDaysTogether(),
-        thoughtfulActions: stats.thoughtfulActions,
-        daysToNextEvent: stats.daysToNextEvent
-      }} />
-
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Left Column - Upcoming Events */}
         <Card className="h-fit">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-rose-800 text-lg">
               <Calendar className="h-4 w-4" />
               Upcoming Events
@@ -282,15 +274,15 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
           </CardHeader>
           <CardContent className="pt-0">
             {upcomingEvents.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {upcomingEvents.slice(0, 3).map((event, index) => (
                   <div 
                     key={index} 
-                    className="flex items-center justify-between p-3 bg-rose-50 rounded-lg cursor-pointer hover:bg-rose-100 transition-colors"
+                    className="flex items-center justify-between p-2 bg-rose-50 rounded-lg cursor-pointer hover:bg-rose-100 transition-colors"
                     onClick={() => recordThoughtfulAction('event_acknowledged', `Acknowledged ${event.name}`)}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className="text-xl">
+                    <div className="flex items-center space-x-2">
+                      <div className="text-lg">
                         {event.type === 'birthday' ? '🎂' : '💖'}
                       </div>
                       <div>
@@ -313,8 +305,8 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Calendar className="h-8 w-8 text-rose-300 mx-auto mb-3" />
+              <div className="text-center py-6">
+                <Calendar className="h-6 w-6 text-rose-300 mx-auto mb-2" />
                 <p className="text-rose-600 text-sm">
                   Add some important dates to see upcoming events!
                 </p>
@@ -324,7 +316,7 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
         </Card>
 
         {/* Right Column - Try Nudge and Today's Suggestion */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* Try Nudge Card */}
           <TryNudgeCard 
             partnerName={relationship?.partner_first_name}
@@ -333,14 +325,14 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
 
           {/* Today's Suggestion */}
           <Card>
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-rose-800 text-lg">
                 <Lightbulb className="h-4 w-4 text-rose-500" />
                 Today's Suggestion
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
-              <p className="text-rose-700 leading-relaxed mb-3 text-sm">
+              <p className="text-rose-700 leading-relaxed mb-2 text-sm">
                 {todaysSuggestion}
               </p>
               {!hasViewedSuggestion ? (
@@ -362,7 +354,7 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
 
       {/* Second Row - Nudge Settings */}
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-rose-800 text-lg">
             <Bell className="h-4 w-4 text-rose-500" />
             <span className="text-sm">
@@ -375,7 +367,7 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
             <div className="text-xs font-semibold text-rose-600 mb-1">
               Next nudge coming on:
             </div>
-            <div className="text-sm font-bold text-rose-700 mb-2">
+            <div className="text-sm font-bold text-rose-700 mb-1">
               {getNextNudgeDate(relationship?.reminder_frequency || 'weekly')}
             </div>
             <p className="text-xs text-rose-500">
@@ -390,8 +382,8 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
         className="border-dashed border-2 border-rose-200 hover:border-rose-300 transition-colors cursor-pointer group"
         onClick={() => recordThoughtfulAction('add_person_clicked', 'Clicked to add another person')}
       >
-        <CardContent className="p-4 text-center">
-          <Plus className="h-8 w-8 text-rose-400 mx-auto mb-2 group-hover:text-rose-500 transition-colors" />
+        <CardContent className="p-3 text-center">
+          <Plus className="h-6 w-6 text-rose-400 mx-auto mb-1 group-hover:text-rose-500 transition-colors" />
           <h3 className="font-medium text-rose-800 mb-1 text-base">
             Add someone else you care about
           </h3>
