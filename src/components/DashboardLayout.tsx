@@ -10,9 +10,16 @@ import {
   Settings, 
   User,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -31,6 +38,14 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex relative">
@@ -97,30 +112,32 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
 
         {/* User Section */}
         <div className="p-4 border-t border-rose-100/50">
-          <div className={cn(
-            "flex items-center gap-3",
-            !sidebarOpen && "justify-center"
-          )}>
-            <div className="w-8 h-8 bg-rose-200 rounded-full flex items-center justify-center flex-shrink-0">
-              <User className="h-4 w-4 text-rose-700" />
-            </div>
-            <div className={cn(
-              "flex-1 min-w-0 transition-opacity duration-300",
-              sidebarOpen ? "opacity-100" : "opacity-0 md:hidden"
-            )}>
-              <p className="text-sm font-medium text-rose-800 truncate">
-                {user?.user_metadata?.full_name || user?.email}
-              </p>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={signOut}
-                className="text-xs text-rose-600 hover:text-rose-700 p-0 h-auto"
-              >
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={cn(
+                "w-full flex items-center gap-3 hover:bg-rose-50 rounded-lg p-2 transition-colors",
+                !sidebarOpen && "justify-center"
+              )}>
+                <div className="w-8 h-8 bg-rose-200 rounded-full flex items-center justify-center flex-shrink-0">
+                  <User className="h-4 w-4 text-rose-700" />
+                </div>
+                <div className={cn(
+                  "flex-1 min-w-0 transition-opacity duration-300 text-left",
+                  sidebarOpen ? "opacity-100" : "opacity-0 md:hidden"
+                )}>
+                  <p className="text-sm font-medium text-rose-800 truncate">
+                    {user?.user_metadata?.full_name || user?.email}
+                  </p>
+                </div>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleSignOut} className="text-rose-600 focus:text-rose-700">
+                <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
-              </Button>
-            </div>
-          </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
