@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Plus, Lightbulb, Bell, Calendar } from 'lucide-react';
@@ -38,10 +39,6 @@ interface DashboardOverviewProps {
 const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) => {
   const { user } = useAuth();
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
-  const [stats, setStats] = useState({
-    thoughtfulActions: 0,
-    daysToNextEvent: 0
-  });
   const [hasViewedSuggestion, setHasViewedSuggestion] = useState(false);
 
   // Create a stable suggestion for the entire day using date as seed
@@ -60,38 +57,13 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
     const dateString = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
     const seed = dateString.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return ideas[seed % ideas.length];
-  }, []); // Empty dependency array ensures this only runs once per component mount
+  }, []);
 
   useEffect(() => {
     if (relationship) {
       calculateUpcomingEvents();
     }
-    if (user) {
-      fetchThoughtfulActions();
-    }
   }, [relationship, profile, user]);
-
-  const fetchThoughtfulActions = async () => {
-    if (!user) return;
-
-    console.log('Fetching thoughtful actions for user:', user.id);
-
-    const { data, error } = await supabase
-      .from('thoughtful_actions')
-      .select('id')
-      .eq('user_id', user.id);
-
-    if (error) {
-      console.error('Error fetching thoughtful actions:', error);
-      return;
-    }
-
-    console.log('Thoughtful actions data:', data);
-    const count = data?.length || 0;
-    console.log('Thoughtful actions count:', count);
-
-    setStats(prev => ({ ...prev, thoughtfulActions: count }));
-  };
 
   const recordThoughtfulAction = async (actionType: string, description?: string) => {
     if (!user) return;
@@ -110,8 +82,6 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
       console.error('Error recording thoughtful action:', error);
     } else {
       console.log('Thoughtful action recorded successfully');
-      // Refresh the count
-      fetchThoughtfulActions();
     }
   };
 
@@ -175,31 +145,7 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
 
     // Sort by days until event
     events.sort((a, b) => a.daysUntil - b.daysUntil);
-
     setUpcomingEvents(events);
-
-    // Update stats with next event
-    if (events.length > 0) {
-      setStats(prev => ({ ...prev, daysToNextEvent: events[0].daysUntil }));
-    }
-  };
-
-  const getDaysTogether = () => {
-    if (!relationship?.anniversary_date) return 0;
-    
-    const anniversaryDate = new Date(relationship.anniversary_date);
-    const today = new Date();
-    const timeDifference = today.getTime() - anniversaryDate.getTime();
-    return Math.max(0, Math.floor(timeDifference / (1000 * 60 * 60 * 24)));
-  };
-
-  const getThoughtfulnessScore = () => {
-    let score = 0;
-    if (relationship?.partner_first_name) score += 25;
-    if (relationship?.partner_birthday) score += 25;
-    if (relationship?.anniversary_date) score += 25;
-    if (upcomingEvents.length > 0) score += 25;
-    return score;
   };
 
   const getNudgeFrequencyName = (frequency: string) => {
@@ -248,10 +194,13 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
     }
   };
 
+  const nextEvent = upcomingEvents[0];
+
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-3">
-      <div className="mb-3">
-        <h1 className="text-2xl md:text-3xl font-playfair font-bold text-rose-800 mb-2">
+    <div className="p-6 max-w-6xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-playfair font-bold text-rose-800">
           Your Relationship Dashboard
         </h1>
         <p className="text-rose-600">
@@ -259,45 +208,116 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
         </p>
       </div>
 
+      {/* Top Row - Next Event Highlight */}
+      {nextEvent && (
+        <Card className="bg-gradient-to-r from-rose-50 to-pink-50 border-rose-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="text-4xl">
+                  {nextEvent.type === 'birthday' ? '🎂' : '💖'}
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-rose-800">
+                    {nextEvent.name}
+                  </h2>
+                  <p className="text-rose-600">
+                    {new Date(nextEvent.date).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric'
+                    })}
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-3xl font-bold text-rose-700">
+                  {nextEvent.daysUntil === 0 ? 'Today!' : `${nextEvent.daysUntil} days`}
+                </div>
+                <p className="text-rose-500 text-sm">to go</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* Left Column - Upcoming Events */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Try Nudge Card */}
+        <div className="lg:col-span-2">
+          <TryNudgeCard 
+            partnerName={relationship?.partner_first_name}
+            onNudgeSent={() => recordThoughtfulAction('nudge_requested', 'Requested personalized date ideas via email')}
+          />
+        </div>
+
+        {/* Today's Suggestion */}
         <Card className="h-fit">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-rose-800 text-lg">
-              <Calendar className="h-4 w-4" />
-              Upcoming Events
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-rose-800">
+              <Lightbulb className="h-5 w-5 text-rose-500" />
+              Today's Suggestion
             </CardTitle>
-            <CardDescription className="text-sm">
+          </CardHeader>
+          <CardContent className="pt-0">
+            <p className="text-rose-700 leading-relaxed mb-3">
+              {todaysSuggestion}
+            </p>
+            {!hasViewedSuggestion ? (
+              <button
+                onClick={handleViewSuggestion}
+                className="text-sm text-rose-500 hover:text-rose-700 underline transition-colors"
+              >
+                Mark as viewed
+              </button>
+            ) : (
+              <p className="text-sm text-rose-400 italic">
+                ✓ Viewed today
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Second Row - All Upcoming Events & Nudge Settings */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* All Upcoming Events */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-rose-800">
+              <Calendar className="h-5 w-5" />
+              All Upcoming Events
+            </CardTitle>
+            <CardDescription>
               Never miss a special moment
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             {upcomingEvents.length > 0 ? (
-              <div className="space-y-2">
-                {upcomingEvents.slice(0, 3).map((event, index) => (
+              <div className="space-y-3">
+                {upcomingEvents.map((event, index) => (
                   <div 
                     key={index} 
-                    className="flex items-center justify-between p-2 bg-rose-50 rounded-lg cursor-pointer hover:bg-rose-100 transition-colors"
+                    className="flex items-center justify-between p-3 bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer"
                     onClick={() => recordThoughtfulAction('event_acknowledged', `Acknowledged ${event.name}`)}
                   >
-                    <div className="flex items-center space-x-2">
-                      <div className="text-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="text-2xl">
                         {event.type === 'birthday' ? '🎂' : '💖'}
                       </div>
                       <div>
-                        <h3 className="font-medium text-rose-800 text-sm">{event.name}</h3>
-                        <p className="text-xs text-rose-600">
+                        <h3 className="font-medium text-rose-800">{event.name}</h3>
+                        <p className="text-sm text-rose-600">
                           {new Date(event.date).toLocaleDateString('en-US', {
                             month: 'long',
-                            day: 'numeric',
-                            year: 'numeric'
+                            day: 'numeric'
                           })}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-bold text-rose-700">
+                      <div className="font-bold text-rose-700">
                         {event.daysUntil === 0 ? 'Today!' : `${event.daysUntil} days`}
                       </div>
                     </div>
@@ -305,9 +325,9 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-6">
-                <Calendar className="h-6 w-6 text-rose-300 mx-auto mb-2" />
-                <p className="text-rose-600 text-sm">
+              <div className="text-center py-8">
+                <Calendar className="h-8 w-8 text-rose-300 mx-auto mb-3" />
+                <p className="text-rose-600">
                   Add some important dates to see upcoming events!
                 </p>
               </div>
@@ -315,79 +335,44 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
           </CardContent>
         </Card>
 
-        {/* Right Column - Try Nudge and Today's Suggestion */}
-        <div className="space-y-3">
-          {/* Try Nudge Card */}
-          <TryNudgeCard 
-            partnerName={relationship?.partner_first_name}
-            onNudgeSent={() => recordThoughtfulAction('nudge_requested', 'Requested personalized date ideas via email')}
-          />
-
-          {/* Today's Suggestion */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-rose-800 text-lg">
-                <Lightbulb className="h-4 w-4 text-rose-500" />
-                Today's Suggestion
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-rose-700 leading-relaxed mb-2 text-sm">
-                {todaysSuggestion}
-              </p>
-              {!hasViewedSuggestion ? (
-                <button
-                  onClick={handleViewSuggestion}
-                  className="text-xs text-rose-500 hover:text-rose-700 underline transition-colors"
-                >
-                  Mark as viewed
-                </button>
-              ) : (
-                <p className="text-xs text-rose-400 italic">
-                  ✓ Viewed today
-                </p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Second Row - Nudge Settings */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-rose-800 text-lg">
-            <Bell className="h-4 w-4 text-rose-500" />
-            <span className="text-sm">
+        {/* Nudge Settings */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-rose-800">
+              <Bell className="h-5 w-5 text-rose-500" />
+              Reminder Settings
+            </CardTitle>
+            <CardDescription>
               {getNudgeFrequencyName(relationship?.reminder_frequency || 'weekly')}
-            </span>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="text-center">
-            <div className="text-xs font-semibold text-rose-600 mb-1">
-              Next nudge coming on:
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0 text-center space-y-4">
+            <div>
+              <div className="text-sm font-semibold text-rose-600 mb-1">
+                Next nudge coming on:
+              </div>
+              <div className="text-lg font-bold text-rose-700 mb-2">
+                {getNextNudgeDate(relationship?.reminder_frequency || 'weekly')}
+              </div>
+              <p className="text-sm text-rose-500">
+                We'll send you a gentle reminder to show some love! 💌
+              </p>
             </div>
-            <div className="text-sm font-bold text-rose-700 mb-1">
-              {getNextNudgeDate(relationship?.reminder_frequency || 'weekly')}
-            </div>
-            <p className="text-xs text-rose-500">
-              We'll send you a gentle reminder to show some love! 💌
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Bottom Row - Add Someone Else */}
       <Card 
-        className="border-dashed border-2 border-rose-200 hover:border-rose-300 transition-colors cursor-pointer group"
+        className="border-dashed border-2 border-rose-200 hover:border-rose-300 transition-colors cursor-pointer group bg-gradient-to-r from-rose-25 to-pink-25"
         onClick={() => recordThoughtfulAction('add_person_clicked', 'Clicked to add another person')}
       >
-        <CardContent className="p-3 text-center">
-          <Plus className="h-6 w-6 text-rose-400 mx-auto mb-1 group-hover:text-rose-500 transition-colors" />
-          <h3 className="font-medium text-rose-800 mb-1 text-base">
+        <CardContent className="p-6 text-center">
+          <Plus className="h-8 w-8 text-rose-400 mx-auto mb-3 group-hover:text-rose-500 transition-colors" />
+          <h3 className="font-semibold text-rose-800 mb-2 text-lg">
             Add someone else you care about
           </h3>
-          <p className="text-xs text-rose-600">
+          <p className="text-rose-600">
             Family, friends, or other special people in your life
           </p>
         </CardContent>
