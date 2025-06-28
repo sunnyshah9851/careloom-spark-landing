@@ -74,7 +74,7 @@ const Index = () => {
     );
   }
 
-  // If no user is authenticated, show the landing page
+  // If no user is authenticated, ALWAYS show the landing page
   if (!user) {
     console.log('Rendering landing page - no authenticated user');
     return (
@@ -110,10 +110,10 @@ const Index = () => {
         <Onboarding onComplete={() => setShowOnboarding(false)} />
       </div>
     );
-  } else {
-    console.log('Rendering Dashboard for existing user:', user.email);
-    return <Dashboard />;
-  }
+  } 
+  
+  console.log('Rendering Dashboard for existing user:', user.email);
+  return <Dashboard />;
 };
 
 export default Index;
