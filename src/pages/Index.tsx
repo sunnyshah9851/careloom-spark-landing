@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -73,8 +74,23 @@ const Index = () => {
     );
   }
 
+  // If no user is authenticated, show the landing page
+  if (!user) {
+    console.log('Rendering landing page - no authenticated user');
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main>
+          <HeroSection />
+          <FeaturesSection />
+          <CallToActionSection />
+        </main>
+      </div>
+    );
+  }
+
   // Show loading while checking user profile (only for authenticated users)
-  if (user && checkingProfile) {
+  if (checkingProfile) {
     console.log('Checking user profile - showing setup spinner');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
@@ -87,32 +103,17 @@ const Index = () => {
   }
 
   // User is authenticated - show onboarding or dashboard
-  if (user) {
-    if (showOnboarding) {
-      console.log('Rendering Onboarding for new user:', user.email);
-      return (
-        <div className="min-h-screen bg-background">
-          <Onboarding onComplete={() => setShowOnboarding(false)} />
-        </div>
-      );
-    } else {
-      console.log('Rendering Dashboard for existing user:', user.email);
-      return <Dashboard />;
-    }
+  if (showOnboarding) {
+    console.log('Rendering Onboarding for new user:', user.email);
+    return (
+      <div className="min-h-screen bg-background">
+        <Onboarding onComplete={() => setShowOnboarding(false)} />
+      </div>
+    );
+  } else {
+    console.log('Rendering Dashboard for existing user:', user.email);
+    return <Dashboard />;
   }
-
-  // Default: User is not authenticated - show landing page
-  console.log('Rendering landing page - no authenticated user');
-  return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main>
-        <HeroSection />
-        <FeaturesSection />
-        <CallToActionSection />
-      </main>
-    </div>
-  );
 };
 
 export default Index;
