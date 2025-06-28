@@ -46,22 +46,28 @@ export type Database = {
       }
       profiles: {
         Row: {
+          city: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          nudge_frequency: string | null
         }
         Insert: {
+          city?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          nudge_frequency?: string | null
         }
         Update: {
+          city?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          nudge_frequency?: string | null
         }
         Relationships: []
       }
@@ -115,18 +121,134 @@ export type Database = {
           },
         ]
       }
+      reminder_logs: {
+        Row: {
+          created_at: string
+          event_date: string
+          id: string
+          relationship_id: string
+          reminder_date: string
+          reminder_type: string
+          sent_at: string
+        }
+        Insert: {
+          created_at?: string
+          event_date: string
+          id?: string
+          relationship_id: string
+          reminder_date: string
+          reminder_type: string
+          sent_at?: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          id?: string
+          relationship_id?: string
+          reminder_date?: string
+          reminder_type?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reminder_logs_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "relationships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      bytea_to_text: {
+        Args: { data: string }
+        Returns: string
+      }
+      http: {
+        Args: { request: Database["public"]["CompositeTypes"]["http_request"] }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_delete: {
+        Args:
+          | { uri: string }
+          | { uri: string; content: string; content_type: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_get: {
+        Args: { uri: string } | { uri: string; data: Json }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_head: {
+        Args: { uri: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_header: {
+        Args: { field: string; value: string }
+        Returns: Database["public"]["CompositeTypes"]["http_header"]
+      }
+      http_list_curlopt: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          curlopt: string
+          value: string
+        }[]
+      }
+      http_patch: {
+        Args: { uri: string; content: string; content_type: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_post: {
+        Args:
+          | { uri: string; content: string; content_type: string }
+          | { uri: string; data: Json }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_put: {
+        Args: { uri: string; content: string; content_type: string }
+        Returns: Database["public"]["CompositeTypes"]["http_response"]
+      }
+      http_reset_curlopt: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      http_set_curlopt: {
+        Args: { curlopt: string; value: string }
+        Returns: boolean
+      }
+      text_to_bytea: {
+        Args: { data: string }
+        Returns: string
+      }
+      urlencode: {
+        Args: { data: Json } | { string: string } | { string: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
     }
     CompositeTypes: {
-      [_ in never]: never
+      http_header: {
+        field: string | null
+        value: string | null
+      }
+      http_request: {
+        method: unknown | null
+        uri: string | null
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
+        content_type: string | null
+        content: string | null
+      }
+      http_response: {
+        status: number | null
+        content_type: string | null
+        headers: Database["public"]["CompositeTypes"]["http_header"][] | null
+        content: string | null
+      }
     }
   }
 }
