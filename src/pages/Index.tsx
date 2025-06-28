@@ -30,18 +30,47 @@ const Index = () => {
       setCheckingProfile(true);
 
       try {
+        // First, ensure the user has a profile (create if missing)
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profileError) {
+          console.error('Error checking profile:', profileError);
+        }
+
+        // If no profile exists, create one
+        if (!profileData) {
+          console.log('No profile found, creating one...');
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .insert({
+              id: user.id,
+              email: user.email,
+              full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+            });
+
+          if (insertError) {
+            console.error('Error creating profile:', insertError);
+          } else {
+            console.log('Profile created successfully');
+          }
+        }
+
         // Check if user has completed onboarding by looking for relationships
-        const { data, error } = await supabase
+        const { data: relationshipData, error: relationshipError } = await supabase
           .from('relationships')
           .select('id')
           .eq('profile_id', user.id)
           .maybeSingle();
 
-        if (error) {
-          console.error('Error checking relationships:', error);
+        if (relationshipError) {
+          console.error('Error checking relationships:', relationshipError);
           // If there's an error, assume they need onboarding
           setShowOnboarding(true);
-        } else if (!data) {
+        } else if (!relationshipData) {
           // No relationship found - show onboarding
           console.log('No relationships found - showing onboarding');
           setShowOnboarding(true);
