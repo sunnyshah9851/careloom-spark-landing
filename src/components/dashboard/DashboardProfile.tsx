@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -139,23 +138,28 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
         return;
       }
 
+      // Prepare the data with proper date formatting
+      const relationshipData = {
+        profile_id: user.id,
+        name: newRelationship.name.trim(),
+        relationship_type: newRelationship.relationship_type,
+        email: newRelationship.email.trim() || null,
+        birthday: newRelationship.birthday || null,
+        anniversary: newRelationship.anniversary || null,
+        notes: newRelationship.notes.trim() || null
+      };
+
+      console.log('Inserting relationship data:', relationshipData);
+
       const { error } = await supabase
         .from('relationships')
-        .insert({
-          profile_id: user.id,
-          name: newRelationship.name,
-          relationship_type: newRelationship.relationship_type,
-          email: newRelationship.email || null,
-          birthday: newRelationship.birthday || null,
-          anniversary: newRelationship.anniversary || null,
-          notes: newRelationship.notes || null
-        });
+        .insert(relationshipData);
 
       if (error) {
         console.error('Error adding relationship:', error);
         toast({
           title: "Error",
-          description: "Failed to add relationship. Please try again.",
+          description: `Failed to add relationship: ${error.message}`,
           variant: "destructive"
         });
       } else {
@@ -384,7 +388,7 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
 
                   <Button 
                     type="submit" 
-                    disabled={loading || !newRelationship.name}
+                    disabled={loading || !newRelationship.name.trim()}
                     className="bg-rose-500 hover:bg-rose-600 text-white"
                   >
                     {loading ? 'Adding...' : 'Add Relationship'}
