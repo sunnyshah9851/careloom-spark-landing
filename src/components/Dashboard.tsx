@@ -11,34 +11,30 @@ import DashboardSettings from './dashboard/DashboardSettings';
 
 interface Relationship {
   id: string;
-  partner_first_name: string;
-  partner_last_name: string;
-  partner_birthday: string | null;
-  anniversary_date: string | null;
-  reminder_frequency: string;
+  profile_id: string;
+  relationship_type: string;
+  name: string;
+  email?: string;
+  birthday?: string;
+  anniversary?: string;
+  notes?: string;
+  last_nudge_sent?: string;
+  tags?: string[];
+  created_at: string;
 }
 
 interface Profile {
-  full_name: string;
-  partner_name: string;
-  user_birthday: string;
-  partner_birthday: string;
-  anniversary_date: string;
-  reminder_frequency: string;
+  id: string;
+  email?: string;
+  full_name?: string;
+  created_at: string;
 }
 
 const Dashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
-  const [relationship, setRelationship] = useState<Relationship | null>(null);
-  const [profile, setProfile] = useState<Profile>({
-    full_name: '',
-    partner_name: '',
-    user_birthday: '',
-    partner_birthday: '',
-    anniversary_date: '',
-    reminder_frequency: 'weekly'
-  });
+  const [relationships, setRelationships] = useState<Relationship[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   console.log('Dashboard render - user:', user?.email);
 
@@ -57,8 +53,8 @@ const Dashboard = () => {
 
     console.log('Fetching user data for:', user.id);
 
-    // Fetch both profile and relationship data
-    const [profileResult, relationshipResult] = await Promise.all([
+    // Fetch both profile and relationships data
+    const [profileResult, relationshipsResult] = await Promise.all([
       supabase
         .from('profiles')
         .select('*')
@@ -67,39 +63,25 @@ const Dashboard = () => {
       supabase
         .from('relationships')
         .select('*')
-        .eq('user_id', user.id)
-        .maybeSingle()
+        .eq('profile_id', user.id)
     ]);
 
     if (profileResult.error) {
       console.error('Error fetching profile:', profileResult.error);
     }
 
-    if (relationshipResult.error) {
-      console.error('Error fetching relationship:', relationshipResult.error);
+    if (relationshipsResult.error) {
+      console.error('Error fetching relationships:', relationshipsResult.error);
     }
 
     console.log('Profile data:', profileResult.data);
-    console.log('Relationship data:', relationshipResult.data);
+    console.log('Relationships data:', relationshipsResult.data);
 
-    // Set relationship data
-    setRelationship(relationshipResult.data);
-
-    // Combine profile and relationship data into the profile format
-    const profileData = profileResult.data;
-    const relationshipData = relationshipResult.data;
-
-    setProfile({
-      full_name: profileData?.full_name || '',
-      user_birthday: profileData?.user_birthday || '',
-      partner_name: relationshipData ? `${relationshipData.partner_first_name} ${relationshipData.partner_last_name}` : '',
-      partner_birthday: relationshipData?.partner_birthday || '',
-      anniversary_date: relationshipData?.anniversary_date || '',
-      reminder_frequency: relationshipData?.reminder_frequency || 'weekly'
-    });
+    setProfile(profileResult.data);
+    setRelationships(relationshipsResult.data || []);
   };
 
-  const handleProfileUpdate = async (updatedProfile: Profile) => {
+  const handleProfileUpdate = async (updatedProfile: Partial<Profile>) => {
     if (!user) return;
 
     try {
@@ -108,47 +90,10 @@ const Dashboard = () => {
         .from('profiles')
         .update({
           full_name: updatedProfile.full_name,
-          user_birthday: updatedProfile.user_birthday || null,
         })
         .eq('id', user.id);
 
       if (profileError) throw profileError;
-
-      // Parse partner name
-      const nameParts = updatedProfile.partner_name.trim().split(' ');
-      const partner_first_name = nameParts[0] || '';
-      const partner_last_name = nameParts.slice(1).join(' ') || '';
-
-      // Update or create relationship
-      if (relationship) {
-        // Update existing relationship
-        const { error: relationshipError } = await supabase
-          .from('relationships')
-          .update({
-            partner_first_name,
-            partner_last_name,
-            partner_birthday: updatedProfile.partner_birthday || null,
-            anniversary_date: updatedProfile.anniversary_date || null,
-            reminder_frequency: updatedProfile.reminder_frequency,
-          })
-          .eq('id', relationship.id);
-
-        if (relationshipError) throw relationshipError;
-      } else {
-        // Create new relationship
-        const { error: relationshipError } = await supabase
-          .from('relationships')
-          .insert({
-            user_id: user.id,
-            partner_first_name,
-            partner_last_name,
-            partner_birthday: updatedProfile.partner_birthday || null,
-            anniversary_date: updatedProfile.anniversary_date || null,
-            reminder_frequency: updatedProfile.reminder_frequency,
-          });
-
-        if (relationshipError) throw relationshipError;
-      }
 
       // Refresh data after update
       await fetchUserData();
@@ -162,17 +107,17 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeTab) {
       case 'overview':
-        return <DashboardOverview relationship={relationship} profile={profile} />;
+        return <DashboardOverview relationships={relationships} profile={profile} />;
       case 'events':
-        return <DashboardEvents relationship={relationship} profile={profile} />;
+        return <DashboardEvents relationships={relationships} profile={profile} />;
       case 'memories':
         return <DashboardMemories />;
       case 'profile':
-        return <DashboardProfile profile={profile} onProfileUpdate={handleProfileUpdate} />;
+        return <DashboardProfile profile={profile} relationships={relationships} onProfileUpdate={handleProfileUpdate} onRelationshipsUpdate={fetchUserData} />;
       case 'settings':
         return <DashboardSettings />;
       default:
-        return <DashboardOverview relationship={relationship} profile={profile} />;
+        return <DashboardOverview relationships={relationships} profile={profile} />;
     }
   };
 

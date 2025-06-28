@@ -1,27 +1,30 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, Plus, Lightbulb, Bell, Calendar } from 'lucide-react';
+import { Plus, Lightbulb, Bell, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import TryNudgeCard from './TryNudgeCard';
 
 interface Relationship {
   id: string;
-  partner_first_name: string;
-  partner_last_name: string;
-  partner_birthday: string | null;
-  anniversary_date: string | null;
-  reminder_frequency: string;
+  profile_id: string;
+  relationship_type: string;
+  name: string;
+  email?: string;
+  birthday?: string;
+  anniversary?: string;
+  notes?: string;
+  last_nudge_sent?: string;
+  tags?: string[];
+  created_at: string;
 }
 
 interface Profile {
-  full_name: string;
-  partner_name: string;
-  user_birthday: string;
-  partner_birthday: string;
-  anniversary_date: string;
-  reminder_frequency: string;
+  id: string;
+  email?: string;
+  full_name?: string;
+  created_at: string;
 }
 
 interface Event {
@@ -29,14 +32,15 @@ interface Event {
   name: string;
   date: string;
   daysUntil: number;
+  relationshipType: string;
 }
 
 interface DashboardOverviewProps {
-  relationship: Relationship | null;
-  profile: Profile;
+  relationships: Relationship[];
+  profile: Profile | null;
 }
 
-const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) => {
+const DashboardOverview = ({ relationships, profile }: DashboardOverviewProps) => {
   const { user } = useAuth();
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
   const [hasViewedSuggestion, setHasViewedSuggestion] = useState(false);
@@ -60,37 +64,32 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
   }, []);
 
   useEffect(() => {
-    if (relationship) {
+    if (relationships.length > 0) {
       calculateUpcomingEvents();
     }
-  }, [relationship, profile, user]);
+  }, [relationships]);
 
-  const recordThoughtfulAction = async (actionType: string, description?: string) => {
-    if (!user) return;
+  const recordEvent = async (eventType: string, relationshipId?: string, metadata?: any) => {
+    if (!user || !relationshipId) return;
 
-    console.log('Recording thoughtful action:', actionType, description);
+    console.log('Recording event:', eventType, relationshipId, metadata);
 
     const { error } = await supabase
-      .from('thoughtful_actions')
+      .from('events')
       .insert({
-        user_id: user.id,
-        action_type: actionType,
-        action_description: description
+        relationship_id: relationshipId,
+        event_type: eventType,
+        metadata: metadata
       });
 
     if (error) {
-      console.error('Error recording thoughtful action:', error);
+      console.error('Error recording event:', error);
     } else {
-      console.log('Thoughtful action recorded successfully');
+      console.log('Event recorded successfully');
     }
   };
 
   const calculateUpcomingEvents = () => {
-    if (!relationship) {
-      setUpcomingEvents([]);
-      return;
-    }
-
     const events: Event[] = [];
     const today = new Date();
     const currentYear = today.getFullYear();
@@ -110,118 +109,73 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
       return thisYear >= today ? thisYear : nextYear;
     };
 
-    // Add user birthday
-    if (profile.user_birthday) {
-      const nextBirthday = getNextOccurrence(profile.user_birthday);
-      events.push({
-        type: 'birthday',
-        name: `${profile.full_name || 'Your'} Birthday`,
-        date: nextBirthday.toISOString(),
-        daysUntil: getDaysUntil(nextBirthday)
-      });
-    }
+    relationships.forEach(relationship => {
+      // Add birthday
+      if (relationship.birthday) {
+        const nextBirthday = getNextOccurrence(relationship.birthday);
+        events.push({
+          type: 'birthday',
+          name: `${relationship.name}'s Birthday`,
+          date: nextBirthday.toISOString(),
+          daysUntil: getDaysUntil(nextBirthday),
+          relationshipType: relationship.relationship_type
+        });
+      }
 
-    // Add partner birthday
-    if (relationship.partner_birthday) {
-      const nextBirthday = getNextOccurrence(relationship.partner_birthday);
-      events.push({
-        type: 'birthday',
-        name: `${relationship.partner_first_name}'s Birthday`,
-        date: nextBirthday.toISOString(),
-        daysUntil: getDaysUntil(nextBirthday)
-      });
-    }
-
-    // Add anniversary
-    if (relationship.anniversary_date) {
-      const nextAnniversary = getNextOccurrence(relationship.anniversary_date);
-      events.push({
-        type: 'anniversary',
-        name: 'Anniversary',
-        date: nextAnniversary.toISOString(),
-        daysUntil: getDaysUntil(nextAnniversary)
-      });
-    }
+      // Add anniversary
+      if (relationship.anniversary) {
+        const nextAnniversary = getNextOccurrence(relationship.anniversary);
+        events.push({
+          type: 'anniversary',
+          name: `${relationship.name} Anniversary`,
+          date: nextAnniversary.toISOString(),
+          daysUntil: getDaysUntil(nextAnniversary),
+          relationshipType: relationship.relationship_type
+        });
+      }
+    });
 
     // Sort by days until event
     events.sort((a, b) => a.daysUntil - b.daysUntil);
     setUpcomingEvents(events);
   };
 
-  const getNudgeFrequencyName = (frequency: string) => {
-    const frequencyNames = {
-      'daily': 'Daily Love Taps ❤️',
-      'weekly': 'Weekly Heart Nudges 💝',
-      'biweekly': 'Bi-Weekly Sweet Reminders 🌸',
-      'monthly': 'Monthly Romance Boosts 🌹'
-    };
-    return frequencyNames[frequency as keyof typeof frequencyNames] || 'Love Reminders 💕';
-  };
-
-  const getNextNudgeDate = (frequency: string) => {
-    const today = new Date();
-    let nextNudge = new Date(today);
-
-    switch (frequency) {
-      case 'daily':
-        nextNudge.setDate(today.getDate() + 1);
-        break;
-      case 'weekly':
-        nextNudge.setDate(today.getDate() + 7);
-        break;
-      case 'biweekly':
-        nextNudge.setDate(today.getDate() + 14);
-        break;
-      case 'monthly':
-        nextNudge.setMonth(today.getMonth() + 1);
-        break;
-      default:
-        nextNudge.setDate(today.getDate() + 7);
-    }
-
-    return nextNudge.toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
-
   const handleViewSuggestion = async () => {
-    if (!hasViewedSuggestion) {
-      await recordThoughtfulAction('suggestion_viewed', todaysSuggestion);
+    if (!hasViewedSuggestion && relationships.length > 0) {
+      await recordEvent('suggestion_viewed', relationships[0].id, { suggestion: todaysSuggestion });
       setHasViewedSuggestion(true);
     }
   };
 
   const nextEvent = upcomingEvents[0];
+  const primaryRelationship = relationships.find(r => r.relationship_type === 'partner') || relationships[0];
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-6 max-w-6xl mx-auto space-y-8">
       {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-playfair font-bold text-rose-800">
+      <div className="text-center space-y-3">
+        <h1 className="text-4xl font-playfair font-bold text-rose-800">
           Your Relationship Dashboard
         </h1>
-        <p className="text-rose-600">
+        <p className="text-xl text-rose-600">
           Keep track of the moments that matter most
         </p>
       </div>
 
-      {/* Top Row - Next Event Highlight */}
+      {/* Next Event Highlight */}
       {nextEvent && (
-        <Card className="bg-gradient-to-r from-rose-50 to-pink-50 border-rose-200">
-          <CardContent className="p-6">
+        <Card className="bg-gradient-to-br from-rose-50 via-pink-50 to-rose-100 border-rose-200 shadow-lg">
+          <CardContent className="p-8">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="text-4xl">
+              <div className="flex items-center space-x-6">
+                <div className="text-6xl">
                   {nextEvent.type === 'birthday' ? '🎂' : '💖'}
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-rose-800">
+                  <h2 className="text-3xl font-bold text-rose-800 mb-2">
                     {nextEvent.name}
                   </h2>
-                  <p className="text-rose-600">
+                  <p className="text-lg text-rose-600 mb-1">
                     {new Date(nextEvent.date).toLocaleDateString('en-US', {
                       weekday: 'long',
                       month: 'long',
@@ -229,13 +183,16 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
                       year: 'numeric'
                     })}
                   </p>
+                  <p className="text-sm text-rose-500 capitalize">
+                    {nextEvent.relationshipType}
+                  </p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-bold text-rose-700">
+                <div className="text-4xl font-bold text-rose-700 mb-1">
                   {nextEvent.daysUntil === 0 ? 'Today!' : `${nextEvent.daysUntil} days`}
                 </div>
-                <p className="text-rose-500 text-sm">to go</p>
+                <p className="text-rose-500">to go</p>
               </div>
             </div>
           </CardContent>
@@ -243,36 +200,36 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
       )}
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Try Nudge Card */}
         <div className="lg:col-span-2">
           <TryNudgeCard 
-            partnerName={relationship?.partner_first_name}
-            onNudgeSent={() => recordThoughtfulAction('nudge_requested', 'Requested personalized date ideas via email')}
+            partnerName={primaryRelationship?.name}
+            onNudgeSent={() => primaryRelationship && recordEvent('nudge_requested', primaryRelationship.id, { description: 'Requested personalized date ideas via email' })}
           />
         </div>
 
         {/* Today's Suggestion */}
-        <Card className="h-fit">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-rose-800">
-              <Lightbulb className="h-5 w-5 text-rose-500" />
+        <Card className="h-fit shadow-md">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3 text-rose-800 text-xl">
+              <Lightbulb className="h-6 w-6 text-rose-500" />
               Today's Suggestion
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            <p className="text-rose-700 leading-relaxed mb-3">
+            <p className="text-rose-700 leading-relaxed mb-4 text-lg">
               {todaysSuggestion}
             </p>
             {!hasViewedSuggestion ? (
               <button
                 onClick={handleViewSuggestion}
-                className="text-sm text-rose-500 hover:text-rose-700 underline transition-colors"
+                className="text-rose-500 hover:text-rose-700 underline transition-colors font-medium"
               >
                 Mark as viewed
               </button>
             ) : (
-              <p className="text-sm text-rose-400 italic">
+              <p className="text-rose-400 italic">
                 ✓ Viewed today
               </p>
             )}
@@ -280,99 +237,71 @@ const DashboardOverview = ({ relationship, profile }: DashboardOverviewProps) =>
         </Card>
       </div>
 
-      {/* Second Row - All Upcoming Events & Nudge Settings */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* All Upcoming Events */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-rose-800">
-              <Calendar className="h-5 w-5" />
-              All Upcoming Events
-            </CardTitle>
-            <CardDescription>
-              Never miss a special moment
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
-            {upcomingEvents.length > 0 ? (
-              <div className="space-y-3">
-                {upcomingEvents.map((event, index) => (
-                  <div 
-                    key={index} 
-                    className="flex items-center justify-between p-3 bg-rose-50 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer"
-                    onClick={() => recordThoughtfulAction('event_acknowledged', `Acknowledged ${event.name}`)}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="text-2xl">
-                        {event.type === 'birthday' ? '🎂' : '💖'}
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-rose-800">{event.name}</h3>
-                        <p className="text-sm text-rose-600">
-                          {new Date(event.date).toLocaleDateString('en-US', {
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
-                      </div>
+      {/* All Upcoming Events */}
+      <Card className="shadow-md">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-3 text-rose-800 text-xl">
+            <Calendar className="h-6 w-6" />
+            All Upcoming Events
+          </CardTitle>
+          <CardDescription className="text-base">
+            Never miss a special moment
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
+          {upcomingEvents.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {upcomingEvents.slice(0, 6).map((event, index) => (
+                <div 
+                  key={index} 
+                  className="flex items-center justify-between p-4 bg-rose-50 rounded-xl hover:bg-rose-100 transition-colors cursor-pointer shadow-sm"
+                  onClick={() => recordEvent('event_acknowledged', relationships.find(r => r.name === event.name.split("'s")[0] || r.name === event.name.split(" Anniversary")[0])?.id, { event: event.name })}
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="text-3xl">
+                      {event.type === 'birthday' ? '🎂' : '💖'}
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-rose-700">
-                        {event.daysUntil === 0 ? 'Today!' : `${event.daysUntil} days`}
-                      </div>
+                    <div>
+                      <h3 className="font-semibold text-rose-800 text-lg">{event.name}</h3>
+                      <p className="text-rose-600">
+                        {new Date(event.date).toLocaleDateString('en-US', {
+                          month: 'long',
+                          day: 'numeric'
+                        })}
+                      </p>
+                      <p className="text-sm text-rose-500 capitalize">{event.relationshipType}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <Calendar className="h-8 w-8 text-rose-300 mx-auto mb-3" />
-                <p className="text-rose-600">
-                  Add some important dates to see upcoming events!
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Nudge Settings */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-rose-800">
-              <Bell className="h-5 w-5 text-rose-500" />
-              Reminder Settings
-            </CardTitle>
-            <CardDescription>
-              {getNudgeFrequencyName(relationship?.reminder_frequency || 'weekly')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0 text-center space-y-4">
-            <div>
-              <div className="text-sm font-semibold text-rose-600 mb-1">
-                Next nudge coming on:
-              </div>
-              <div className="text-lg font-bold text-rose-700 mb-2">
-                {getNextNudgeDate(relationship?.reminder_frequency || 'weekly')}
-              </div>
-              <p className="text-sm text-rose-500">
-                We'll send you a gentle reminder to show some love! 💌
+                  <div className="text-right">
+                    <div className="font-bold text-rose-700 text-lg">
+                      {event.daysUntil === 0 ? 'Today!' : `${event.daysUntil} days`}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Calendar className="h-12 w-12 text-rose-300 mx-auto mb-4" />
+              <p className="text-rose-600 text-lg">
+                Add some relationships with important dates to see upcoming events!
               </p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Bottom Row - Add Someone Else */}
+      {/* Add Someone Else */}
       <Card 
-        className="border-dashed border-2 border-rose-200 hover:border-rose-300 transition-colors cursor-pointer group bg-gradient-to-r from-rose-25 to-pink-25"
-        onClick={() => recordThoughtfulAction('add_person_clicked', 'Clicked to add another person')}
+        className="border-dashed border-2 border-rose-200 hover:border-rose-300 transition-colors cursor-pointer group bg-gradient-to-r from-rose-25 to-pink-25 shadow-md"
+        onClick={() => primaryRelationship && recordEvent('add_person_clicked', primaryRelationship.id, { description: 'Clicked to add another person' })}
       >
-        <CardContent className="p-6 text-center">
-          <Plus className="h-8 w-8 text-rose-400 mx-auto mb-3 group-hover:text-rose-500 transition-colors" />
-          <h3 className="font-semibold text-rose-800 mb-2 text-lg">
+        <CardContent className="p-8 text-center">
+          <Plus className="h-12 w-12 text-rose-400 mx-auto mb-4 group-hover:text-rose-500 transition-colors" />
+          <h3 className="font-semibold text-rose-800 mb-3 text-xl">
             Add someone else you care about
           </h3>
-          <p className="text-rose-600">
+          <p className="text-rose-600 text-lg">
             Family, friends, or other special people in your life
           </p>
         </CardContent>

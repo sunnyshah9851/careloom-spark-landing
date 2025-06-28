@@ -9,107 +9,111 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      events: {
+        Row: {
+          created_at: string
+          event_date: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          relationship_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_date?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          relationship_id: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          relationship_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_relationship_id_fkey"
+            columns: ["relationship_id"]
+            isOneToOne: false
+            referencedRelation: "relationships"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
-          anniversary_date: string | null
-          avatar_url: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
-          partner_birthday: string | null
-          partner_name: string | null
-          reminder_frequency: string | null
-          updated_at: string
-          user_birthday: string | null
         }
         Insert: {
-          anniversary_date?: string | null
-          avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
-          partner_birthday?: string | null
-          partner_name?: string | null
-          reminder_frequency?: string | null
-          updated_at?: string
-          user_birthday?: string | null
         }
         Update: {
-          anniversary_date?: string | null
-          avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
-          partner_birthday?: string | null
-          partner_name?: string | null
-          reminder_frequency?: string | null
-          updated_at?: string
-          user_birthday?: string | null
         }
         Relationships: []
       }
       relationships: {
         Row: {
-          anniversary_date: string | null
+          anniversary: string | null
+          birthday: string | null
           created_at: string
+          email: string | null
           id: string
-          partner_birthday: string | null
-          partner_first_name: string
-          partner_last_name: string
-          reminder_frequency: string | null
-          updated_at: string
-          user_id: string
+          last_nudge_sent: string | null
+          name: string
+          notes: string | null
+          profile_id: string
+          relationship_type: string
+          tags: string[] | null
         }
         Insert: {
-          anniversary_date?: string | null
+          anniversary?: string | null
+          birthday?: string | null
           created_at?: string
+          email?: string | null
           id?: string
-          partner_birthday?: string | null
-          partner_first_name: string
-          partner_last_name: string
-          reminder_frequency?: string | null
-          updated_at?: string
-          user_id: string
+          last_nudge_sent?: string | null
+          name: string
+          notes?: string | null
+          profile_id: string
+          relationship_type: string
+          tags?: string[] | null
         }
         Update: {
-          anniversary_date?: string | null
+          anniversary?: string | null
+          birthday?: string | null
           created_at?: string
+          email?: string | null
           id?: string
-          partner_birthday?: string | null
-          partner_first_name?: string
-          partner_last_name?: string
-          reminder_frequency?: string | null
-          updated_at?: string
-          user_id?: string
+          last_nudge_sent?: string | null
+          name?: string
+          notes?: string | null
+          profile_id?: string
+          relationship_type?: string
+          tags?: string[] | null
         }
-        Relationships: []
-      }
-      thoughtful_actions: {
-        Row: {
-          action_description: string | null
-          action_type: string
-          created_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          action_description?: string | null
-          action_type: string
-          created_at?: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          action_description?: string | null
-          action_type?: string
-          created_at?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "relationships_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

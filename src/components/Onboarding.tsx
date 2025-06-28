@@ -13,14 +13,12 @@ import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Label } from '@/components/ui/label';
 
 interface OnboardingData {
-  partnerFirstName: string;
-  partnerLastName: string;
-  partnerBirthday: Date | null;
-  anniversaryDate: Date | null;
-  reminderFrequency: string;
+  name: string;
+  relationshipType: string;
+  birthday: Date | null;
+  anniversary: Date | null;
 }
 
 interface OnboardingProps {
@@ -32,11 +30,10 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [data, setData] = useState<OnboardingData>({
-    partnerFirstName: '',
-    partnerLastName: '',
-    partnerBirthday: null,
-    anniversaryDate: null,
-    reminderFrequency: 'weekly'
+    name: '',
+    relationshipType: 'partner',
+    birthday: null,
+    anniversary: null
   });
 
   const totalSteps = 4;
@@ -67,12 +64,11 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       const { error } = await supabase
         .from('relationships')
         .insert({
-          user_id: user.id,
-          partner_first_name: data.partnerFirstName,
-          partner_last_name: data.partnerLastName,
-          partner_birthday: data.partnerBirthday?.toISOString().split('T')[0] || null,
-          anniversary_date: data.anniversaryDate?.toISOString().split('T')[0] || null,
-          reminder_frequency: data.reminderFrequency,
+          profile_id: user.id,
+          name: data.name,
+          relationship_type: data.relationshipType,
+          birthday: data.birthday?.toISOString().split('T')[0] || null,
+          anniversary: data.anniversary?.toISOString().split('T')[0] || null,
         });
 
       if (error) throw error;
@@ -96,13 +92,13 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
   const canProceed = () => {
     switch (currentStep) {
       case 1:
-        return data.partnerFirstName.trim().length > 0 && data.partnerLastName.trim().length > 0;
+        return data.name.trim().length > 0;
       case 2:
-        return data.partnerBirthday !== null;
+        return true; // Relationship type has default
       case 3:
-        return true; // Anniversary is optional
+        return data.birthday !== null;
       case 4:
-        return true; // Frequency has a default
+        return true; // Anniversary is optional
       default:
         return false;
     }
@@ -124,7 +120,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
         <Card className="border-0 shadow-2xl bg-white/90 backdrop-blur-sm rounded-3xl overflow-hidden">
           <CardContent className="p-8">
-            {/* Step 1: Partner's Name */}
+            {/* Step 1: Person's Name */}
             {currentStep === 1 && (
               <div className="text-center space-y-6">
                 <div className="text-7xl mb-6 animate-pulse">💝</div>
@@ -132,38 +128,74 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                   Who's someone really important to you?
                 </h2>
                 <p className="text-rose-700 mb-8 text-lg">
-                  This could be your partner, best friend, or anyone special in your life
+                  This could be your partner, best friend, family member, or anyone special in your life
                 </p>
                 <div className="space-y-5">
                   <div>
                     <Input
-                      value={data.partnerFirstName}
-                      onChange={(e) => setData({ ...data, partnerFirstName: e.target.value })}
-                      placeholder="What do you call them?"
+                      value={data.name}
+                      onChange={(e) => setData({ ...data, name: e.target.value })}
+                      placeholder="What's their name?"
                       className="text-xl py-4 text-center border-2 border-rose-200 focus:border-rose-400 rounded-2xl bg-rose-50/50 placeholder:text-rose-500 text-rose-800"
                       autoFocus
                     />
-                    <p className="text-xs text-rose-600 mt-2 opacity-75">Their first name</p>
-                  </div>
-                  <div>
-                    <Input
-                      value={data.partnerLastName}
-                      onChange={(e) => setData({ ...data, partnerLastName: e.target.value })}
-                      placeholder="And their family name?"
-                      className="text-xl py-4 text-center border-2 border-rose-200 focus:border-rose-400 rounded-2xl bg-rose-50/50 placeholder:text-rose-500 text-rose-800"
-                    />
-                    <p className="text-xs text-rose-600 mt-2 opacity-75">Their last name</p>
+                    <p className="text-xs text-rose-600 mt-2 opacity-75">Their first name or full name</p>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Step 2: Partner's Birthday */}
+            {/* Step 2: Relationship Type */}
             {currentStep === 2 && (
+              <div className="text-center space-y-6">
+                <div className="text-7xl mb-6">💕</div>
+                <h2 className="text-2xl font-playfair text-rose-800 mb-2">
+                  How would you describe your relationship with {data.name}?
+                </h2>
+                <p className="text-rose-700 mb-8 text-lg">
+                  This helps us personalize your experience
+                </p>
+                <RadioGroup
+                  value={data.relationshipType}
+                  onValueChange={(value) => setData({ ...data, relationshipType: value })}
+                  className="space-y-4"
+                >
+                  {[
+                    { value: 'partner', label: 'Partner', desc: 'Romantic partner or spouse', emoji: '💖' },
+                    { value: 'friend', label: 'Friend', desc: 'Close friend or best friend', emoji: '👫' },
+                    { value: 'family', label: 'Family', desc: 'Family member or relative', emoji: '👨‍👩‍👧‍👦' },
+                    { value: 'other', label: 'Other', desc: 'Someone else special to you', emoji: '✨' }
+                  ].map((option) => (
+                    <label 
+                      key={option.value} 
+                      htmlFor={option.value}
+                      className={cn(
+                        "flex items-center space-x-4 p-5 border-2 rounded-2xl cursor-pointer transition-all duration-200 hover:scale-105",
+                        data.relationshipType === option.value 
+                          ? "bg-rose-50 border-rose-400 shadow-lg" 
+                          : "border-rose-200 hover:bg-rose-50 hover:border-rose-300"
+                      )}
+                    >
+                      <RadioGroupItem value={option.value} id={option.value} className="w-5 h-5" />
+                      <div className="text-2xl">{option.emoji}</div>
+                      <div className="flex-1 text-left">
+                        <div className="font-medium text-rose-800 text-lg">
+                          {option.label}
+                        </div>
+                        <p className="text-sm text-rose-700">{option.desc}</p>
+                      </div>
+                    </label>
+                  ))}
+                </RadioGroup>
+              </div>
+            )}
+
+            {/* Step 3: Birthday */}
+            {currentStep === 3 && (
               <div className="text-center space-y-6">
                 <div className="text-7xl mb-6">🎂</div>
                 <h2 className="text-2xl font-playfair text-rose-800 mb-2">
-                  When's {data.partnerFirstName}'s birthday?
+                  When's {data.name}'s birthday?
                 </h2>
                 <p className="text-rose-700 mb-8 text-lg">
                   We'll make sure you never miss this special day
@@ -174,14 +206,14 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                       variant="outline"
                       className={cn(
                         "w-full py-6 text-xl justify-center rounded-2xl border-2 transition-all duration-200 hover:scale-105 text-rose-800",
-                        data.partnerBirthday 
+                        data.birthday 
                           ? "bg-rose-50 border-rose-300 shadow-lg" 
                           : "border-rose-200 hover:border-rose-300 hover:bg-rose-50"
                       )}
                     >
-                      {data.partnerBirthday ? (
+                      {data.birthday ? (
                         <span className="font-medium">
-                          {format(data.partnerBirthday, "MMMM do, yyyy")}
+                          {format(data.birthday, "MMMM do, yyyy")}
                         </span>
                       ) : (
                         <span>Pick their birthday ✨</span>
@@ -192,8 +224,8 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                   <PopoverContent className="w-auto p-0 border-2 border-rose-200 rounded-2xl shadow-2xl" align="center">
                     <Calendar
                       mode="single"
-                      selected={data.partnerBirthday || undefined}
-                      onSelect={(date) => setData({ ...data, partnerBirthday: date || null })}
+                      selected={data.birthday || undefined}
+                      onSelect={(date) => setData({ ...data, birthday: date || null })}
                       className="pointer-events-auto rounded-2xl"
                       initialFocus
                       defaultMonth={new Date(1990, 0)}
@@ -226,12 +258,12 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
               </div>
             )}
 
-            {/* Step 3: Anniversary */}
-            {currentStep === 3 && (
+            {/* Step 4: Anniversary */}
+            {currentStep === 4 && (
               <div className="text-center space-y-6">
                 <div className="text-7xl mb-6">💖</div>
                 <h2 className="text-2xl font-playfair text-rose-800 mb-2">
-                  Do you two celebrate an anniversary?
+                  Do you celebrate an anniversary with {data.name}?
                 </h2>
                 <p className="text-rose-700 mb-8 text-lg">
                   We can help you remember this special milestone too
@@ -242,14 +274,14 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                       variant="outline"
                       className={cn(
                         "w-full py-6 text-xl justify-center rounded-2xl border-2 mb-6 transition-all duration-200 hover:scale-105 text-rose-800",
-                        data.anniversaryDate 
+                        data.anniversary 
                           ? "bg-rose-50 border-rose-300 shadow-lg" 
                           : "border-rose-200 hover:border-rose-300 hover:bg-rose-50"
                       )}
                     >
-                      {data.anniversaryDate ? (
+                      {data.anniversary ? (
                         <span className="font-medium">
-                          {format(data.anniversaryDate, "MMMM do, yyyy")}
+                          {format(data.anniversary, "MMMM do, yyyy")}
                         </span>
                       ) : (
                         <span>Pick your anniversary ✨</span>
@@ -260,8 +292,8 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                   <PopoverContent className="w-auto p-0 border-2 border-rose-200 rounded-2xl shadow-2xl" align="center">
                     <Calendar
                       mode="single"
-                      selected={data.anniversaryDate || undefined}
-                      onSelect={(date) => setData({ ...data, anniversaryDate: date || null })}
+                      selected={data.anniversary || undefined}
+                      onSelect={(date) => setData({ ...data, anniversary: date || null })}
                       className="pointer-events-auto rounded-2xl"
                       initialFocus
                       defaultMonth={new Date(2020, 0)}
@@ -298,50 +330,6 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                 >
                   Skip for now 💫
                 </Button>
-              </div>
-            )}
-
-            {/* Step 4: Reminder Frequency */}
-            {currentStep === 4 && (
-              <div className="text-center space-y-6">
-                <div className="text-7xl mb-6">⏰</div>
-                <h2 className="text-2xl font-playfair text-rose-800 mb-2">
-                  How often would you like thoughtful nudges?
-                </h2>
-                <p className="text-rose-700 mb-8 text-lg">
-                  We'll send gentle reminders to help you stay connected
-                </p>
-                <RadioGroup
-                  value={data.reminderFrequency}
-                  onValueChange={(value) => setData({ ...data, reminderFrequency: value })}
-                  className="space-y-4"
-                >
-                  {[
-                    { value: 'weekly', label: 'Weekly', desc: 'Perfect for staying close', emoji: '🌟' },
-                    { value: 'biweekly', label: 'Every 2 weeks', desc: 'Just the right amount', emoji: '✨' },
-                    { value: 'monthly', label: 'Monthly', desc: 'For the important moments', emoji: '💫' }
-                  ].map((option) => (
-                    <label 
-                      key={option.value} 
-                      htmlFor={option.value}
-                      className={cn(
-                        "flex items-center space-x-4 p-5 border-2 rounded-2xl cursor-pointer transition-all duration-200 hover:scale-105",
-                        data.reminderFrequency === option.value 
-                          ? "bg-rose-50 border-rose-400 shadow-lg" 
-                          : "border-rose-200 hover:bg-rose-50 hover:border-rose-300"
-                      )}
-                    >
-                      <RadioGroupItem value={option.value} id={option.value} className="w-5 h-5" />
-                      <div className="text-2xl">{option.emoji}</div>
-                      <div className="flex-1 text-left">
-                        <div className="font-medium text-rose-800 text-lg">
-                          {option.label}
-                        </div>
-                        <p className="text-sm text-rose-700">{option.desc}</p>
-                      </div>
-                    </label>
-                  ))}
-                </RadioGroup>
               </div>
             )}
 
