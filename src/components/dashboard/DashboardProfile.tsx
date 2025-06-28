@@ -121,7 +121,9 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
 
   const handleAddRelationshipClick = () => {
     console.log('Add relationship button clicked - setting modal to open');
+    console.log('Current modal state:', isAddModalOpen);
     setIsAddModalOpen(true);
+    console.log('Modal should now be open');
   };
 
   const handleModalClose = (open: boolean) => {
