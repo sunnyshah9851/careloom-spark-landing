@@ -219,6 +219,10 @@ export type Database = {
         Args: { curlopt: string; value: string }
         Returns: boolean
       }
+      setup_reminder_cron: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       text_to_bytea: {
         Args: { data: string }
         Returns: string
