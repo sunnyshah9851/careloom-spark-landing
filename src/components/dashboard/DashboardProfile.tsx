@@ -77,68 +77,32 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
     setLoading(false);
   };
 
-  const ensureProfileExists = async () => {
-    if (!user) return false;
-
-    try {
-      // Check if profile exists
-      const { data: existingProfile, error } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error checking profile:', error);
-        return false;
-      }
-
-      if (!existingProfile) {
-        // Create profile if it doesn't exist
-        const { error: insertError } = await supabase
-          .from('profiles')
-          .insert({
-            id: user.id,
-            email: user.email,
-            full_name: user.user_metadata?.full_name || null
-          });
-
-        if (insertError) {
-          console.error('Error creating profile:', insertError);
-          toast({
-            title: "Error",
-            description: "Failed to create your profile. Please try again.",
-            variant: "destructive"
-          });
-          return false;
-        }
-
-        // Refresh profile data
-        await onRelationshipsUpdate();
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Error ensuring profile exists:', error);
-      return false;
-    }
-  };
-
   const handleAddRelationship = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user) {
+      console.error('No user found');
+      toast({
+        title: "Error",
+        description: "You must be logged in to add relationships.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!newRelationship.name.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a name for this relationship.",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setLoading(true);
+    console.log('Adding relationship for user:', user.id);
 
     try {
-      // Ensure profile exists before adding relationship
-      const profileExists = await ensureProfileExists();
-      if (!profileExists) {
-        setLoading(false);
-        return;
-      }
-
-      // Prepare the data with proper date formatting
+      // Prepare the relationship data
       const relationshipData = {
         profile_id: user.id,
         name: newRelationship.name.trim(),
@@ -149,24 +113,29 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
         notes: newRelationship.notes.trim() || null
       };
 
-      console.log('Inserting relationship data:', relationshipData);
+      console.log('Inserting relationship:', relationshipData);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('relationships')
-        .insert(relationshipData);
+        .insert(relationshipData)
+        .select()
+        .single();
 
       if (error) {
-        console.error('Error adding relationship:', error);
+        console.error('Supabase error adding relationship:', error);
         toast({
           title: "Error",
           description: `Failed to add relationship: ${error.message}`,
           variant: "destructive"
         });
       } else {
+        console.log('Successfully added relationship:', data);
         toast({
           title: "Success! 💕",
-          description: "New relationship added successfully.",
+          description: `${newRelationship.name} has been added to your relationships.`,
         });
+        
+        // Reset the form
         setNewRelationship({
           name: '',
           relationship_type: 'partner',
@@ -175,6 +144,8 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
           anniversary: '',
           notes: ''
         });
+        
+        // Refresh the relationships list
         await onRelationshipsUpdate();
       }
     } catch (error) {
@@ -189,25 +160,38 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
     setLoading(false);
   };
 
-  const handleDeleteRelationship = async (relationshipId: string) => {
-    const { error } = await supabase
-      .from('relationships')
-      .delete()
-      .eq('id', relationshipId);
+  const handleDeleteRelationship = async (relationshipId: string, relationshipName: string) => {
+    if (!confirm(`Are you sure you want to delete ${relationshipName}?`)) {
+      return;
+    }
 
-    if (error) {
-      console.error('Error deleting relationship:', error);
+    try {
+      const { error } = await supabase
+        .from('relationships')
+        .delete()
+        .eq('id', relationshipId);
+
+      if (error) {
+        console.error('Error deleting relationship:', error);
+        toast({
+          title: "Error",
+          description: "Failed to delete relationship. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: `${relationshipName} has been removed from your relationships.`,
+        });
+        await onRelationshipsUpdate();
+      }
+    } catch (error) {
+      console.error('Unexpected error deleting relationship:', error);
       toast({
         title: "Error",
-        description: "Failed to delete relationship. Please try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "Success",
-        description: "Relationship deleted successfully.",
-      });
-      await onRelationshipsUpdate();
     }
   };
 
@@ -316,7 +300,7 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
                 <form onSubmit={handleAddRelationship} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label htmlFor="name">Name</Label>
+                      <Label htmlFor="name">Name *</Label>
                       <Input
                         id="name"
                         value={newRelationship.name}
@@ -400,7 +384,7 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
             {/* Existing Relationships */}
             <Card>
               <CardHeader>
-                <CardTitle>Your Relationships</CardTitle>
+                <CardTitle>Your Relationships ({relationships.length})</CardTitle>
                 <CardDescription>
                   Manage the people in your life
                 </CardDescription>
@@ -409,25 +393,36 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
                 {relationships.length > 0 ? (
                   <div className="space-y-4">
                     {relationships.map((relationship) => (
-                      <div key={relationship.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <h3 className="font-semibold text-lg">{relationship.name}</h3>
-                          <p className="text-sm text-gray-600 capitalize">{relationship.relationship_type}</p>
+                      <div key={relationship.id} className="flex items-center justify-between p-4 border rounded-lg bg-rose-50/30 border-rose-100">
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg text-rose-900">{relationship.name}</h3>
+                          <p className="text-sm text-rose-600 capitalize mb-1">{relationship.relationship_type}</p>
+                          {relationship.email && (
+                            <p className="text-sm text-gray-600 mb-1">
+                              📧 {relationship.email}
+                            </p>
+                          )}
                           {relationship.birthday && (
-                            <p className="text-sm text-gray-500">
-                              Birthday: {new Date(relationship.birthday).toLocaleDateString()}
+                            <p className="text-sm text-gray-600 mb-1">
+                              🎂 Birthday: {new Date(relationship.birthday).toLocaleDateString()}
                             </p>
                           )}
                           {relationship.anniversary && (
-                            <p className="text-sm text-gray-500">
-                              Anniversary: {new Date(relationship.anniversary).toLocaleDateString()}
+                            <p className="text-sm text-gray-600 mb-1">
+                              💕 Anniversary: {new Date(relationship.anniversary).toLocaleDateString()}
+                            </p>
+                          )}
+                          {relationship.notes && (
+                            <p className="text-sm text-gray-500 italic mt-2">
+                              "{relationship.notes}"
                             </p>
                           )}
                         </div>
                         <Button
                           variant="destructive"
                           size="sm"
-                          onClick={() => handleDeleteRelationship(relationship.id)}
+                          onClick={() => handleDeleteRelationship(relationship.id, relationship.name)}
+                          className="ml-4"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -436,7 +431,9 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
                   </div>
                 ) : (
                   <div className="text-center py-8">
-                    <p className="text-gray-600">No relationships added yet. Add someone above!</p>
+                    <div className="text-6xl mb-4">💕</div>
+                    <p className="text-gray-600 text-lg mb-2">No relationships added yet</p>
+                    <p className="text-gray-500">Add someone special above to get started!</p>
                   </div>
                 )}
               </CardContent>
