@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,44 +78,108 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
     setLoading(false);
   };
 
+  const ensureProfileExists = async () => {
+    if (!user) return false;
+
+    try {
+      // Check if profile exists
+      const { data: existingProfile, error } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking profile:', error);
+        return false;
+      }
+
+      if (!existingProfile) {
+        // Create profile if it doesn't exist
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: user.email,
+            full_name: user.user_metadata?.full_name || null
+          });
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+          toast({
+            title: "Error",
+            description: "Failed to create your profile. Please try again.",
+            variant: "destructive"
+          });
+          return false;
+        }
+
+        // Refresh profile data
+        await onRelationshipsUpdate();
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Error ensuring profile exists:', error);
+      return false;
+    }
+  };
+
   const handleAddRelationship = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
     setLoading(true);
 
-    const { error } = await supabase
-      .from('relationships')
-      .insert({
-        profile_id: user.id,
-        ...newRelationship,
-        birthday: newRelationship.birthday || null,
-        anniversary: newRelationship.anniversary || null,
-        email: newRelationship.email || null,
-        notes: newRelationship.notes || null
-      });
+    try {
+      // Ensure profile exists before adding relationship
+      const profileExists = await ensureProfileExists();
+      if (!profileExists) {
+        setLoading(false);
+        return;
+      }
 
-    if (error) {
-      console.error('Error adding relationship:', error);
+      const { error } = await supabase
+        .from('relationships')
+        .insert({
+          profile_id: user.id,
+          name: newRelationship.name,
+          relationship_type: newRelationship.relationship_type,
+          email: newRelationship.email || null,
+          birthday: newRelationship.birthday || null,
+          anniversary: newRelationship.anniversary || null,
+          notes: newRelationship.notes || null
+        });
+
+      if (error) {
+        console.error('Error adding relationship:', error);
+        toast({
+          title: "Error",
+          description: "Failed to add relationship. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Success! 💕",
+          description: "New relationship added successfully.",
+        });
+        setNewRelationship({
+          name: '',
+          relationship_type: 'partner',
+          email: '',
+          birthday: '',
+          anniversary: '',
+          notes: ''
+        });
+        await onRelationshipsUpdate();
+      }
+    } catch (error) {
+      console.error('Unexpected error adding relationship:', error);
       toast({
         title: "Error",
-        description: "Failed to add relationship. Please try again.",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
-    } else {
-      toast({
-        title: "Success! 💕",
-        description: "New relationship added successfully.",
-      });
-      setNewRelationship({
-        name: '',
-        relationship_type: 'partner',
-        email: '',
-        birthday: '',
-        anniversary: '',
-        notes: ''
-      });
-      await onRelationshipsUpdate();
     }
 
     setLoading(false);
