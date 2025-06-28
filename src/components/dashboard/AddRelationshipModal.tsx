@@ -114,11 +114,6 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // Don't render the modal if user is not available
-  if (!user) {
-    return null;
-  }
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">

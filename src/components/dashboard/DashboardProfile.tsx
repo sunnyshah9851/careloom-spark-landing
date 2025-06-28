@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -119,7 +120,7 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
   };
 
   const handleAddRelationshipClick = () => {
-    console.log('Add relationship button clicked');
+    console.log('Add relationship button clicked - setting modal to open');
     setIsAddModalOpen(true);
   };
 
