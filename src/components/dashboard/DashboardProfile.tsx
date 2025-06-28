@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -47,6 +48,8 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
   });
   const [loading, setLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  console.log('DashboardProfile render - isAddModalOpen:', isAddModalOpen);
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +107,16 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
         variant: "destructive"
       });
     }
+  };
+
+  const handleAddRelationshipClick = () => {
+    console.log('Add relationship button clicked');
+    setIsAddModalOpen(true);
+  };
+
+  const handleModalClose = (open: boolean) => {
+    console.log('Modal close called with:', open);
+    setIsAddModalOpen(open);
   };
 
   return (
@@ -209,7 +222,7 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
                     </CardDescription>
                   </div>
                   <Button 
-                    onClick={() => setIsAddModalOpen(true)}
+                    onClick={handleAddRelationshipClick}
                     className="bg-rose-500 hover:bg-rose-600 text-white"
                   >
                     <Plus className="h-4 w-4 mr-2" />
@@ -283,7 +296,7 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
       {/* Add Relationship Modal */}
       <AddRelationshipModal 
         open={isAddModalOpen}
-        onOpenChange={setIsAddModalOpen}
+        onOpenChange={handleModalClose}
         onRelationshipAdded={onRelationshipsUpdate}
       />
     </div>

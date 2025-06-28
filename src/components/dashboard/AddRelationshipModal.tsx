@@ -27,6 +27,8 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
     notes: ''
   });
 
+  console.log('AddRelationshipModal render - open:', open);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -60,6 +62,8 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
         notes: formData.notes.trim() || null
       };
 
+      console.log('Submitting relationship data:', relationshipData);
+
       const { data, error } = await supabase
         .from('relationships')
         .insert(relationshipData)
@@ -74,6 +78,7 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
           variant: "destructive"
         });
       } else {
+        console.log('Relationship added successfully:', data);
         toast({
           title: "Success! 💕",
           description: `${formData.name} has been added to your relationships.`,
