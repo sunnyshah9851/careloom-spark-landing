@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,7 +48,17 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
   const [loading, setLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  console.log('DashboardProfile render - isAddModalOpen:', isAddModalOpen);
+  console.log('DashboardProfile render - isAddModalOpen:', isAddModalOpen, 'user:', user?.email);
+
+  if (!user) {
+    return (
+      <div className="p-8">
+        <div className="text-center">
+          <p className="text-rose-600">Please log in to view your profile.</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
