@@ -17,8 +17,9 @@ const Index = () => {
 
   useEffect(() => {
     const checkUserProfile = async () => {
-      // Only check profile if user is authenticated
+      // Only check profile if user is authenticated and auth is not loading
       if (!user || loading) {
+        console.log('No user or still loading, resetting states');
         setCheckingProfile(false);
         setShowOnboarding(false);
         return;
@@ -56,14 +57,12 @@ const Index = () => {
       }
     };
 
-    // Only run the check when we have a user and auth is not loading
-    if (!loading) {
-      checkUserProfile();
-    }
+    checkUserProfile();
   }, [user, loading]);
 
   // Show loading spinner while authentication is being determined
   if (loading) {
+    console.log('Auth loading - showing spinner');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
@@ -74,8 +73,9 @@ const Index = () => {
     );
   }
 
-  // Show loading while checking user profile
+  // Show loading while checking user profile (only for authenticated users)
   if (user && checkingProfile) {
+    console.log('Checking user profile - showing setup spinner');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
@@ -86,7 +86,7 @@ const Index = () => {
     );
   }
 
-  // User is authenticated
+  // User is authenticated - show onboarding or dashboard
   if (user) {
     if (showOnboarding) {
       console.log('Rendering Onboarding for new user:', user.email);
@@ -101,7 +101,7 @@ const Index = () => {
     }
   }
 
-  // User is not authenticated - show landing page
+  // Default: User is not authenticated - show landing page
   console.log('Rendering landing page - no authenticated user');
   return (
     <div className="min-h-screen bg-background">

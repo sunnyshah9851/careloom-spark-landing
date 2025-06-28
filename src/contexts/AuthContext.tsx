@@ -29,9 +29,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     console.log('AuthProvider: Setting up auth state listener');
     
+    // Get initial session first
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting initial session:', error);
+        } else {
+          console.log('Initial session check:', session?.user?.email || 'no session');
+          setSession(session);
+          setUser(session?.user ?? null);
+        }
+      } catch (error) {
+        console.error('Error in getInitialSession:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email || 'no user');
         setSession(session);
         setUser(session?.user ?? null);
@@ -39,13 +57,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email || 'no session');
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Get initial session
+    getInitialSession();
 
     return () => {
       console.log('AuthProvider: Cleaning up subscription');
@@ -57,33 +70,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log('Attempting Google sign in');
     setLoading(true);
     
-    const redirectUrl = `${window.location.origin}/`;
-    console.log('Redirect URL:', redirectUrl);
-    
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: redirectUrl
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      console.log('Redirect URL:', redirectUrl);
+      
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl
+        }
+      });
+      
+      if (error) {
+        console.error('Error signing in with Google:', error);
+        setLoading(false);
       }
-    });
-    
-    if (error) {
-      console.error('Error signing in with Google:', error);
+      // Don't set loading to false here on success, let the auth state change handle it
+    } catch (error) {
+      console.error('Unexpected error during Google sign in:', error);
       setLoading(false);
     }
-    // Don't set loading to false here on success, let the auth state change handle it
   };
 
   const signOut = async () => {
     console.log('Attempting sign out');
     setLoading(true);
     
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error('Error signing out:', error);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+        setLoading(false);
+      }
+      // Don't set loading to false here on success, let the auth state change handle it
+    } catch (error) {
+      console.error('Unexpected error during sign out:', error);
       setLoading(false);
     }
-    // Don't set loading to false here on success, let the auth state change handle it
   };
 
   const value = {
