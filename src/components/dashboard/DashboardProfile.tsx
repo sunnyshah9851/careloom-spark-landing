@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import AddRelationshipModal from './AddRelationshipModal';
 
 interface Relationship {
   id: string;
@@ -44,15 +45,8 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
   const [profileForm, setProfileForm] = useState({
     full_name: profile?.full_name || ''
   });
-  const [newRelationship, setNewRelationship] = useState({
-    name: '',
-    relationship_type: 'partner',
-    email: '',
-    birthday: '',
-    anniversary: '',
-    notes: ''
-  });
   const [loading, setLoading] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,89 +64,6 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
       toast({
         title: "Error",
         description: "Failed to update your profile. Please try again.",
-        variant: "destructive"
-      });
-    }
-
-    setLoading(false);
-  };
-
-  const handleAddRelationship = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) {
-      console.error('No user found');
-      toast({
-        title: "Error",
-        description: "You must be logged in to add relationships.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!newRelationship.name.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a name for this relationship.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setLoading(true);
-    console.log('Adding relationship for user:', user.id);
-
-    try {
-      // Prepare the relationship data
-      const relationshipData = {
-        profile_id: user.id,
-        name: newRelationship.name.trim(),
-        relationship_type: newRelationship.relationship_type,
-        email: newRelationship.email.trim() || null,
-        birthday: newRelationship.birthday || null,
-        anniversary: newRelationship.anniversary || null,
-        notes: newRelationship.notes.trim() || null
-      };
-
-      console.log('Inserting relationship:', relationshipData);
-
-      const { data, error } = await supabase
-        .from('relationships')
-        .insert(relationshipData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Supabase error adding relationship:', error);
-        toast({
-          title: "Error",
-          description: `Failed to add relationship: ${error.message}`,
-          variant: "destructive"
-        });
-      } else {
-        console.log('Successfully added relationship:', data);
-        toast({
-          title: "Success! 💕",
-          description: `${newRelationship.name} has been added to your relationships.`,
-        });
-        
-        // Reset the form
-        setNewRelationship({
-          name: '',
-          relationship_type: 'partner',
-          email: '',
-          birthday: '',
-          anniversary: '',
-          notes: ''
-        });
-        
-        // Refresh the relationships list
-        await onRelationshipsUpdate();
-      }
-    } catch (error) {
-      console.error('Unexpected error adding relationship:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
         variant: "destructive"
       });
     }
@@ -285,100 +196,27 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
 
         <TabsContent value="relationships">
           <div className="space-y-6">
-            {/* Add New Relationship */}
+            {/* Add New Relationship Button */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Plus className="h-5 w-5" />
-                  Add New Relationship
-                </CardTitle>
-                <CardDescription>
-                  Add someone important in your life
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleAddRelationship} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="name">Name *</Label>
-                      <Input
-                        id="name"
-                        value={newRelationship.name}
-                        onChange={(e) => setNewRelationship({ ...newRelationship, name: e.target.value })}
-                        placeholder="Enter their name"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="relationship_type">Relationship Type</Label>
-                      <select
-                        id="relationship_type"
-                        value={newRelationship.relationship_type}
-                        onChange={(e) => setNewRelationship({ ...newRelationship, relationship_type: e.target.value })}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <option value="partner">Partner</option>
-                        <option value="friend">Friend</option>
-                        <option value="family">Family</option>
-                        <option value="sibling">Sibling</option>
-                        <option value="parent">Parent</option>
-                        <option value="child">Child</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="birthday">Birthday (Optional)</Label>
-                      <Input
-                        id="birthday"
-                        type="date"
-                        value={newRelationship.birthday}
-                        onChange={(e) => setNewRelationship({ ...newRelationship, birthday: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="anniversary">Anniversary (Optional)</Label>
-                      <Input
-                        id="anniversary"
-                        type="date"
-                        value={newRelationship.anniversary}
-                        onChange={(e) => setNewRelationship({ ...newRelationship, anniversary: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
+                <div className="flex justify-between items-center">
                   <div>
-                    <Label htmlFor="email">Email (Optional)</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={newRelationship.email}
-                      onChange={(e) => setNewRelationship({ ...newRelationship, email: e.target.value })}
-                      placeholder="their.email@example.com"
-                    />
+                    <CardTitle className="flex items-center gap-2">
+                      Add New Relationship
+                    </CardTitle>
+                    <CardDescription>
+                      Add someone important in your life
+                    </CardDescription>
                   </div>
-
-                  <div>
-                    <Label htmlFor="notes">Notes (Optional)</Label>
-                    <Input
-                      id="notes"
-                      value={newRelationship.notes}
-                      onChange={(e) => setNewRelationship({ ...newRelationship, notes: e.target.value })}
-                      placeholder="Any special notes about this person..."
-                    />
-                  </div>
-
                   <Button 
-                    type="submit" 
-                    disabled={loading || !newRelationship.name.trim()}
+                    onClick={() => setIsAddModalOpen(true)}
                     className="bg-rose-500 hover:bg-rose-600 text-white"
                   >
-                    {loading ? 'Adding...' : 'Add Relationship'}
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Relationship
                   </Button>
-                </form>
-              </CardContent>
+                </div>
+              </CardHeader>
             </Card>
 
             {/* Existing Relationships */}
@@ -433,7 +271,7 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
                   <div className="text-center py-8">
                     <div className="text-6xl mb-4">💕</div>
                     <p className="text-gray-600 text-lg mb-2">No relationships added yet</p>
-                    <p className="text-gray-500">Add someone special above to get started!</p>
+                    <p className="text-gray-500">Click the "Add Relationship" button above to get started!</p>
                   </div>
                 )}
               </CardContent>
@@ -441,6 +279,13 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Add Relationship Modal */}
+      <AddRelationshipModal 
+        open={isAddModalOpen}
+        onOpenChange={setIsAddModalOpen}
+        onRelationshipAdded={onRelationshipsUpdate}
+      />
     </div>
   );
 };
