@@ -5,20 +5,23 @@ import UpcomingEvents from './UpcomingEvents';
 
 interface Relationship {
   id: string;
-  partner_first_name: string;
-  partner_last_name: string;
-  partner_birthday: string | null;
-  anniversary_date: string | null;
-  reminder_frequency: string;
+  profile_id: string;
+  relationship_type: string;
+  name: string;
+  email?: string;
+  birthday?: string;
+  anniversary?: string;
+  notes?: string;
+  last_nudge_sent?: string;
+  tags?: string[];
+  created_at: string;
 }
 
 interface Profile {
-  full_name: string;
-  partner_name: string;
-  user_birthday: string;
-  partner_birthday: string;
-  anniversary_date: string;
-  reminder_frequency: string;
+  id: string;
+  email?: string;
+  full_name?: string;
+  created_at: string;
 }
 
 interface Event {
@@ -26,28 +29,24 @@ interface Event {
   name: string;
   date: string;
   daysUntil: number;
+  relationshipType: string;
 }
 
 interface DashboardEventsProps {
-  relationship: Relationship | null;
-  profile: Profile;
+  relationships: Relationship[];
+  profile: Profile | null;
 }
 
-const DashboardEvents = ({ relationship, profile }: DashboardEventsProps) => {
+const DashboardEvents = ({ relationships, profile }: DashboardEventsProps) => {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
 
   useEffect(() => {
-    if (relationship) {
+    if (relationships.length > 0) {
       calculateUpcomingEvents();
     }
-  }, [relationship, profile]);
+  }, [relationships]);
 
   const calculateUpcomingEvents = () => {
-    if (!relationship) {
-      setUpcomingEvents([]);
-      return;
-    }
-
     const events: Event[] = [];
     const today = new Date();
     const currentYear = today.getFullYear();
@@ -65,35 +64,31 @@ const DashboardEvents = ({ relationship, profile }: DashboardEventsProps) => {
       return thisYear >= today ? thisYear : nextYear;
     };
 
-    if (profile.user_birthday) {
-      const nextBirthday = getNextOccurrence(profile.user_birthday);
-      events.push({
-        type: 'birthday',
-        name: `${profile.full_name || 'Your'} Birthday`,
-        date: nextBirthday.toISOString(),
-        daysUntil: getDaysUntil(nextBirthday)
-      });
-    }
+    relationships.forEach(relationship => {
+      // Add birthday
+      if (relationship.birthday) {
+        const nextBirthday = getNextOccurrence(relationship.birthday);
+        events.push({
+          type: 'birthday',
+          name: `${relationship.name}'s Birthday`,
+          date: nextBirthday.toISOString(),
+          daysUntil: getDaysUntil(nextBirthday),
+          relationshipType: relationship.relationship_type
+        });
+      }
 
-    if (relationship.partner_birthday) {
-      const nextBirthday = getNextOccurrence(relationship.partner_birthday);
-      events.push({
-        type: 'birthday',
-        name: `${relationship.partner_first_name}'s Birthday`,
-        date: nextBirthday.toISOString(),
-        daysUntil: getDaysUntil(nextBirthday)
-      });
-    }
-
-    if (relationship.anniversary_date) {
-      const nextAnniversary = getNextOccurrence(relationship.anniversary_date);
-      events.push({
-        type: 'anniversary',
-        name: 'Anniversary',
-        date: nextAnniversary.toISOString(),
-        daysUntil: getDaysUntil(nextAnniversary)
-      });
-    }
+      // Add anniversary
+      if (relationship.anniversary) {
+        const nextAnniversary = getNextOccurrence(relationship.anniversary);
+        events.push({
+          type: 'anniversary',
+          name: `${relationship.name} Anniversary`,
+          date: nextAnniversary.toISOString(),
+          daysUntil: getDaysUntil(nextAnniversary),
+          relationshipType: relationship.relationship_type
+        });
+      }
+    });
 
     events.sort((a, b) => a.daysUntil - b.daysUntil);
     setUpcomingEvents(events);
