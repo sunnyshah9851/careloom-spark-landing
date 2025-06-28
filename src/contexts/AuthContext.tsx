@@ -32,7 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        console.log('Auth state changed:', event, session?.user?.email || 'no user');
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -41,7 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session check:', session?.user?.email);
+      console.log('Initial session check:', session?.user?.email || 'no session');
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -55,24 +55,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     console.log('Attempting Google sign in');
+    setLoading(true);
+    
     const redirectUrl = `${window.location.origin}/`;
+    console.log('Redirect URL:', redirectUrl);
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectUrl
       }
     });
+    
     if (error) {
       console.error('Error signing in with Google:', error);
+      setLoading(false);
     }
+    // Don't set loading to false here on success, let the auth state change handle it
   };
 
   const signOut = async () => {
     console.log('Attempting sign out');
+    setLoading(true);
+    
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out:', error);
+      setLoading(false);
     }
+    // Don't set loading to false here on success, let the auth state change handle it
   };
 
   const value = {
@@ -83,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loading
   };
 
-  console.log('AuthProvider render - user:', user?.email, 'loading:', loading);
+  console.log('AuthProvider render - user:', user?.email || 'none', 'loading:', loading);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

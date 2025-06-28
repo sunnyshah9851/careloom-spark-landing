@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,16 +11,21 @@ import Onboarding from '@/components/Onboarding';
 const Index = () => {
   const { user, loading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [checkingProfile, setCheckingProfile] = useState(true);
+  const [checkingProfile, setCheckingProfile] = useState(false);
 
   console.log('Index page render - user:', user?.email, 'loading:', loading);
 
   useEffect(() => {
     const checkUserProfile = async () => {
-      if (!user) {
+      // Only check profile if user is authenticated
+      if (!user || loading) {
         setCheckingProfile(false);
+        setShowOnboarding(false);
         return;
       }
+
+      console.log('Checking profile for authenticated user:', user.email);
+      setCheckingProfile(true);
 
       try {
         // Check if user has completed onboarding by looking for relationships
@@ -33,12 +37,15 @@ const Index = () => {
 
         if (error) {
           console.error('Error checking relationships:', error);
+          // If there's an error, assume they need onboarding
           setShowOnboarding(true);
         } else if (!data) {
           // No relationship found - show onboarding
+          console.log('No relationships found - showing onboarding');
           setShowOnboarding(true);
         } else {
           // Existing user with profile - show dashboard
+          console.log('Existing user with relationships - showing dashboard');
           setShowOnboarding(false);
         }
       } catch (error) {
@@ -49,14 +56,14 @@ const Index = () => {
       }
     };
 
-    if (user && !loading) {
+    // Only run the check when we have a user and auth is not loading
+    if (!loading) {
       checkUserProfile();
-    } else if (!loading) {
-      setCheckingProfile(false);
     }
   }, [user, loading]);
 
-  if (loading || checkingProfile) {
+  // Show loading spinner while authentication is being determined
+  if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
@@ -67,6 +74,19 @@ const Index = () => {
     );
   }
 
+  // Show loading while checking user profile
+  if (user && checkingProfile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-500 mx-auto mb-4"></div>
+          <p className="text-rose-700">Setting up your account...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // User is authenticated
   if (user) {
     if (showOnboarding) {
       console.log('Rendering Onboarding for new user:', user.email);
@@ -81,7 +101,8 @@ const Index = () => {
     }
   }
 
-  console.log('Rendering landing page - no user');
+  // User is not authenticated - show landing page
+  console.log('Rendering landing page - no authenticated user');
   return (
     <div className="min-h-screen bg-background">
       <Header />
