@@ -41,12 +41,12 @@ const handler = async (req: Request): Promise<Response> => {
     const token = authHeader.replace('Bearer ', '');
     console.log('JWT token extracted, length:', token.length);
 
-    // Initialize Supabase client with the user's token
+    // Initialize Supabase client with service role for database operations
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
-    console.log('Creating Supabase client with JWT token');
-    const supabase = createClient(supabaseUrl, supabaseKey, {
+    console.log('Creating Supabase client for user authentication');
+    const supabaseAuth = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
       auth: {
         autoRefreshToken: false,
         persistSession: false,
@@ -59,7 +59,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     // Set the session with the token
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser(token);
     
     if (userError) {
       console.error('Error getting user:', userError);
@@ -145,23 +145,29 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Nudge email sent successfully:", emailResponse);
 
-    // Record this as an event in the events table
-    console.log('Recording event in database');
-    const { error: eventError } = await supabase
+    // Use service role client for database operations to bypass RLS
+    console.log('Recording event in database with service role');
+    const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { error: eventError } = await supabaseService
       .from('events')
       .insert({
-        relationship_id: userId, // Using userId as a placeholder since we don't have a specific relationship
+        relationship_id: null, // Set as null since this is a user-level action, not relationship-specific
         event_type: 'nudge_requested',
         metadata: {
           action_description: 'Requested personalized date ideas via email nudge',
           partner_name: partnerName,
-          city: city
+          city: city,
+          user_id: user.id,
+          user_email: userEmail
         }
       });
 
     if (eventError) {
       console.error('Error recording event:', eventError);
       // Don't throw here, just log the error since the main function succeeded
+    } else {
+      console.log('Event recorded successfully');
     }
 
     return new Response(JSON.stringify({ success: true, emailId: emailResponse.data?.id }), {
