@@ -6,14 +6,31 @@ import { Mail, Loader2 } from 'lucide-react';
 import { useNudge } from '@/hooks/useNudge';
 import { toast } from 'sonner';
 
+interface Relationship {
+  id: string;
+  profile_id: string;
+  relationship_type: string;
+  name: string;
+  email?: string;
+  birthday?: string;
+  anniversary?: string;
+  notes?: string;
+  last_nudge_sent?: string;
+  tags?: string[];
+  created_at: string;
+}
+
 interface TryNudgeCardProps {
-  partnerName?: string;
+  relationships: Relationship[];
   onNudgeSent?: () => void;
 }
 
-const TryNudgeCard = ({ partnerName, onNudgeSent }: TryNudgeCardProps) => {
+const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
   const { sendNudge, isLoading, error } = useNudge();
   const [hasSentToday, setHasSentToday] = useState(false);
+
+  // Get the first partner's name, or use a default
+  const partnerName = relationships.length > 0 ? relationships[0].name : undefined;
 
   const handleSendNudge = async () => {
     const success = await sendNudge({

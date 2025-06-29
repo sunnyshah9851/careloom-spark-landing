@@ -2,15 +2,68 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Heart, Calendar, Clock } from 'lucide-react';
 
-interface DashboardStatsProps {
-  stats: {
-    daysTogether: number;
-    thoughtfulActions: number;
-    daysToNextEvent: number;
-  };
+interface Relationship {
+  id: string;
+  profile_id: string;
+  relationship_type: string;
+  name: string;
+  email?: string;
+  birthday?: string;
+  anniversary?: string;
+  notes?: string;
+  last_nudge_sent?: string;
+  tags?: string[];
+  created_at: string;
 }
 
-const DashboardStats = ({ stats }: DashboardStatsProps) => {
+interface DashboardStatsProps {
+  relationships: Relationship[];
+}
+
+const DashboardStats = ({ relationships }: DashboardStatsProps) => {
+  const calculateStats = () => {
+    const today = new Date();
+    let daysTogether = 0;
+    let daysToNextEvent = Infinity;
+
+    relationships.forEach(relationship => {
+      // Calculate days together from anniversary
+      if (relationship.anniversary) {
+        const anniversaryDate = new Date(relationship.anniversary);
+        const diffTime = today.getTime() - anniversaryDate.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays > daysTogether) {
+          daysTogether = diffDays;
+        }
+      }
+
+      // Find next upcoming event
+      [relationship.birthday, relationship.anniversary].forEach(dateStr => {
+        if (dateStr) {
+          const eventDate = new Date(dateStr);
+          const currentYear = today.getFullYear();
+          const thisYearEvent = new Date(currentYear, eventDate.getMonth(), eventDate.getDate());
+          const nextYearEvent = new Date(currentYear + 1, eventDate.getMonth(), eventDate.getDate());
+          
+          const nextOccurrence = thisYearEvent >= today ? thisYearEvent : nextYearEvent;
+          const daysUntil = Math.ceil((nextOccurrence.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          
+          if (daysUntil < daysToNextEvent) {
+            daysToNextEvent = daysUntil;
+          }
+        }
+      });
+    });
+
+    return {
+      daysTogether: Math.max(0, daysTogether),
+      thoughtfulActions: relationships.filter(r => r.last_nudge_sent).length,
+      daysToNextEvent: daysToNextEvent === Infinity ? 0 : daysToNextEvent
+    };
+  };
+
+  const stats = calculateStats();
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
       <Card>

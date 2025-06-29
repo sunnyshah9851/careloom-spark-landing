@@ -2,6 +2,20 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Heart } from 'lucide-react';
 
+interface Relationship {
+  id: string;
+  profile_id: string;
+  relationship_type: string;
+  name: string;
+  email?: string;
+  birthday?: string;
+  anniversary?: string;
+  notes?: string;
+  last_nudge_sent?: string;
+  tags?: string[];
+  created_at: string;
+}
+
 interface Event {
   type: 'birthday' | 'anniversary';
   name: string;
@@ -10,10 +24,57 @@ interface Event {
 }
 
 interface UpcomingEventsProps {
-  events: Event[];
+  relationships: Relationship[];
 }
 
-const UpcomingEvents = ({ events }: UpcomingEventsProps) => {
+const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
+  const calculateUpcomingEvents = (): Event[] => {
+    const events: Event[] = [];
+    const today = new Date();
+    const currentYear = today.getFullYear();
+
+    const getDaysUntil = (eventDate: Date) => {
+      const diffTime = eventDate.getTime() - today.getTime();
+      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    };
+
+    const getNextOccurrence = (dateString: string) => {
+      const date = new Date(dateString);
+      const thisYear = new Date(currentYear, date.getMonth(), date.getDate());
+      const nextYear = new Date(currentYear + 1, date.getMonth(), date.getDate());
+      
+      return thisYear >= today ? thisYear : nextYear;
+    };
+
+    relationships.forEach(relationship => {
+      // Add birthday
+      if (relationship.birthday) {
+        const nextBirthday = getNextOccurrence(relationship.birthday);
+        events.push({
+          type: 'birthday',
+          name: `${relationship.name}'s Birthday`,
+          date: nextBirthday.toISOString(),
+          daysUntil: getDaysUntil(nextBirthday)
+        });
+      }
+
+      // Add anniversary
+      if (relationship.anniversary) {
+        const nextAnniversary = getNextOccurrence(relationship.anniversary);
+        events.push({
+          type: 'anniversary',
+          name: `${relationship.name} Anniversary`,
+          date: nextAnniversary.toISOString(),
+          daysUntil: getDaysUntil(nextAnniversary)
+        });
+      }
+    });
+
+    return events.sort((a, b) => a.daysUntil - b.daysUntil);
+  };
+
+  const events = calculateUpcomingEvents();
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'long',
