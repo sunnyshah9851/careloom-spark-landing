@@ -37,22 +37,29 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error('No authorization header');
     }
 
+    // Extract the JWT token from the Authorization header
+    const token = authHeader.replace('Bearer ', '');
+    console.log('JWT token extracted, length:', token.length);
+
     // Initialize Supabase client with the user's token
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
-    console.log('Creating Supabase client with auth header');
+    console.log('Creating Supabase client with JWT token');
     const supabase = createClient(supabaseUrl, supabaseKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
       global: {
         headers: {
-          Authorization: authHeader,
+          Authorization: `Bearer ${token}`,
         },
       },
     });
 
-    // Get the authenticated user
-    console.log('Getting authenticated user');
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Set the session with the token
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
     
     if (userError) {
       console.error('Error getting user:', userError);
