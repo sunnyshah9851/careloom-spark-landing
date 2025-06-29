@@ -13,7 +13,6 @@ const Index = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(false);
   const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
-  const [onboardingCompleted, setOnboardingCompleted] = useState(false);
 
   console.log('Index page render - user:', user?.email, 'loading:', loading);
 
@@ -25,7 +24,6 @@ const Index = () => {
         if (!user && !loading) {
           setCheckingProfile(false);
           setShowOnboarding(false);
-          setOnboardingCompleted(false);
         }
         return;
       }
@@ -63,37 +61,29 @@ const Index = () => {
           }
         }
 
-        // If onboarding was completed, go straight to dashboard regardless of relationship count
-        if (onboardingCompleted) {
-          console.log('Onboarding was completed - showing dashboard');
-          setShowOnboarding(false);
-        } else {
-          // Check if user has completed onboarding by looking for relationships
-          const { data: relationshipData, error: relationshipError } = await supabase
-            .from('relationships')
-            .select('id')
-            .eq('profile_id', user.id)
-            .maybeSingle();
+        // Check if user has completed onboarding by looking for relationships
+        const { data: relationshipData, error: relationshipError } = await supabase
+          .from('relationships')
+          .select('id')
+          .eq('profile_id', user.id)
+          .maybeSingle();
 
-          if (relationshipError) {
-            console.error('Error checking relationships:', relationshipError);
-            // If there's an error, assume they need onboarding
-            setShowOnboarding(true);
-          } else if (!relationshipData) {
-            // No relationship found - show onboarding
-            console.log('No relationships found - showing onboarding');
-            setShowOnboarding(true);
-          } else {
-            // Existing user with profile - show dashboard
-            console.log('Existing user with relationships - showing dashboard');
-            setShowOnboarding(false);
-          }
+        if (relationshipError) {
+          console.error('Error checking relationships:', relationshipError);
+          // If there's an error, assume they need onboarding
+          setShowOnboarding(true);
+        } else if (!relationshipData) {
+          // No relationship found - show onboarding
+          console.log('No relationships found - showing onboarding');
+          setShowOnboarding(true);
+        } else {
+          // Existing user with relationships - show dashboard
+          console.log('Existing user with relationships - showing dashboard');
+          setShowOnboarding(false);
         }
       } catch (error) {
         console.error('Error in checkUserProfile:', error);
-        if (!onboardingCompleted) {
-          setShowOnboarding(true);
-        }
+        setShowOnboarding(true);
       } finally {
         setCheckingProfile(false);
         setHasCheckedProfile(true);
@@ -101,13 +91,12 @@ const Index = () => {
     };
 
     checkUserProfile();
-  }, [user, loading, hasCheckedProfile, onboardingCompleted]);
+  }, [user, loading, hasCheckedProfile]);
 
   // Reset the hasCheckedProfile flag when user changes (login/logout)
   useEffect(() => {
     if (!user) {
       setHasCheckedProfile(false);
-      setOnboardingCompleted(false);
     }
   }, [user]);
 
@@ -160,7 +149,8 @@ const Index = () => {
         <Onboarding onComplete={() => {
           console.log('Onboarding completed');
           setShowOnboarding(false);
-          setOnboardingCompleted(true);
+          // Force a re-check of the profile to confirm relationships exist
+          setHasCheckedProfile(false);
         }} />
       </div>
     );
