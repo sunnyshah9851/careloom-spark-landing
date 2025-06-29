@@ -14,15 +14,33 @@ const Index = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(false);
   const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
+  const [sessionLoading, setSessionLoading] = useState(true);
 
-  console.log('Index page render - user:', user?.email, 'loading:', loading);
+  console.log('Index page render - user:', user?.email, 'loading:', loading, 'sessionLoading:', sessionLoading);
+
+  // Check for existing session on mount
+  useEffect(() => {
+    const checkSession = async () => {
+      console.log('Checking for existing session...');
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session:', error);
+      }
+      
+      console.log('Session check result:', session?.user?.email || 'No session');
+      setSessionLoading(false);
+    };
+
+    checkSession();
+  }, []);
 
   useEffect(() => {
     const checkUserProfile = async () => {
-      // Only check profile if user is authenticated, auth is not loading, and we haven't checked yet
-      if (!user || loading || hasCheckedProfile) {
-        console.log('Skipping profile check - user:', !!user, 'loading:', loading, 'hasChecked:', hasCheckedProfile);
-        if (!user && !loading) {
+      // Only check profile if user is authenticated, auth is not loading, session is loaded, and we haven't checked yet
+      if (!user || loading || sessionLoading || hasCheckedProfile) {
+        console.log('Skipping profile check - user:', !!user, 'loading:', loading, 'sessionLoading:', sessionLoading, 'hasChecked:', hasCheckedProfile);
+        if (!user && !loading && !sessionLoading) {
           setCheckingProfile(false);
           setShowOnboarding(false);
         }
@@ -92,18 +110,19 @@ const Index = () => {
     };
 
     checkUserProfile();
-  }, [user, loading, hasCheckedProfile]);
+  }, [user, loading, sessionLoading, hasCheckedProfile]);
 
   // Reset the hasCheckedProfile flag when user changes (login/logout)
   useEffect(() => {
     if (!user) {
       setHasCheckedProfile(false);
+      setShowOnboarding(false);
     }
   }, [user]);
 
-  // Show loading spinner while authentication is being determined
-  if (loading) {
-    console.log('Auth loading - showing spinner');
+  // Show loading spinner while authentication or session is being determined
+  if (loading || sessionLoading) {
+    console.log('Auth/session loading - showing spinner');
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <div className="text-center">
@@ -148,7 +167,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         <Onboarding onComplete={() => {
-          console.log('Onboarding completed');
+          console.log('Onboarding completed - redirecting to dashboard');
           setShowOnboarding(false);
           // Don't reset hasCheckedProfile - this prevents the loop
         }} />
