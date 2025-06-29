@@ -13,16 +13,19 @@ const Index = () => {
   const { user, loading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(false);
+  const [hasCheckedProfile, setHasCheckedProfile] = useState(false);
 
   console.log('Index page render - user:', user?.email, 'loading:', loading);
 
   useEffect(() => {
     const checkUserProfile = async () => {
-      // Only check profile if user is authenticated and auth is not loading
-      if (!user || loading) {
-        console.log('No user or still loading, resetting states');
-        setCheckingProfile(false);
-        setShowOnboarding(false);
+      // Only check profile if user is authenticated, auth is not loading, and we haven't checked yet
+      if (!user || loading || hasCheckedProfile) {
+        console.log('Skipping profile check - user:', !!user, 'loading:', loading, 'hasChecked:', hasCheckedProfile);
+        if (!user && !loading) {
+          setCheckingProfile(false);
+          setShowOnboarding(false);
+        }
         return;
       }
 
@@ -84,11 +87,19 @@ const Index = () => {
         setShowOnboarding(true);
       } finally {
         setCheckingProfile(false);
+        setHasCheckedProfile(true);
       }
     };
 
     checkUserProfile();
-  }, [user, loading]);
+  }, [user, loading, hasCheckedProfile]);
+
+  // Reset the hasCheckedProfile flag when user changes (login/logout)
+  useEffect(() => {
+    if (!user) {
+      setHasCheckedProfile(false);
+    }
+  }, [user]);
 
   // Show loading spinner while authentication is being determined
   if (loading) {
@@ -136,7 +147,10 @@ const Index = () => {
     console.log('Rendering Onboarding for new user:', user.email);
     return (
       <div className="min-h-screen bg-background">
-        <Onboarding onComplete={() => setShowOnboarding(false)} />
+        <Onboarding onComplete={() => {
+          setShowOnboarding(false);
+          setHasCheckedProfile(false); // Reset so we re-check after onboarding
+        }} />
       </div>
     );
   } 
