@@ -49,19 +49,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email || 'no user');
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Only set loading to false after we've processed the auth change
-        if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     );
 
-    // Get initial session after setting up listener
+    // Get initial session
     getInitialSession();
 
     return () => {
@@ -89,7 +85,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('Error signing in with Google:', error);
         setLoading(false);
       }
-      // Don't set loading to false here on success, let the auth state change handle it
     } catch (error) {
       console.error('Unexpected error during Google sign in:', error);
       setLoading(false);
@@ -106,7 +101,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error('Error signing out:', error);
         setLoading(false);
       }
-      // Don't set loading to false here on success, let the auth state change handle it
     } catch (error) {
       console.error('Unexpected error during sign out:', error);
       setLoading(false);
