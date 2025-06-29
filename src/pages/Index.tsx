@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -149,8 +150,7 @@ const Index = () => {
         <Onboarding onComplete={() => {
           console.log('Onboarding completed');
           setShowOnboarding(false);
-          // Force a re-check of the profile to confirm relationships exist
-          setHasCheckedProfile(false);
+          // Don't reset hasCheckedProfile - this prevents the loop
         }} />
       </div>
     );
