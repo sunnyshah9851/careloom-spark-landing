@@ -26,15 +26,22 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    console.log('Send-nudge function called');
+    
     // Get the authorization header to verify the user
     const authHeader = req.headers.get('Authorization');
+    console.log('Authorization header present:', !!authHeader);
+    
     if (!authHeader) {
+      console.log('No authorization header found');
       throw new Error('No authorization header');
     }
 
     // Initialize Supabase client with the user's token
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
+    console.log('Creating Supabase client with auth header');
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: {
         headers: {
@@ -44,17 +51,26 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
     // Get the authenticated user
+    console.log('Getting authenticated user');
     const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    
+    if (userError) {
+      console.error('Error getting user:', userError);
+      throw userError;
+    }
+    
+    if (!user) {
+      console.log('No user found in auth context');
       throw new Error('User not authenticated');
     }
 
-    console.log('Authenticated user email:', user.email);
+    console.log('Authenticated user found:', user.email);
 
     const { userId, userName, partnerName, city }: NudgeRequest = await req.json();
 
     // Use the authenticated user's email instead of the one from the request
     const userEmail = user.email!;
+    console.log('Sending nudge to:', userEmail);
 
     // Generate personalized date ideas
     const dateIdeas = [
@@ -111,7 +127,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    console.log('Sending email to:', userEmail);
+    console.log('Sending email via Resend');
 
     const emailResponse = await resend.emails.send({
       from: "Careloom <careloom@resend.dev>",
@@ -122,14 +138,24 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Nudge email sent successfully:", emailResponse);
 
-    // Record this as a thoughtful action
-    await supabase
-      .from('thoughtful_actions')
+    // Record this as an event in the events table
+    console.log('Recording event in database');
+    const { error: eventError } = await supabase
+      .from('events')
       .insert({
-        user_id: userId,
-        action_type: 'nudge_requested',
-        action_description: 'Requested personalized date ideas via email nudge'
+        relationship_id: userId, // Using userId as a placeholder since we don't have a specific relationship
+        event_type: 'nudge_requested',
+        metadata: {
+          action_description: 'Requested personalized date ideas via email nudge',
+          partner_name: partnerName,
+          city: city
+        }
       });
+
+    if (eventError) {
+      console.error('Error recording event:', eventError);
+      // Don't throw here, just log the error since the main function succeeded
+    }
 
     return new Response(JSON.stringify({ success: true, emailId: emailResponse.data?.id }), {
       status: 200,

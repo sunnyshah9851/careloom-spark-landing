@@ -23,6 +23,9 @@ export const useNudge = () => {
     setError(null);
 
     try {
+      console.log('Sending nudge for user:', user.email);
+      console.log('Nudge data:', data);
+
       const { data: functionData, error: functionError } = await supabase.functions.invoke('send-nudge', {
         body: {
           userId: user.id,
@@ -34,6 +37,7 @@ export const useNudge = () => {
       });
 
       if (functionError) {
+        console.error('Function error:', functionError);
         throw functionError;
       }
 
