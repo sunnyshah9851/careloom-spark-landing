@@ -13,38 +13,37 @@ const Index = () => {
   const { user, loading } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(false);
-  const [profileChecked, setProfileChecked] = useState(false);
 
   console.log('Index page render - user:', user?.email || 'none', 'loading:', loading);
 
   useEffect(() => {
     const checkUserProfile = async () => {
-      // Only check profile if user is authenticated and we haven't checked yet
-      if (!user || loading || profileChecked) {
-        console.log('Skipping profile check - user:', !!user, 'loading:', loading, 'profileChecked:', profileChecked);
+      // Only check if user exists and we're not loading
+      if (!user || loading) {
+        console.log('Skipping profile check - no user or loading');
+        setShowOnboarding(false);
+        setCheckingProfile(false);
         return;
       }
 
-      console.log('Checking profile for authenticated user:', user.email);
+      console.log('Checking profile for user:', user.email);
       setCheckingProfile(true);
-      setProfileChecked(true);
 
       try {
-        // Check if user has completed onboarding by looking for relationships
-        const { data: relationshipData, error: relationshipError } = await supabase
+        const { data: relationshipData, error } = await supabase
           .from('relationships')
           .select('id')
           .eq('profile_id', user.id)
           .limit(1);
 
-        if (relationshipError) {
-          console.error('Error checking relationships:', relationshipError);
+        if (error) {
+          console.error('Error checking relationships:', error);
           setShowOnboarding(true);
         } else if (!relationshipData || relationshipData.length === 0) {
           console.log('No relationships found - showing onboarding');
           setShowOnboarding(true);
         } else {
-          console.log('Existing user with relationships - showing dashboard');
+          console.log('User has relationships - showing dashboard');
           setShowOnboarding(false);
         }
       } catch (error) {
@@ -56,18 +55,9 @@ const Index = () => {
     };
 
     checkUserProfile();
-  }, [user, loading, profileChecked]);
+  }, [user, loading]); // Only depend on user and loading
 
-  // Reset profile check when user changes (login/logout)
-  useEffect(() => {
-    if (!user) {
-      setProfileChecked(false);
-      setShowOnboarding(false);
-      setCheckingProfile(false);
-    }
-  }, [user]);
-
-  // Show loading spinner while authentication is being determined
+  // Show loading while auth is being determined
   if (loading) {
     console.log('Auth loading - showing spinner');
     return (
@@ -80,7 +70,7 @@ const Index = () => {
     );
   }
 
-  // If no user is authenticated, show the landing page
+  // If no user, show landing page
   if (!user) {
     console.log('Rendering landing page - no authenticated user');
     return (
@@ -95,7 +85,7 @@ const Index = () => {
     );
   }
 
-  // Show loading while checking user profile
+  // Show loading while checking profile
   if (checkingProfile) {
     console.log('Checking user profile - showing setup spinner');
     return (
@@ -114,9 +104,8 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         <Onboarding onComplete={() => {
-          console.log('Onboarding completed - will check profile again');
+          console.log('Onboarding completed');
           setShowOnboarding(false);
-          setProfileChecked(false); // Reset to allow re-checking
         }} />
       </div>
     );
