@@ -72,7 +72,9 @@ export const useEvents = () => {
         `)
         .gte('created_at', startDate.toISOString())
         .eq('relationships.profile_id', user.id)
-        .order('created_at', { ascending: false });
+        .in('event_type', ['nudge_requested', 'relationship_added', 'birthday_reminder_sent', 'anniversary_reminder_sent'])
+        .order('created_at', { ascending: false })
+        .limit(5);
 
       if (error) {
         throw error;

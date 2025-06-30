@@ -4,6 +4,7 @@ import DashboardStats from './DashboardStats';
 import UpcomingEvents from './UpcomingEvents';
 import TryNudgeCard from './TryNudgeCard';
 import RecentActivity from './RecentActivity';
+import AddRelationshipCard from './AddRelationshipCard';
 
 interface Relationship {
   id: string;
@@ -37,6 +38,11 @@ const DashboardOverview = ({ relationships, profile }: DashboardOverviewProps) =
     window.location.reload();
   };
 
+  const handleRelationshipAdded = () => {
+    // Force a refresh of the recent activity and relationships
+    window.location.reload();
+  };
+
   return (
     <div className="p-8 space-y-8">
       <div className="mb-8">
@@ -54,6 +60,7 @@ const DashboardOverview = ({ relationships, profile }: DashboardOverviewProps) =
         <div className="space-y-6">
           <UpcomingEvents relationships={relationships} />
           <TryNudgeCard relationships={relationships} onNudgeSent={handleNudgeSent} />
+          <AddRelationshipCard onRelationshipAdded={handleRelationshipAdded} />
         </div>
         
         <div className="space-y-6">

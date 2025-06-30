@@ -21,7 +21,6 @@ const RecentActivity = () => {
     switch (eventType) {
       case 'relationship_added':
         return <UserPlus className="h-4 w-4 text-blue-600" />;
-      case 'nudge_sent':
       case 'nudge_requested':
         return <Mail className="h-4 w-4 text-green-600" />;
       case 'birthday_reminder_sent':
@@ -34,14 +33,11 @@ const RecentActivity = () => {
   };
 
   const getEventDescription = (event: Event) => {
-    const metadata = event.metadata || {};
     const relationshipName = (event as any).relationships?.name || 'Unknown';
 
     switch (event.event_type) {
       case 'relationship_added':
-        return `Added ${relationshipName} as a new relationship`;
-      case 'nudge_sent':
-        return `Sent nudge email with personalized date ideas`;
+        return `Added ${relationshipName} to your circle`;
       case 'nudge_requested':
         return `Requested personalized date ideas via nudge`;
       case 'birthday_reminder_sent':
