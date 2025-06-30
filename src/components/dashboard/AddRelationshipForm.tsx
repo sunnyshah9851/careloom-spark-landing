@@ -25,7 +25,9 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
     relationship_type: '',
     birthday: '',
     anniversary: '',
-    notes: ''
+    notes: '',
+    birthday_notification_frequency: 'weekly',
+    anniversary_notification_frequency: 'weekly'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,8 +38,8 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
       return;
     }
 
-    if (!formData.name || !formData.relationship_type) {
-      toast.error('Please fill in at least the name and relationship type');
+    if (!formData.name || !formData.relationship_type || !formData.email || !formData.birthday) {
+      toast.error('Please fill in the name, relationship type, email, and birthday fields');
       return;
     }
 
@@ -49,9 +51,9 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
         .insert({
           profile_id: user.id,
           name: formData.name,
-          email: formData.email || null,
+          email: formData.email,
           relationship_type: formData.relationship_type,
-          birthday: formData.birthday || null,
+          birthday: formData.birthday,
           anniversary: formData.anniversary || null,
           notes: formData.notes || null
         })
@@ -69,7 +71,9 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
         {
           action_description: `Added ${formData.name} as a new ${formData.relationship_type} relationship`,
           relationship_name: formData.name,
-          relationship_type: formData.relationship_type
+          relationship_type: formData.relationship_type,
+          birthday_notification_frequency: formData.birthday_notification_frequency,
+          anniversary_notification_frequency: formData.anniversary_notification_frequency
         }
       );
 
@@ -90,8 +94,16 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
     }));
   };
 
+  const isPartnerRelationship = formData.relationship_type === 'partner' || formData.relationship_type === 'spouse';
+
   return (
     <div className="w-full max-w-lg mx-auto bg-white p-6 rounded-lg">
+      <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+        <p className="text-sm text-blue-800">
+          📧 All communication is currently via email. Text messaging will be available in the future.
+        </p>
+      </div>
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm font-medium text-gray-900">
@@ -128,7 +140,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
 
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium text-gray-900">
-            Email
+            Email *
           </Label>
           <Input
             id="email"
@@ -136,35 +148,75 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             value={formData.email}
             onChange={(e) => handleInputChange('email', e.target.value)}
             placeholder="Enter their email"
+            required
             className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
           />
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="birthday" className="text-sm font-medium text-gray-900">
-            Birthday
+            Birthday *
           </Label>
           <Input
             id="birthday"
             type="date"
             value={formData.birthday}
             onChange={(e) => handleInputChange('birthday', e.target.value)}
+            required
             className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="anniversary" className="text-sm font-medium text-gray-900">
-            Anniversary
+          <Label htmlFor="birthday_notification_frequency" className="text-sm font-medium text-gray-900">
+            Birthday Notification Frequency
           </Label>
-          <Input
-            id="anniversary"
-            type="date"
-            value={formData.anniversary}
-            onChange={(e) => handleInputChange('anniversary', e.target.value)}
-            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
-          />
+          <Select value={formData.birthday_notification_frequency} onValueChange={(value) => handleInputChange('birthday_notification_frequency', value)}>
+            <SelectTrigger className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
+              <SelectItem value="daily">Daily (7 days before)</SelectItem>
+              <SelectItem value="weekly">Weekly (1 week before)</SelectItem>
+              <SelectItem value="monthly">Monthly (1 month before)</SelectItem>
+              <SelectItem value="none">No notifications</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
+
+        {isPartnerRelationship && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="anniversary" className="text-sm font-medium text-gray-900">
+                Anniversary
+              </Label>
+              <Input
+                id="anniversary"
+                type="date"
+                value={formData.anniversary}
+                onChange={(e) => handleInputChange('anniversary', e.target.value)}
+                className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="anniversary_notification_frequency" className="text-sm font-medium text-gray-900">
+                Anniversary Notification Frequency
+              </Label>
+              <Select value={formData.anniversary_notification_frequency} onValueChange={(value) => handleInputChange('anniversary_notification_frequency', value)}>
+                <SelectTrigger className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
+                  <SelectItem value="daily">Daily (7 days before)</SelectItem>
+                  <SelectItem value="weekly">Weekly (1 week before)</SelectItem>
+                  <SelectItem value="monthly">Monthly (1 month before)</SelectItem>
+                  <SelectItem value="none">No notifications</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        )}
 
         <div className="space-y-2">
           <Label htmlFor="notes" className="text-sm font-medium text-gray-900">
