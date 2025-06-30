@@ -38,8 +38,15 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
       return;
     }
 
-    if (!formData.name || !formData.relationship_type || !formData.email || !formData.birthday) {
-      toast.error('Please fill in the name, relationship type, email, and birthday fields');
+    if (!formData.name || !formData.relationship_type || !formData.birthday) {
+      toast.error('Please fill in the name, relationship type, and birthday fields');
+      return;
+    }
+
+    // Check if email is required for partner/spouse relationships
+    const isPartnerRelationship = formData.relationship_type === 'partner' || formData.relationship_type === 'spouse';
+    if (isPartnerRelationship && !formData.email) {
+      toast.error('Email is required for partner and spouse relationships');
       return;
     }
 
@@ -51,7 +58,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
         .insert({
           profile_id: user.id,
           name: formData.name,
-          email: formData.email,
+          email: formData.email || null,
           relationship_type: formData.relationship_type,
           birthday: formData.birthday,
           anniversary: formData.anniversary || null,
@@ -140,7 +147,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
 
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm font-medium text-gray-900">
-            Email *
+            Email {isPartnerRelationship && '*'}
           </Label>
           <Input
             id="email"
@@ -148,7 +155,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             value={formData.email}
             onChange={(e) => handleInputChange('email', e.target.value)}
             placeholder="Enter their email"
-            required
+            required={isPartnerRelationship}
             className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
           />
         </div>
