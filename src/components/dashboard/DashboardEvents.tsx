@@ -34,10 +34,10 @@ const DashboardEvents = ({ relationships, profile }: DashboardEventsProps) => {
     <div className="p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-playfair font-bold text-rose-800 mb-2">
-          Upcoming Events
+          Events This Month
         </h1>
         <p className="text-rose-600 text-lg">
-          Never miss another special moment
+          Never miss another special moment in the next 30 days
         </p>
       </div>
 

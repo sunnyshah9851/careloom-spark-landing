@@ -32,6 +32,7 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
     const events: Event[] = [];
     const today = new Date();
     const currentYear = today.getFullYear();
+    const oneMonthFromNow = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
 
     const getDaysUntil = (eventDate: Date) => {
       const diffTime = eventDate.getTime() - today.getTime();
@@ -46,27 +47,35 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
       return thisYear >= today ? thisYear : nextYear;
     };
 
+    const isWithinNextMonth = (eventDate: Date) => {
+      return eventDate <= oneMonthFromNow;
+    };
+
     relationships.forEach(relationship => {
       // Add birthday
       if (relationship.birthday) {
         const nextBirthday = getNextOccurrence(relationship.birthday);
-        events.push({
-          type: 'birthday',
-          name: `${relationship.name}'s Birthday`,
-          date: nextBirthday.toISOString(),
-          daysUntil: getDaysUntil(nextBirthday)
-        });
+        if (isWithinNextMonth(nextBirthday)) {
+          events.push({
+            type: 'birthday',
+            name: `${relationship.name}'s Birthday`,
+            date: nextBirthday.toISOString(),
+            daysUntil: getDaysUntil(nextBirthday)
+          });
+        }
       }
 
       // Add anniversary
       if (relationship.anniversary) {
         const nextAnniversary = getNextOccurrence(relationship.anniversary);
-        events.push({
-          type: 'anniversary',
-          name: `${relationship.name} Anniversary`,
-          date: nextAnniversary.toISOString(),
-          daysUntil: getDaysUntil(nextAnniversary)
-        });
+        if (isWithinNextMonth(nextAnniversary)) {
+          events.push({
+            type: 'anniversary',
+            name: `${relationship.name} Anniversary`,
+            date: nextAnniversary.toISOString(),
+            daysUntil: getDaysUntil(nextAnniversary)
+          });
+        }
       }
     });
 
@@ -87,16 +96,16 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Calendar className="h-5 w-5 text-rose-500" />
-          Upcoming Events
+          Upcoming Events This Month
         </CardTitle>
         <CardDescription>
-          Never miss a special moment
+          Special moments in the next 30 days
         </CardDescription>
       </CardHeader>
       <CardContent>
         {events.length === 0 ? (
           <p className="text-muted-foreground text-center py-4">
-            No upcoming events. Add your relationship details to see upcoming birthdays and anniversaries!
+            No events in the next month. Add your relationship details to see upcoming birthdays and anniversaries!
           </p>
         ) : (
           <div className="space-y-4">
