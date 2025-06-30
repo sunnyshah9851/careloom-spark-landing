@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
 
 interface Relationship {
@@ -73,25 +73,23 @@ const ThoughtfulnessScore = ({ relationships }: ThoughtfulnessScoreProps) => {
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           Thoughtfulness Score
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button className="p-1 rounded-full bg-rose-100 hover:bg-rose-200 transition-colors">
-                  <HelpCircle className="h-5 w-5 text-rose-600 hover:text-rose-700" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <div className="space-y-2 text-sm">
-                  <p className="font-medium">How your score is calculated:</p>
-                  <div className="space-y-1">
-                    <p><strong>Relationships (40pts):</strong> {score.breakdown.relationships} pts - Tracking {relationships.length} relationship{relationships.length !== 1 ? 's' : ''}</p>
-                    <p><strong>Active Care (40pts):</strong> {score.breakdown.reminders} pts - {relationships.filter(r => r.last_nudge_sent).length} relationship{relationships.filter(r => r.last_nudge_sent).length !== 1 ? 's' : ''} with recent activity</p>
-                    <p><strong>Planning (20pts):</strong> {score.breakdown.planning} pts - {relationships.filter(r => r.birthday || r.anniversary).length} relationship{relationships.filter(r => r.birthday || r.anniversary).length !== 1 ? 's' : ''} with important dates</p>
-                  </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button className="p-1 rounded-full bg-rose-100 hover:bg-rose-200 transition-colors">
+                <HelpCircle className="h-5 w-5 text-rose-600 hover:text-rose-700" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="max-w-xs z-50 bg-white border shadow-lg">
+              <div className="space-y-2 text-sm">
+                <p className="font-medium">How your score is calculated:</p>
+                <div className="space-y-1">
+                  <p><strong>Relationships (40pts):</strong> {score.breakdown.relationships} pts - Tracking {relationships.length} relationship{relationships.length !== 1 ? 's' : ''}</p>
+                  <p><strong>Active Care (40pts):</strong> {score.breakdown.reminders} pts - {relationships.filter(r => r.last_nudge_sent).length} relationship{relationships.filter(r => r.last_nudge_sent).length !== 1 ? 's' : ''} with recent activity</p>
+                  <p><strong>Planning (20pts):</strong> {score.breakdown.planning} pts - {relationships.filter(r => r.birthday || r.anniversary).length} relationship{relationships.filter(r => r.birthday || r.anniversary).length !== 1 ? 's' : ''} with important dates</p>
                 </div>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+              </div>
+            </TooltipContent>
+          </Tooltip>
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-0">
