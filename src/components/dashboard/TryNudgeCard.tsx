@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Mail, Loader2 } from 'lucide-react';
 import { useNudge } from '@/hooks/useNudge';
+import { useEvents } from '@/hooks/useEvents';
 import { toast } from 'sonner';
 
 interface Relationship {
@@ -27,6 +28,7 @@ interface TryNudgeCardProps {
 
 const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
   const { sendNudge, isLoading, error } = useNudge();
+  const { recordEvent } = useEvents();
   const [hasSentToday, setHasSentToday] = useState(false);
 
   // Get the first partner's name, or use a default
@@ -39,6 +41,17 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
     });
 
     if (success) {
+      // Record the nudge event
+      await recordEvent(
+        relationships.length > 0 ? relationships[0].id : null,
+        'nudge_requested',
+        {
+          action_description: 'Requested personalized date ideas via email nudge',
+          partner_name: partnerName,
+          city: 'your city'
+        }
+      );
+
       toast.success('🎁 Nudge sent! Check your email for personalized date ideas.');
       setHasSentToday(true);
       onNudgeSent?.();

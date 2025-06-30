@@ -3,279 +3,174 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, X } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useEvents } from '@/hooks/useEvents';
+import { toast } from 'sonner';
 
 interface AddRelationshipFormProps {
-  onSuccess?: () => void;
-  onCancel?: () => void;
-  isModal?: boolean;
+  onSuccess: () => void;
+  onCancel: () => void;
 }
 
-const AddRelationshipForm = ({ onSuccess, onCancel, isModal = false }: AddRelationshipFormProps) => {
+const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) => {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
+  const { recordEvent } = useEvents();
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
-    relationship_type: 'partner',
     email: '',
-    birthday: null as Date | null,
-    anniversary: null as Date | null,
+    relationship_type: '',
+    birthday: '',
+    anniversary: '',
     notes: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to add relationships.",
-        variant: "destructive"
-      });
+      toast.error('You must be logged in to add relationships');
       return;
     }
 
-    if (!formData.name.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter a name for this relationship.",
-        variant: "destructive"
-      });
+    if (!formData.name || !formData.relationship_type) {
+      toast.error('Please fill in at least the name and relationship type');
       return;
     }
 
-    setLoading(true);
+    setIsLoading(true);
 
     try {
-      const relationshipData = {
-        profile_id: user.id,
-        name: formData.name.trim(),
-        relationship_type: formData.relationship_type,
-        email: formData.email.trim() || null,
-        birthday: formData.birthday?.toISOString().split('T')[0] || null,
-        anniversary: formData.anniversary?.toISOString().split('T')[0] || null,
-        notes: formData.notes.trim() || null
-      };
-
       const { data, error } = await supabase
         .from('relationships')
-        .insert(relationshipData)
+        .insert({
+          profile_id: user.id,
+          name: formData.name,
+          email: formData.email || null,
+          relationship_type: formData.relationship_type,
+          birthday: formData.birthday || null,
+          anniversary: formData.anniversary || null,
+          notes: formData.notes || null
+        })
         .select()
         .single();
 
       if (error) {
-        console.error('Supabase error adding relationship:', error);
-        toast({
-          title: "Error",
-          description: `Failed to add relationship: ${error.message}`,
-          variant: "destructive"
-        });
-      } else {
-        console.log('Relationship added successfully:', data);
-        toast({
-          title: "Success! 💕",
-          description: `${formData.name} has been added to your relationships.`,
-        });
-        
-        // Reset the form
-        setFormData({
-          name: '',
-          relationship_type: 'partner',
-          email: '',
-          birthday: null,
-          anniversary: null,
-          notes: ''
-        });
-        
-        if (onSuccess) {
-          onSuccess();
-        }
+        throw error;
       }
-    } catch (error) {
-      console.error('Unexpected error adding relationship:', error);
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive"
-      });
+
+      // Record the relationship added event
+      await recordEvent(
+        data.id,
+        'relationship_added',
+        {
+          action_description: `Added ${formData.name} as a new ${formData.relationship_type} relationship`,
+          relationship_name: formData.name,
+          relationship_type: formData.relationship_type
+        }
+      );
+
+      toast.success(`${formData.name} has been added to your relationships!`);
+      onSuccess();
+    } catch (error: any) {
+      console.error('Error adding relationship:', error);
+      toast.error('Failed to add relationship. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-
-    setLoading(false);
   };
 
-  const handleInputChange = (field: string, value: string | Date | null) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  const content = (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="name">Name *</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => handleInputChange('name', e.target.value)}
-            placeholder="Enter their name"
-            className="border-rose-200 focus:border-rose-400"
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="relationship_type">Relationship Type</Label>
-          <select
-            id="relationship_type"
-            value={formData.relationship_type}
-            onChange={(e) => handleInputChange('relationship_type', e.target.value)}
-            className="flex h-10 w-full rounded-md border border-rose-200 bg-background px-3 py-2 text-sm ring-offset-background focus-visible:border-rose-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-200 focus-visible:ring-offset-2"
-          >
-            <option value="partner">Partner</option>
-            <option value="friend">Friend</option>
-            <option value="family">Family</option>
-            <option value="sibling">Sibling</option>
-            <option value="parent">Parent</option>
-            <option value="child">Child</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="birthday">Birthday (Optional)</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal border-rose-200 hover:border-rose-300",
-                  !formData.birthday && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.birthday ? format(formData.birthday, "MMM do, yyyy") : "Pick a date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={formData.birthday || undefined}
-                onSelect={(date) => handleInputChange('birthday', date || null)}
-                initialFocus
-                defaultMonth={new Date(1990, 0)}
-                captionLayout="dropdown-buttons"
-                fromYear={1950}
-                toYear={new Date().getFullYear()}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        <div>
-          <Label htmlFor="anniversary">Anniversary (Optional)</Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "w-full justify-start text-left font-normal border-rose-200 hover:border-rose-300",
-                  !formData.anniversary && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {formData.anniversary ? format(formData.anniversary, "MMM do, yyyy") : "Pick a date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={formData.anniversary || undefined}
-                onSelect={(date) => handleInputChange('anniversary', date || null)}
-                initialFocus
-                defaultMonth={new Date(2020, 0)}
-                captionLayout="dropdown-buttons"
-                fromYear={1980}
-                toYear={new Date().getFullYear()}
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Name *</Label>
+        <Input
+          id="name"
+          value={formData.name}
+          onChange={(e) => handleInputChange('name', e.target.value)}
+          placeholder="Enter their name"
+          required
+        />
       </div>
 
       <div>
-        <Label htmlFor="email">Email (Optional)</Label>
+        <Label htmlFor="relationship_type">Relationship Type *</Label>
+        <Select value={formData.relationship_type} onValueChange={(value) => handleInputChange('relationship_type', value)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select relationship type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="partner">Partner</SelectItem>
+            <SelectItem value="spouse">Spouse</SelectItem>
+            <SelectItem value="family">Family</SelectItem>
+            <SelectItem value="friend">Friend</SelectItem>
+            <SelectItem value="colleague">Colleague</SelectItem>
+            <SelectItem value="other">Other</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           type="email"
           value={formData.email}
           onChange={(e) => handleInputChange('email', e.target.value)}
-          placeholder="their.email@example.com"
-          className="border-rose-200 focus:border-rose-400"
+          placeholder="Enter their email"
         />
       </div>
 
       <div>
-        <Label htmlFor="notes">Notes (Optional)</Label>
+        <Label htmlFor="birthday">Birthday</Label>
         <Input
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => handleInputChange('notes', e.target.value)}
-          placeholder="Any special notes about this person..."
-          className="border-rose-200 focus:border-rose-400"
+          id="birthday"
+          type="date"
+          value={formData.birthday}
+          onChange={(e) => handleInputChange('birthday', e.target.value)}
         />
       </div>
 
-      <div className="flex gap-3 pt-4">
-        <Button 
-          type="submit" 
-          disabled={loading || !formData.name.trim()}
-          className="bg-rose-500 hover:bg-rose-600 text-white flex-1"
-        >
-          {loading ? 'Adding...' : 'Add to My Circle'}
+      <div>
+        <Label htmlFor="anniversary">Anniversary</Label>
+        <Input
+          id="anniversary"
+          type="date"
+          value={formData.anniversary}
+          onChange={(e) => handleInputChange('anniversary', e.target.value)}
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="notes">Notes</Label>
+        <Textarea
+          id="notes"
+          value={formData.notes}
+          onChange={(e) => handleInputChange('notes', e.target.value)}
+          placeholder="Any special notes about this person"
+          rows={3}
+        />
+      </div>
+
+      <div className="flex gap-2 pt-4">
+        <Button type="submit" disabled={isLoading} className="flex-1">
+          {isLoading ? 'Adding...' : 'Add Relationship'}
         </Button>
-        {onCancel && (
-          <Button 
-            type="button" 
-            variant="outline"
-            onClick={onCancel}
-            className="text-rose-600 border-rose-200 hover:bg-rose-50"
-          >
-            Cancel
-          </Button>
-        )}
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
       </div>
     </form>
-  );
-
-  if (isModal) {
-    return content;
-  }
-
-  return (
-    <Card className="border-rose-200">
-      <CardHeader className="pb-4">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-playfair text-rose-800">
-            Add Someone Special
-          </CardTitle>
-          {onCancel && (
-            <Button variant="ghost" size="sm" onClick={onCancel}>
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        {content}
-      </CardContent>
-    </Card>
   );
 };
 

@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import DashboardStats from './DashboardStats';
 import UpcomingEvents from './UpcomingEvents';
 import TryNudgeCard from './TryNudgeCard';
-import AddRelationshipCard from './AddRelationshipCard';
+import RecentActivity from './RecentActivity';
 
 interface Relationship {
   id: string;
@@ -32,61 +32,32 @@ interface DashboardOverviewProps {
 }
 
 const DashboardOverview = ({ relationships, profile }: DashboardOverviewProps) => {
+  const handleNudgeSent = () => {
+    // Force a refresh of the recent activity
+    window.location.reload();
+  };
+
   return (
-    <div className="p-8">
+    <div className="p-8 space-y-8">
       <div className="mb-8">
         <h1 className="text-3xl font-playfair font-bold text-rose-800 mb-2">
-          Welcome back{profile?.full_name ? `, ${profile.full_name}` : ''}! 💕
+          Welcome back{profile?.full_name ? `, ${profile.full_name}` : ''}!
         </h1>
         <p className="text-rose-600 text-lg">
-          Here's what's happening in your relationships
+          Here's what's happening with your relationships
         </p>
       </div>
 
-      {/* Stats Overview */}
-      <div className="mb-8">
-        <DashboardStats relationships={relationships} />
-      </div>
+      <DashboardStats relationships={relationships} />
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {/* Upcoming Events */}
-        <div className="lg:col-span-1 xl:col-span-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-6">
           <UpcomingEvents relationships={relationships} />
+          <TryNudgeCard relationships={relationships} onNudgeSent={handleNudgeSent} />
         </div>
-
-        {/* Try Nudge Card */}
-        <div>
-          <TryNudgeCard relationships={relationships} />
-        </div>
-
-        {/* Add Relationship Card */}
-        <div>
-          <AddRelationshipCard />
-        </div>
-
-        {/* Recent Activity Placeholder */}
-        <div className="lg:col-span-1 xl:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-rose-800">
-                <span className="text-2xl">📝</span>
-                Recent Activity
-              </CardTitle>
-              <CardDescription>
-                Your latest relationship interactions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <div className="text-4xl mb-4">🌟</div>
-                <p className="text-gray-600">No recent activities yet</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Send a nudge or add events to see activity here
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+        
+        <div className="space-y-6">
+          <RecentActivity />
         </div>
       </div>
     </div>
