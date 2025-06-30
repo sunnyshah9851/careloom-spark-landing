@@ -91,10 +91,10 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
   };
 
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-lg mx-auto bg-white p-6 rounded-lg">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm font-medium text-rose-800">
+          <Label htmlFor="name" className="text-sm font-medium text-gray-900">
             Name *
           </Label>
           <Input
@@ -103,19 +103,19 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             onChange={(e) => handleInputChange('name', e.target.value)}
             placeholder="Enter their name"
             required
-            className="w-full"
+            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="relationship_type" className="text-sm font-medium text-rose-800">
+          <Label htmlFor="relationship_type" className="text-sm font-medium text-gray-900">
             Relationship Type *
           </Label>
           <Select value={formData.relationship_type} onValueChange={(value) => handleInputChange('relationship_type', value)}>
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500">
               <SelectValue placeholder="Select relationship type" />
             </SelectTrigger>
-            <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+            <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
               <SelectItem value="partner">Partner</SelectItem>
               <SelectItem value="spouse">Spouse</SelectItem>
               <SelectItem value="family">Family</SelectItem>
@@ -127,7 +127,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-rose-800">
+          <Label htmlFor="email" className="text-sm font-medium text-gray-900">
             Email
           </Label>
           <Input
@@ -136,12 +136,12 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             value={formData.email}
             onChange={(e) => handleInputChange('email', e.target.value)}
             placeholder="Enter their email"
-            className="w-full"
+            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="birthday" className="text-sm font-medium text-rose-800">
+          <Label htmlFor="birthday" className="text-sm font-medium text-gray-900">
             Birthday
           </Label>
           <Input
@@ -149,12 +149,12 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             type="date"
             value={formData.birthday}
             onChange={(e) => handleInputChange('birthday', e.target.value)}
-            className="w-full"
+            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="anniversary" className="text-sm font-medium text-rose-800">
+          <Label htmlFor="anniversary" className="text-sm font-medium text-gray-900">
             Anniversary
           </Label>
           <Input
@@ -162,12 +162,12 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             type="date"
             value={formData.anniversary}
             onChange={(e) => handleInputChange('anniversary', e.target.value)}
-            className="w-full"
+            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="notes" className="text-sm font-medium text-rose-800">
+          <Label htmlFor="notes" className="text-sm font-medium text-gray-900">
             Notes
           </Label>
           <Textarea
@@ -176,7 +176,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             onChange={(e) => handleInputChange('notes', e.target.value)}
             placeholder="Any special notes about this person"
             rows={3}
-            className="w-full resize-none"
+            className="w-full resize-none border-gray-300 focus:border-rose-500 focus:ring-rose-500"
           />
         </div>
 
@@ -184,7 +184,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           <Button 
             type="submit" 
             disabled={isLoading} 
-            className="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+            className="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 px-4 rounded-md transition-colors disabled:opacity-50"
           >
             {isLoading ? 'Adding...' : 'Add Relationship'}
           </Button>
@@ -192,7 +192,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             type="button" 
             variant="outline" 
             onClick={onCancel}
-            className="px-6 py-2 border border-rose-300 text-rose-700 hover:bg-rose-50 rounded-md transition-colors"
+            className="px-6 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md transition-colors"
           >
             Cancel
           </Button>
