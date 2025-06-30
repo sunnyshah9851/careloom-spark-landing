@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
@@ -68,20 +69,25 @@ const ThoughtfulnessScore = ({ relationships }: ThoughtfulnessScoreProps) => {
   };
 
   return (
-    <Card className="relative overflow-hidden">
+    <Card className="relative overflow-visible">
       <div className={`absolute inset-0 bg-gradient-to-br ${getScoreColor(score.total)} opacity-5`} />
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-lg">
           Thoughtfulness Score
-          <Tooltip>
+          <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
-              <button className="p-1 rounded-full bg-rose-100 hover:bg-rose-200 transition-colors">
+              <button className="p-2 rounded-full bg-rose-100 hover:bg-rose-200 transition-colors border border-rose-300 shadow-sm">
                 <HelpCircle className="h-5 w-5 text-rose-600 hover:text-rose-700" />
               </button>
             </TooltipTrigger>
-            <TooltipContent className="max-w-xs z-50 bg-white border shadow-lg">
-              <div className="space-y-2 text-sm">
-                <p className="font-medium">How your score is calculated:</p>
+            <TooltipContent 
+              side="bottom" 
+              align="center"
+              className="max-w-xs z-[9999] bg-white border border-gray-200 shadow-xl p-4 rounded-lg"
+              sideOffset={10}
+            >
+              <div className="space-y-2 text-sm text-gray-700">
+                <p className="font-medium text-gray-900">How your score is calculated:</p>
                 <div className="space-y-1">
                   <p><strong>Relationships (40pts):</strong> {score.breakdown.relationships} pts - Tracking {relationships.length} relationship{relationships.length !== 1 ? 's' : ''}</p>
                   <p><strong>Active Care (40pts):</strong> {score.breakdown.reminders} pts - {relationships.filter(r => r.last_nudge_sent).length} relationship{relationships.filter(r => r.last_nudge_sent).length !== 1 ? 's' : ''} with recent activity</p>
