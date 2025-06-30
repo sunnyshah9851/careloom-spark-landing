@@ -104,7 +104,7 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
       </CardHeader>
       <CardContent>
         {events.length === 0 ? (
-          <p className="text-muted-foreground text-center py-4">
+          <p className="text-rose-700 text-center py-4 font-medium">
             No events in the next month. Add your relationship details to see upcoming birthdays and anniversaries!
           </p>
         ) : (
