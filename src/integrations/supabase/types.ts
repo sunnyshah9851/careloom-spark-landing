@@ -44,6 +44,36 @@ export type Database = {
           },
         ]
       }
+      feedback: {
+        Row: {
+          created_at: string
+          current_url: string
+          disliked: string | null
+          id: string
+          liked: string | null
+          pricing_feedback: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_url: string
+          disliked?: string | null
+          id?: string
+          liked?: string | null
+          pricing_feedback?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_url?: string
+          disliked?: string | null
+          id?: string
+          liked?: string | null
+          pricing_feedback?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           city: string | null
