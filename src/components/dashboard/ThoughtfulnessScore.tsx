@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
@@ -76,8 +75,10 @@ const ThoughtfulnessScore = ({ relationships }: ThoughtfulnessScoreProps) => {
           Thoughtfulness Score
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger>
-                <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+              <TooltipTrigger asChild>
+                <button className="p-1 rounded-full bg-rose-100 hover:bg-rose-200 transition-colors">
+                  <HelpCircle className="h-5 w-5 text-rose-600 hover:text-rose-700" />
+                </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
                 <div className="space-y-2 text-sm">
