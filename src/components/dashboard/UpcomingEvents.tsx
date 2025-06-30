@@ -31,8 +31,13 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
   const calculateUpcomingEvents = (): Event[] => {
     const events: Event[] = [];
     const today = new Date();
-    const currentYear = today.getFullYear();
-    const oneMonthFromNow = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
+    today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+    
+    const oneMonthFromNow = new Date(today);
+    oneMonthFromNow.setDate(oneMonthFromNow.getDate() + 30); // Next 30 days
+
+    console.log('Today:', today.toISOString());
+    console.log('One month from now:', oneMonthFromNow.toISOString());
 
     const getDaysUntil = (eventDate: Date) => {
       const diffTime = eventDate.getTime() - today.getTime();
@@ -41,21 +46,33 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
 
     const getNextOccurrence = (dateString: string) => {
       const date = new Date(dateString);
+      const currentYear = today.getFullYear();
       const thisYear = new Date(currentYear, date.getMonth(), date.getDate());
-      const nextYear = new Date(currentYear + 1, date.getMonth(), date.getDate());
+      thisYear.setHours(0, 0, 0, 0);
       
-      return thisYear >= today ? thisYear : nextYear;
+      // If this year's date has passed, use next year
+      if (thisYear < today) {
+        const nextYear = new Date(currentYear + 1, date.getMonth(), date.getDate());
+        nextYear.setHours(0, 0, 0, 0);
+        return nextYear;
+      }
+      
+      return thisYear;
     };
 
-    const isWithinNextMonth = (eventDate: Date) => {
-      return eventDate <= oneMonthFromNow;
+    const isWithinNext30Days = (eventDate: Date) => {
+      return eventDate >= today && eventDate <= oneMonthFromNow;
     };
 
     relationships.forEach(relationship => {
+      console.log('Processing relationship:', relationship.name);
+      
       // Add birthday
       if (relationship.birthday) {
         const nextBirthday = getNextOccurrence(relationship.birthday);
-        if (isWithinNextMonth(nextBirthday)) {
+        console.log(`${relationship.name}'s birthday:`, nextBirthday.toISOString(), 'Within 30 days:', isWithinNext30Days(nextBirthday));
+        
+        if (isWithinNext30Days(nextBirthday)) {
           events.push({
             type: 'birthday',
             name: `${relationship.name}'s Birthday`,
@@ -68,7 +85,9 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
       // Add anniversary
       if (relationship.anniversary) {
         const nextAnniversary = getNextOccurrence(relationship.anniversary);
-        if (isWithinNextMonth(nextAnniversary)) {
+        console.log(`${relationship.name}'s anniversary:`, nextAnniversary.toISOString(), 'Within 30 days:', isWithinNext30Days(nextAnniversary));
+        
+        if (isWithinNext30Days(nextAnniversary)) {
           events.push({
             type: 'anniversary',
             name: `${relationship.name} Anniversary`,
@@ -79,6 +98,7 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
       }
     });
 
+    console.log('Final events:', events);
     return events.sort((a, b) => a.daysUntil - b.daysUntil);
   };
 
