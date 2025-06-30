@@ -91,86 +91,114 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="name">Name *</Label>
-        <Input
-          id="name"
-          value={formData.name}
-          onChange={(e) => handleInputChange('name', e.target.value)}
-          placeholder="Enter their name"
-          required
-        />
-      </div>
+    <div className="w-full max-w-md">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="name" className="text-sm font-medium text-rose-800">
+            Name *
+          </Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => handleInputChange('name', e.target.value)}
+            placeholder="Enter their name"
+            required
+            className="w-full"
+          />
+        </div>
 
-      <div>
-        <Label htmlFor="relationship_type">Relationship Type *</Label>
-        <Select value={formData.relationship_type} onValueChange={(value) => handleInputChange('relationship_type', value)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select relationship type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="partner">Partner</SelectItem>
-            <SelectItem value="spouse">Spouse</SelectItem>
-            <SelectItem value="family">Family</SelectItem>
-            <SelectItem value="friend">Friend</SelectItem>
-            <SelectItem value="colleague">Colleague</SelectItem>
-            <SelectItem value="other">Other</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="relationship_type" className="text-sm font-medium text-rose-800">
+            Relationship Type *
+          </Label>
+          <Select value={formData.relationship_type} onValueChange={(value) => handleInputChange('relationship_type', value)}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select relationship type" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+              <SelectItem value="partner">Partner</SelectItem>
+              <SelectItem value="spouse">Spouse</SelectItem>
+              <SelectItem value="family">Family</SelectItem>
+              <SelectItem value="friend">Friend</SelectItem>
+              <SelectItem value="colleague">Colleague</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div>
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={formData.email}
-          onChange={(e) => handleInputChange('email', e.target.value)}
-          placeholder="Enter their email"
-        />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-sm font-medium text-rose-800">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={(e) => handleInputChange('email', e.target.value)}
+            placeholder="Enter their email"
+            className="w-full"
+          />
+        </div>
 
-      <div>
-        <Label htmlFor="birthday">Birthday</Label>
-        <Input
-          id="birthday"
-          type="date"
-          value={formData.birthday}
-          onChange={(e) => handleInputChange('birthday', e.target.value)}
-        />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="birthday" className="text-sm font-medium text-rose-800">
+            Birthday
+          </Label>
+          <Input
+            id="birthday"
+            type="date"
+            value={formData.birthday}
+            onChange={(e) => handleInputChange('birthday', e.target.value)}
+            className="w-full"
+          />
+        </div>
 
-      <div>
-        <Label htmlFor="anniversary">Anniversary</Label>
-        <Input
-          id="anniversary"
-          type="date"
-          value={formData.anniversary}
-          onChange={(e) => handleInputChange('anniversary', e.target.value)}
-        />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="anniversary" className="text-sm font-medium text-rose-800">
+            Anniversary
+          </Label>
+          <Input
+            id="anniversary"
+            type="date"
+            value={formData.anniversary}
+            onChange={(e) => handleInputChange('anniversary', e.target.value)}
+            className="w-full"
+          />
+        </div>
 
-      <div>
-        <Label htmlFor="notes">Notes</Label>
-        <Textarea
-          id="notes"
-          value={formData.notes}
-          onChange={(e) => handleInputChange('notes', e.target.value)}
-          placeholder="Any special notes about this person"
-          rows={3}
-        />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="notes" className="text-sm font-medium text-rose-800">
+            Notes
+          </Label>
+          <Textarea
+            id="notes"
+            value={formData.notes}
+            onChange={(e) => handleInputChange('notes', e.target.value)}
+            placeholder="Any special notes about this person"
+            rows={3}
+            className="w-full resize-none"
+          />
+        </div>
 
-      <div className="flex gap-2 pt-4">
-        <Button type="submit" disabled={isLoading} className="flex-1">
-          {isLoading ? 'Adding...' : 'Add Relationship'}
-        </Button>
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-      </div>
-    </form>
+        <div className="flex gap-3 pt-4">
+          <Button 
+            type="submit" 
+            disabled={isLoading} 
+            className="flex-1 bg-rose-500 hover:bg-rose-600 text-white font-medium py-2 px-4 rounded-md transition-colors"
+          >
+            {isLoading ? 'Adding...' : 'Add Relationship'}
+          </Button>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onCancel}
+            className="px-6 py-2 border border-rose-300 text-rose-700 hover:bg-rose-50 rounded-md transition-colors"
+          >
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };
 
