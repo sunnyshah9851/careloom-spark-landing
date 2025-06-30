@@ -1,10 +1,10 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import DashboardStats from './DashboardStats';
 import UpcomingEvents from './UpcomingEvents';
 import TryNudgeCard from './TryNudgeCard';
 import RecentActivity from './RecentActivity';
 import AddRelationshipCard from './AddRelationshipCard';
+import ThoughtfulnessScore from './ThoughtfulnessScore';
 
 interface Relationship {
   id: string;
@@ -56,14 +56,15 @@ const DashboardOverview = ({ relationships, profile }: DashboardOverviewProps) =
 
       <DashboardStats relationships={relationships} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
           <UpcomingEvents relationships={relationships} />
           <TryNudgeCard relationships={relationships} onNudgeSent={handleNudgeSent} />
           <AddRelationshipCard onRelationshipAdded={handleRelationshipAdded} />
         </div>
         
         <div className="space-y-6">
+          <ThoughtfulnessScore relationships={relationships} />
           <RecentActivity />
         </div>
       </div>
