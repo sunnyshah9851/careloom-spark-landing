@@ -26,8 +26,8 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
     birthday: '',
     anniversary: '',
     notes: '',
-    birthday_notification_frequency: 'weekly',
-    anniversary_notification_frequency: 'weekly'
+    birthday_notification_frequency: '1_week',
+    anniversary_notification_frequency: '1_week'
   });
 
   console.log('AddRelationshipModal render - open:', open, 'user:', user?.email);
@@ -97,8 +97,8 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
           birthday: '',
           anniversary: '',
           notes: '',
-          birthday_notification_frequency: 'weekly',
-          anniversary_notification_frequency: 'weekly'
+          birthday_notification_frequency: '1_week',
+          anniversary_notification_frequency: '1_week'
         });
         
         // Close modal and refresh relationships
@@ -193,10 +193,12 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="daily">Daily (7 days before)</SelectItem>
-                  <SelectItem value="weekly">Weekly (1 week before)</SelectItem>
-                  <SelectItem value="monthly">Monthly (1 month before)</SelectItem>
-                  <SelectItem value="none">No notifications</SelectItem>
+                  <SelectItem value="1_day">1 day before</SelectItem>
+                  <SelectItem value="3_days">3 days before</SelectItem>
+                  <SelectItem value="1_week">1 week before</SelectItem>
+                  <SelectItem value="2_weeks">2 weeks before</SelectItem>
+                  <SelectItem value="1_month">1 month before</SelectItem>
+                  <SelectItem value="none">No reminders</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -207,10 +209,12 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="daily">Daily (7 days before)</SelectItem>
-                  <SelectItem value="weekly">Weekly (1 week before)</SelectItem>
-                  <SelectItem value="monthly">Monthly (1 month before)</SelectItem>
-                  <SelectItem value="none">No notifications</SelectItem>
+                  <SelectItem value="1_day">1 day before</SelectItem>
+                  <SelectItem value="3_days">3 days before</SelectItem>
+                  <SelectItem value="1_week">1 week before</SelectItem>
+                  <SelectItem value="2_weeks">2 weeks before</SelectItem>
+                  <SelectItem value="1_month">1 month before</SelectItem>
+                  <SelectItem value="none">No reminders</SelectItem>
                 </SelectContent>
               </Select>
             </div>

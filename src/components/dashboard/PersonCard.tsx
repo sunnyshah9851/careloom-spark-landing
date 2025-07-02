@@ -34,8 +34,8 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingFrequencies, setIsEditingFrequencies] = useState(false);
   const [frequencies, setFrequencies] = useState({
-    birthday_notification_frequency: relationship.birthday_notification_frequency || 'weekly',
-    anniversary_notification_frequency: relationship.anniversary_notification_frequency || 'weekly'
+    birthday_notification_frequency: relationship.birthday_notification_frequency || '1_week',
+    anniversary_notification_frequency: relationship.anniversary_notification_frequency || '1_week'
   });
 
   const formatDate = (dateString: string | undefined) => {
@@ -57,11 +57,13 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
 
   const getFrequencyLabel = (frequency: string | undefined) => {
     switch (frequency) {
-      case 'daily': return 'Daily';
-      case 'weekly': return 'Weekly';
-      case 'monthly': return 'Monthly';
-      case 'none': return 'None';
-      default: return 'Weekly';
+      case '1_day': return '1 day before';
+      case '3_days': return '3 days before';
+      case '1_week': return '1 week before';
+      case '2_weeks': return '2 weeks before';
+      case '1_month': return '1 month before';
+      case 'none': return 'No reminders';
+      default: return '1 week before';
     }
   };
 
@@ -203,10 +205,12 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="1_day">1 day before</SelectItem>
+                    <SelectItem value="3_days">3 days before</SelectItem>
+                    <SelectItem value="1_week">1 week before</SelectItem>
+                    <SelectItem value="2_weeks">2 weeks before</SelectItem>
+                    <SelectItem value="1_month">1 month before</SelectItem>
+                    <SelectItem value="none">No reminders</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -221,10 +225,12 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="1_day">1 day before</SelectItem>
+                    <SelectItem value="3_days">3 days before</SelectItem>
+                    <SelectItem value="1_week">1 week before</SelectItem>
+                    <SelectItem value="2_weeks">2 weeks before</SelectItem>
+                    <SelectItem value="1_month">1 month before</SelectItem>
+                    <SelectItem value="none">No reminders</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -243,8 +249,8 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                   variant="outline"
                   onClick={() => {
                     setFrequencies({
-                      birthday_notification_frequency: relationship.birthday_notification_frequency || 'weekly',
-                      anniversary_notification_frequency: relationship.anniversary_notification_frequency || 'weekly'
+                      birthday_notification_frequency: relationship.birthday_notification_frequency || '1_week',
+                      anniversary_notification_frequency: relationship.anniversary_notification_frequency || '1_week'
                     });
                     setIsEditingFrequencies(false);
                   }}
