@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -127,7 +126,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             onChange={(e) => handleInputChange('name', e.target.value)}
             placeholder="Enter their name"
             required
-            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
+            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black placeholder:text-gray-500"
           />
         </div>
 
@@ -136,16 +135,16 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             Relationship Type *
           </Label>
           <Select value={formData.relationship_type} onValueChange={(value) => handleInputChange('relationship_type', value)}>
-            <SelectTrigger className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500">
-              <SelectValue placeholder="Select relationship type" />
+            <SelectTrigger className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black">
+              <SelectValue placeholder="Select relationship type" className="text-gray-500" />
             </SelectTrigger>
             <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
-              <SelectItem value="partner">Partner</SelectItem>
-              <SelectItem value="spouse">Spouse</SelectItem>
-              <SelectItem value="family">Family</SelectItem>
-              <SelectItem value="friend">Friend</SelectItem>
-              <SelectItem value="colleague">Colleague</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="partner" className="text-black">Partner</SelectItem>
+              <SelectItem value="spouse" className="text-black">Spouse</SelectItem>
+              <SelectItem value="family" className="text-black">Family</SelectItem>
+              <SelectItem value="friend" className="text-black">Friend</SelectItem>
+              <SelectItem value="colleague" className="text-black">Colleague</SelectItem>
+              <SelectItem value="other" className="text-black">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -159,7 +158,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             value={formData.city}
             onChange={(value) => handleInputChange('city', value)}
             placeholder="Search for a city..."
-            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
+            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black placeholder:text-gray-500"
           />
         </div>
 
@@ -174,7 +173,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             onChange={(e) => handleInputChange('email', e.target.value)}
             placeholder="Enter their email"
             required={isPartnerRelationship}
-            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
+            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black placeholder:text-gray-500"
           />
         </div>
 
@@ -188,7 +187,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             value={formData.birthday}
             onChange={(e) => handleInputChange('birthday', e.target.value)}
             required
-            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
+            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black"
           />
         </div>
 
@@ -197,16 +196,16 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             Birthday Notification Frequency
           </Label>
           <Select value={formData.birthday_notification_frequency} onValueChange={(value) => handleInputChange('birthday_notification_frequency', value)}>
-            <SelectTrigger className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500">
+            <SelectTrigger className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
-              <SelectItem value="1_day">1 day before</SelectItem>
-              <SelectItem value="3_days">3 days before</SelectItem>
-              <SelectItem value="1_week">1 week before</SelectItem>
-              <SelectItem value="2_weeks">2 weeks before</SelectItem>
-              <SelectItem value="1_month">1 month before</SelectItem>
-              <SelectItem value="none">No reminders</SelectItem>
+              <SelectItem value="1_day" className="text-black">1 day before</SelectItem>
+              <SelectItem value="3_days" className="text-black">3 days before</SelectItem>
+              <SelectItem value="1_week" className="text-black">1 week before</SelectItem>
+              <SelectItem value="2_weeks" className="text-black">2 weeks before</SelectItem>
+              <SelectItem value="1_month" className="text-black">1 month before</SelectItem>
+              <SelectItem value="none" className="text-black">No reminders</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -222,7 +221,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
                 type="date"
                 value={formData.anniversary}
                 onChange={(e) => handleInputChange('anniversary', e.target.value)}
-                className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
+                className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black"
               />
             </div>
 
@@ -231,16 +230,16 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
                 Anniversary Notification Frequency
               </Label>
               <Select value={formData.anniversary_notification_frequency} onValueChange={(value) => handleInputChange('anniversary_notification_frequency', value)}>
-                <SelectTrigger className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500">
+                <SelectTrigger className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
-                  <SelectItem value="1_day">1 day before</SelectItem>
-                  <SelectItem value="3_days">3 days before</SelectItem>
-                  <SelectItem value="1_week">1 week before</SelectItem>
-                  <SelectItem value="2_weeks">2 weeks before</SelectItem>
-                  <SelectItem value="1_month">1 month before</SelectItem>
-                  <SelectItem value="none">No reminders</SelectItem>
+                  <SelectItem value="1_day" className="text-black">1 day before</SelectItem>
+                  <SelectItem value="3_days" className="text-black">3 days before</SelectItem>
+                  <SelectItem value="1_week" className="text-black">1 week before</SelectItem>
+                  <SelectItem value="2_weeks" className="text-black">2 weeks before</SelectItem>
+                  <SelectItem value="1_month" className="text-black">1 month before</SelectItem>
+                  <SelectItem value="none" className="text-black">No reminders</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -257,7 +256,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             onChange={(e) => handleInputChange('notes', e.target.value)}
             placeholder="Any special notes about this person"
             rows={3}
-            className="w-full resize-none border-gray-300 focus:border-rose-500 focus:ring-rose-500"
+            className="w-full resize-none border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black placeholder:text-gray-500"
           />
         </div>
 
