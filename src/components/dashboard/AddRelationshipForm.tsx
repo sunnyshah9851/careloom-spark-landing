@@ -65,7 +65,9 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           city: formData.city || null,
           birthday: formData.birthday,
           anniversary: formData.anniversary || null,
-          notes: formData.notes || null
+          notes: formData.notes || null,
+          birthday_notification_frequency: formData.birthday_notification_frequency,
+          anniversary_notification_frequency: formData.anniversary_notification_frequency
         })
         .select()
         .single();

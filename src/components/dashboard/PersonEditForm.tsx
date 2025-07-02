@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, X } from 'lucide-react';
 
@@ -19,6 +20,8 @@ interface Relationship {
   last_nudge_sent?: string;
   tags?: string[];
   created_at: string;
+  birthday_notification_frequency?: string;
+  anniversary_notification_frequency?: string;
 }
 
 interface PersonEditFormProps {
@@ -28,7 +31,11 @@ interface PersonEditFormProps {
 }
 
 const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps) => {
-  const [editForm, setEditForm] = useState<Partial<Relationship>>(relationship);
+  const [editForm, setEditForm] = useState<Partial<Relationship>>({
+    ...relationship,
+    birthday_notification_frequency: relationship.birthday_notification_frequency || 'weekly',
+    anniversary_notification_frequency: relationship.anniversary_notification_frequency || 'weekly'
+  });
 
   const handleSave = async () => {
     try {
@@ -41,6 +48,8 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
           anniversary: editForm.anniversary,
           notes: editForm.notes,
           relationship_type: editForm.relationship_type,
+          birthday_notification_frequency: editForm.birthday_notification_frequency,
+          anniversary_notification_frequency: editForm.anniversary_notification_frequency
         })
         .eq('id', relationship.id);
 
@@ -102,6 +111,43 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
           onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
           className="mt-1"
         />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label className="text-sm text-gray-600">Birthday Reminders</Label>
+          <Select
+            value={editForm.birthday_notification_frequency || 'weekly'}
+            onValueChange={(value) => setEditForm({ ...editForm, birthday_notification_frequency: value })}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">Daily (7 days before)</SelectItem>
+              <SelectItem value="weekly">Weekly (1 week before)</SelectItem>
+              <SelectItem value="monthly">Monthly (1 month before)</SelectItem>
+              <SelectItem value="none">No notifications</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label className="text-sm text-gray-600">Anniversary Reminders</Label>
+          <Select
+            value={editForm.anniversary_notification_frequency || 'weekly'}
+            onValueChange={(value) => setEditForm({ ...editForm, anniversary_notification_frequency: value })}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">Daily (7 days before)</SelectItem>
+              <SelectItem value="weekly">Weekly (1 week before)</SelectItem>
+              <SelectItem value="monthly">Monthly (1 month before)</SelectItem>
+              <SelectItem value="none">No notifications</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div>

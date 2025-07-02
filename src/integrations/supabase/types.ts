@@ -104,7 +104,9 @@ export type Database = {
       relationships: {
         Row: {
           anniversary: string | null
+          anniversary_notification_frequency: string | null
           birthday: string | null
+          birthday_notification_frequency: string | null
           city: string | null
           created_at: string
           email: string | null
@@ -118,7 +120,9 @@ export type Database = {
         }
         Insert: {
           anniversary?: string | null
+          anniversary_notification_frequency?: string | null
           birthday?: string | null
+          birthday_notification_frequency?: string | null
           city?: string | null
           created_at?: string
           email?: string | null
@@ -132,7 +136,9 @@ export type Database = {
         }
         Update: {
           anniversary?: string | null
+          anniversary_notification_frequency?: string | null
           birthday?: string | null
+          birthday_notification_frequency?: string | null
           city?: string | null
           created_at?: string
           email?: string | null

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -24,7 +25,9 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
     email: '',
     birthday: '',
     anniversary: '',
-    notes: ''
+    notes: '',
+    birthday_notification_frequency: 'weekly',
+    anniversary_notification_frequency: 'weekly'
   });
 
   console.log('AddRelationshipModal render - open:', open, 'user:', user?.email);
@@ -59,7 +62,9 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
         email: formData.email.trim() || null,
         birthday: formData.birthday || null,
         anniversary: formData.anniversary || null,
-        notes: formData.notes.trim() || null
+        notes: formData.notes.trim() || null,
+        birthday_notification_frequency: formData.birthday_notification_frequency,
+        anniversary_notification_frequency: formData.anniversary_notification_frequency
       };
 
       console.log('Submitting relationship data:', relationshipData);
@@ -91,7 +96,9 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
           email: '',
           birthday: '',
           anniversary: '',
-          notes: ''
+          notes: '',
+          birthday_notification_frequency: 'weekly',
+          anniversary_notification_frequency: 'weekly'
         });
         
         // Close modal and refresh relationships
@@ -175,6 +182,37 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
                 value={formData.anniversary}
                 onChange={(e) => handleInputChange('anniversary', e.target.value)}
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="modal-birthday-frequency">Birthday Reminders</Label>
+              <Select value={formData.birthday_notification_frequency} onValueChange={(value) => handleInputChange('birthday_notification_frequency', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Daily (7 days before)</SelectItem>
+                  <SelectItem value="weekly">Weekly (1 week before)</SelectItem>
+                  <SelectItem value="monthly">Monthly (1 month before)</SelectItem>
+                  <SelectItem value="none">No notifications</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="modal-anniversary-frequency">Anniversary Reminders</Label>
+              <Select value={formData.anniversary_notification_frequency} onValueChange={(value) => handleInputChange('anniversary_notification_frequency', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="daily">Daily (7 days before)</SelectItem>
+                  <SelectItem value="weekly">Weekly (1 week before)</SelectItem>
+                  <SelectItem value="monthly">Monthly (1 month before)</SelectItem>
+                  <SelectItem value="none">No notifications</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
