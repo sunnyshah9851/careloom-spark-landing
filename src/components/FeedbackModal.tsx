@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Heart } from 'lucide-react';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -27,22 +28,14 @@ const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      toast({
-        title: "Error",
-        description: "You must be logged in to submit feedback",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    // Allow both authenticated and non-authenticated users to submit feedback
     setIsSubmitting(true);
 
     try {
       const { error } = await supabase
         .from('feedback')
         .insert({
-          user_id: user.id,
+          user_id: user?.id || 'anonymous',
           current_url: window.location.href,
           liked: formData.liked || null,
           disliked: formData.disliked || null,
@@ -58,8 +51,8 @@ const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
         });
       } else {
         toast({
-          title: "Thank you!",
-          description: "Your feedback has been submitted successfully.",
+          title: "Thank you so much! 🙏",
+          description: "Sunny really appreciates your feedback and will use it to make Careloom even better!",
         });
         setFormData({ liked: '', disliked: '', pricing_feedback: '' });
         onClose();
@@ -83,49 +76,60 @@ const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-gray-900">
-            Share Your Feedback
-          </DialogTitle>
+        <DialogHeader className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <Heart className="h-5 w-5 text-rose-500" />
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Hey there, beta tester! 👋
+            </DialogTitle>
+            <Heart className="h-5 w-5 text-rose-500" />
+          </div>
+          <p className="text-sm text-gray-600 leading-relaxed">
+            I'm Sunny, the creator of Careloom! As one of our valued beta users, your feedback means the world to me. 
+            I'm working hard to make this the best relationship management tool possible, and your insights help me improve every day. 💕
+          </p>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="liked" className="text-sm font-medium text-gray-700">
-              What did you like?
+              What's working well for you? ✨
             </Label>
             <Textarea
               id="liked"
               value={formData.liked}
               onChange={(e) => handleInputChange('liked', e.target.value)}
-              placeholder="Tell us what you enjoyed..."
+              placeholder="Tell me what you're loving about Careloom..."
               className="min-h-[80px] resize-none"
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="disliked" className="text-sm font-medium text-gray-700">
-              What didn't you like?
+              What could be better? 🛠️
             </Label>
             <Textarea
               id="disliked"
               value={formData.disliked}
               onChange={(e) => handleInputChange('disliked', e.target.value)}
-              placeholder="Let us know what could be improved..."
+              placeholder="What's frustrating or confusing? Help me fix it!"
               className="min-h-[80px] resize-none"
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="pricing" className="text-sm font-medium text-gray-700">
-              How much would you pay for a service like this?
+              What would you pay for this? 💰
             </Label>
             <Input
               id="pricing"
               value={formData.pricing_feedback}
               onChange={(e) => handleInputChange('pricing_feedback', e.target.value)}
-              placeholder="e.g., $5/month, $50/year, etc."
+              placeholder="e.g., $5/month, $50/year, or your thoughts..."
             />
+            <p className="text-xs text-gray-500">
+              This helps me figure out fair pricing that works for everyone!
+            </p>
           </div>
 
           <div className="flex gap-3 pt-4">
@@ -135,17 +139,23 @@ const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
               onClick={onClose}
               className="flex-1"
             >
-              Cancel
+              Maybe Later
             </Button>
             <Button
               type="submit"
               disabled={isSubmitting}
               className="flex-1 bg-rose-600 hover:bg-rose-700"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
+              {isSubmitting ? 'Sending to Sunny...' : 'Send Feedback 💌'}
             </Button>
           </div>
         </form>
+
+        <div className="text-center pt-2">
+          <p className="text-xs text-gray-500">
+            Thanks for being part of the Careloom beta family! 🚀
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );

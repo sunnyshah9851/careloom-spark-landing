@@ -9,19 +9,16 @@ const FloatingFeedbackButton = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth();
 
-  // Only show for authenticated users
-  if (!user) {
-    return null;
-  }
-
+  // Show for all users (both authenticated and non-authenticated)
+  // since this is for beta users specifically
   return (
     <>
       <Button
         onClick={() => setIsModalOpen(true)}
-        className="fixed bottom-6 right-6 z-50 h-12 w-12 rounded-full bg-rose-600 hover:bg-rose-700 shadow-lg hover:shadow-xl transition-all duration-200 p-0"
-        aria-label="Give feedback"
+        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full bg-rose-600 hover:bg-rose-700 shadow-lg hover:shadow-xl transition-all duration-200 p-0 animate-pulse hover:animate-none"
+        aria-label="Give feedback to Sunny"
       >
-        <MessageSquare className="h-5 w-5 text-white" />
+        <MessageSquare className="h-6 w-6 text-white" />
       </Button>
 
       <FeedbackModal
