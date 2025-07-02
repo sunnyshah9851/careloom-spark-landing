@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +21,8 @@ interface Relationship {
   last_nudge_sent?: string;
   tags?: string[];
   created_at: string;
+  birthday_notification_frequency?: string;
+  anniversary_notification_frequency?: string;
 }
 
 interface Profile {
@@ -75,6 +78,11 @@ const Dashboard = () => {
 
     console.log('Profile data:', profileResult.data);
     console.log('Relationships data:', relationshipsResult.data);
+    console.log('Relationships notification frequencies:', relationshipsResult.data?.map(r => ({
+      name: r.name,
+      birthday_freq: r.birthday_notification_frequency,
+      anniversary_freq: r.anniversary_notification_frequency
+    })));
 
     setProfile(profileResult.data);
     setRelationships(relationshipsResult.data || []);
