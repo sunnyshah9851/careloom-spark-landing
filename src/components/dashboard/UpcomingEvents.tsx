@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calendar, Heart } from 'lucide-react';
+import { Calendar, Heart, Gift } from 'lucide-react';
 
 interface Relationship {
   id: string;
@@ -31,13 +31,10 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
   const calculateUpcomingEvents = (): Event[] => {
     const events: Event[] = [];
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
+    today.setHours(0, 0, 0, 0);
     
     const oneMonthFromNow = new Date(today);
-    oneMonthFromNow.setDate(oneMonthFromNow.getDate() + 30); // Next 30 days
-
-    console.log('Today:', today.toISOString());
-    console.log('One month from now:', oneMonthFromNow.toISOString());
+    oneMonthFromNow.setDate(oneMonthFromNow.getDate() + 30);
 
     const getDaysUntil = (eventDate: Date) => {
       const diffTime = eventDate.getTime() - today.getTime();
@@ -50,7 +47,6 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
       const thisYear = new Date(currentYear, date.getMonth(), date.getDate());
       thisYear.setHours(0, 0, 0, 0);
       
-      // If this year's date has passed, use next year
       if (thisYear < today) {
         const nextYear = new Date(currentYear + 1, date.getMonth(), date.getDate());
         nextYear.setHours(0, 0, 0, 0);
@@ -65,12 +61,8 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
     };
 
     relationships.forEach(relationship => {
-      console.log('Processing relationship:', relationship.name);
-      
-      // Add birthday
       if (relationship.birthday) {
         const nextBirthday = getNextOccurrence(relationship.birthday);
-        console.log(`${relationship.name}'s birthday:`, nextBirthday.toISOString(), 'Within 30 days:', isWithinNext30Days(nextBirthday));
         
         if (isWithinNext30Days(nextBirthday)) {
           events.push({
@@ -82,10 +74,8 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
         }
       }
 
-      // Add anniversary
       if (relationship.anniversary) {
         const nextAnniversary = getNextOccurrence(relationship.anniversary);
-        console.log(`${relationship.name}'s anniversary:`, nextAnniversary.toISOString(), 'Within 30 days:', isWithinNext30Days(nextAnniversary));
         
         if (isWithinNext30Days(nextAnniversary)) {
           events.push({
@@ -98,7 +88,6 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
       }
     });
 
-    console.log('Final events:', events);
     return events.sort((a, b) => a.daysUntil - b.daysUntil);
   };
 
@@ -112,57 +101,61 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
   };
 
   return (
-    <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-          <Calendar className="h-6 w-6 text-blue-600" />
+    <Card className="shadow-lg border-2 border-blue-100 bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-3 text-xl font-semibold text-gray-800">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <Calendar className="h-5 w-5 text-blue-600" />
+          </div>
           Upcoming Events
         </CardTitle>
-        <CardDescription className="text-base">
+        <CardDescription className="text-gray-600">
           Important dates in the next 30 days
         </CardDescription>
       </CardHeader>
       <CardContent>
         {events.length === 0 ? (
           <div className="text-center py-8">
-            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground font-medium mb-2">
+            <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <Calendar className="h-8 w-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500 font-medium mb-2">
               No upcoming events
             </p>
-            <p className="text-sm text-muted-foreground">
-              Add birthdays and anniversaries to your relationships to see them here
+            <p className="text-sm text-gray-400">
+              Add birthdays and anniversaries to see them here
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             {events.map((event, index) => (
-              <div key={index} className="flex items-center justify-between p-4 bg-white/70 rounded-xl border border-white/50 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-full ${
-                    event.type === 'anniversary' 
-                      ? 'bg-red-100 text-red-600' 
-                      : 'bg-blue-100 text-blue-600'
-                  }`}>
-                    {event.type === 'anniversary' ? (
-                      <Heart className="h-5 w-5" />
-                    ) : (
-                      <Calendar className="h-5 w-5" />
-                    )}
+              <div key={index} className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow-sm hover:shadow-md transition-all duration-200 hover:bg-white/90">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className={`p-3 rounded-full ${
+                      event.type === 'anniversary' 
+                        ? 'bg-rose-100 text-rose-600' 
+                        : 'bg-amber-100 text-amber-600'
+                    }`}>
+                      {event.type === 'anniversary' ? (
+                        <Heart className="h-5 w-5" />
+                      ) : (
+                        <Gift className="h-5 w-5" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800">{event.name}</p>
+                      <p className="text-sm text-gray-500">{formatDate(event.date)}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-foreground text-lg">{event.name}</p>
-                    <p className="text-muted-foreground">{formatDate(event.date)}</p>
-                  </div>
-                </div>
-                <div className="text-right">
                   <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                     event.daysUntil === 0 
-                      ? 'bg-red-100 text-red-700' 
+                      ? 'bg-red-100 text-red-700 border border-red-200' 
                       : event.daysUntil <= 3 
-                      ? 'bg-orange-100 text-orange-700'
-                      : 'bg-blue-100 text-blue-700'
+                      ? 'bg-orange-100 text-orange-700 border border-orange-200'
+                      : 'bg-blue-100 text-blue-700 border border-blue-200'
                   }`}>
-                    {event.daysUntil === 0 ? 'Today!' : 
+                    {event.daysUntil === 0 ? 'Today! 🎉' : 
                      event.daysUntil === 1 ? 'Tomorrow' : 
                      `${event.daysUntil} days`}
                   </div>
