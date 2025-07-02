@@ -46,7 +46,7 @@ const DashboardOverview = ({ relationships, profile }: DashboardOverviewProps) =
 
   return (
     <div className="p-6 space-y-6">
-      {/* Compact Header */}
+      {/* Header with prominent Add button */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
@@ -58,25 +58,27 @@ const DashboardOverview = ({ relationships, profile }: DashboardOverviewProps) =
               : "Start building meaningful connections"}
           </p>
         </div>
-        <AddRelationshipCard onRelationshipAdded={handleRelationshipAdded} />
+        <div className="flex items-center gap-3">
+          <AddRelationshipCard onRelationshipAdded={handleRelationshipAdded} />
+        </div>
+      </div>
+
+      {/* Top Row - Secondary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <ThoughtfulnessScore relationships={relationships} />
+        <RecentActivity />
+        <DashboardStats relationships={relationships} />
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Events & Actions */}
-        <div className="lg:col-span-2 space-y-6">
-          <UpcomingEvents relationships={relationships} />
-          {relationships.length > 0 && (
-            <TryNudgeCard relationships={relationships} onNudgeSent={handleNudgeSent} />
-          )}
-          <DashboardStats relationships={relationships} />
-        </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left Column - Events */}
+        <UpcomingEvents relationships={relationships} />
         
-        {/* Right Column - Secondary Info */}
-        <div className="space-y-6">
-          <ThoughtfulnessScore relationships={relationships} />
-          <RecentActivity />
-        </div>
+        {/* Right Column - Actions */}
+        {relationships.length > 0 && (
+          <TryNudgeCard relationships={relationships} onNudgeSent={handleNudgeSent} />
+        )}
       </div>
     </div>
   );

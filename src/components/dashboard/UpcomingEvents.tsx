@@ -114,7 +114,7 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
   return (
     <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-xl">
+        <CardTitle className="flex items-center gap-2 text-xl font-semibold">
           <Calendar className="h-6 w-6 text-blue-600" />
           Upcoming Events
         </CardTitle>
