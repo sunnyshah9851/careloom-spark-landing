@@ -22,7 +22,7 @@ const Header = () => {
               onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
               className="text-rose-700 hover:text-rose-900 transition-colors"
             >
-              Sample Date Ideas
+              Sample Activity Ideas
             </button>
             <a href="#how-it-works" className="text-rose-700 hover:text-rose-900 transition-colors">
               How it Works
@@ -48,7 +48,7 @@ const Header = () => {
               size="sm"
             >
               <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">Get Date Ideas</span>
+              <span className="hidden sm:inline">Get Activity Ideas</span>
               <span className="sm:hidden">Start</span>
             </Button>
           </div>

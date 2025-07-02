@@ -6,22 +6,22 @@ const FeaturesSection = () => {
     {
       number: "01",
       icon: <User className="h-8 w-8 text-rose-500" />,
-      title: "Tell us about your relationship",
-      description: "Share your location, interests, and budget preferences so we can craft perfect date ideas just for you.",
+      title: "Tell us about your relationships",
+      description: "Share your location, interests, and preferences so we can craft perfect activity ideas for your friends, family, and loved ones.",
       gradient: "from-rose-100 to-rose-50"
     },
     {
       number: "02", 
       icon: <Settings className="h-8 w-8 text-rose-500" />,
       title: "Set your nudge preferences",
-      description: "Choose how often you want date ideas (weekly, bi-weekly, or monthly) and what types of activities you love.",
+      description: "Choose how often you want activity ideas (weekly, bi-weekly, or monthly) and what types of experiences you enjoy.",
       gradient: "from-cream-100 to-cream-50"
     },
     {
       number: "03",
       icon: <Bell className="h-8 w-8 text-rose-500" />,
-      title: "Receive personalized date ideas",  
-      description: "Get 3 curated date suggestions delivered to your inbox, complete with locations, timing, and budget estimates.",
+      title: "Receive personalized activity ideas",  
+      description: "Get 3 curated suggestions delivered to your inbox, complete with locations, timing, and budget estimates for any relationship.",
       gradient: "from-sage-100 to-sage-50"
     }
   ];
@@ -29,42 +29,42 @@ const FeaturesSection = () => {
   const features = [
     {
       icon: <Heart className="h-8 w-8 text-rose-500 fill-rose-200" />,
-      title: "Personalized Date Ideas",
-      description: "Get 3 custom date suggestions every week based on your city, interests, and budget. From cozy coffee shop dates to weekend adventures - we've got your next perfect date planned.",
+      title: "Personalized Activity Ideas",
+      description: "Get 3 custom suggestions every week based on your city, interests, and budget. From romantic dinners to family outings to friend adventures - we've got your next perfect activity planned.",
       gradient: "from-rose-100 to-rose-50",
-      examples: ["Romantic sunset picnic spots", "Rainy day indoor activities", "Anniversary celebration ideas", "Spontaneous weeknight dates"]
+      examples: ["Romantic sunset spots for couples", "Fun family activities for rainy days", "Unique friend hangout ideas", "Birthday celebration suggestions"]
     },
     {
       icon: <MapPin className="h-8 w-8 text-rose-500" />,
       title: "Local & Seasonal Suggestions",
-      description: "Discover hidden gems in your city with date ideas that match the season and weather. We research the best local spots so you don't have to.",
+      description: "Discover hidden gems in your city with activity ideas that match the season and weather. We research the best local spots for any type of relationship.",
       gradient: "from-cream-100 to-cream-50", 
       examples: ["Seasonal farmers markets", "New restaurant openings", "Local events and festivals", "Weather-appropriate activities"]
     },
     {
       icon: <Calendar className="h-8 w-8 text-rose-500" />,
       title: "Smart Timing & Reminders",
-      description: "Never miss important dates again. Get gentle reminders for birthdays, anniversaries, and perfect moments to plan something special.",
+      description: "Never miss important dates again. Get gentle reminders for birthdays, anniversaries, and perfect moments to plan something special with anyone in your circle.",
       gradient: "from-sage-100 to-sage-50",
-      examples: ["Birthday surprise planning", "Anniversary countdowns", "Monthly date night reminders", "Seasonal activity alerts"]
+      examples: ["Birthday surprise planning", "Anniversary countdowns", "Friend hangout reminders", "Family gathering alerts"]
     }
   ];
 
   const sampleIdeas = [
     {
-      title: "Cozy Rainy Day",
-      description: "Visit the new indie bookstore on Main St, grab hot chocolate, and browse poetry together",
+      title: "Cozy Friend Hangout",
+      description: "Visit the new indie bookstore on Main St, grab hot chocolate, and browse books together",
       budget: "$15-25",
       time: "2-3 hours"
     },
     {
-      title: "Weekend Adventure", 
-      description: "Hike the Sunset Trail, pack a picnic lunch, and watch the sunset from Eagle Point",
+      title: "Family Adventure", 
+      description: "Hike the Sunset Trail, pack a picnic lunch, and enjoy nature with the whole family",
       budget: "$10-20",
       time: "4-5 hours"
     },
     {
-      title: "Surprise Date Night",
+      title: "Romantic Date Night",
       description: "Take a pottery class at City Arts Center, then dinner at that Italian place you bookmarked",
       budget: "$80-120", 
       time: "3-4 hours"
@@ -77,16 +77,16 @@ const FeaturesSection = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-playfair font-bold text-rose-800 mb-6">
-            From boring weekends to
-            <span className="text-gradient block">memorable moments</span>
+            From boring routines to
+            <span className="text-gradient block">meaningful moments</span>
           </h2>
           <p className="text-xl text-rose-700/80 max-w-2xl mx-auto">
-            Stop scrolling through the same old date ideas. Get personalized suggestions 
-            that actually fit your life, budget, and city.
+            Stop scrolling through the same old activity ideas. Get personalized suggestions 
+            that actually fit your relationships, budget, and city.
           </p>
         </div>
 
-        {/* Sample Date Ideas Preview */}
+        {/* Sample Activity Ideas Preview */}
         <div id="preview" className="mb-20">
           <h3 className="text-3xl font-playfair font-bold text-rose-800 text-center mb-8">
             What your personalized nudges look like
@@ -162,7 +162,7 @@ const FeaturesSection = () => {
         {/* Features Grid */}
         <div className="mb-20">
           <h3 className="text-3xl font-playfair font-bold text-rose-800 text-center mb-12">
-            Why couples love Careloom
+            Why people love Careloom
           </h3>
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
@@ -205,12 +205,12 @@ const FeaturesSection = () => {
         {/* Social Proof Section */}
         <div className="bg-gradient-to-r from-rose-50 to-cream-50 rounded-3xl p-8 md:p-12 text-center animate-scale-in">
           <h3 className="text-3xl font-playfair font-bold text-rose-800 mb-6">
-            Join 2,500+ couples who've transformed their date nights
+            Join 2,500+ people who've transformed their relationships
           </h3>
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div className="bg-white/60 p-6 rounded-2xl">
               <div className="text-3xl font-bold text-rose-600 mb-2">10,000+</div>
-              <p className="text-rose-700/80">Personalized date ideas delivered</p>
+              <p className="text-rose-700/80">Personalized activity ideas delivered</p>
             </div>
             <div className="bg-white/60 p-6 rounded-2xl">
               <div className="text-3xl font-bold text-rose-600 mb-2">85%</div>
@@ -218,13 +218,13 @@ const FeaturesSection = () => {
             </div>
             <div className="bg-white/60 p-6 rounded-2xl">
               <div className="text-3xl font-bold text-rose-600 mb-2">40%</div>
-              <p className="text-rose-700/80">More quality time together</p>
+              <p className="text-rose-700/80">More quality time with loved ones</p>
             </div>
           </div>
           <p className="text-lg text-rose-700/80 max-w-3xl mx-auto">
-            "We went from Netflix every weekend to trying pottery classes, farmers markets, 
+            "We went from the same weekend routine to trying pottery classes, farmers markets, 
             and that amazing hiking trail we never knew existed. Careloom helped us fall in love 
-            with our city again!" - Sarah & Mike
+            with our city again and gave us ideas for every type of relationship!" - Sarah & Mike
           </p>
         </div>
       </div>

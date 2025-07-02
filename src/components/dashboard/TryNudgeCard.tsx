@@ -31,12 +31,12 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
   const { recordEvent } = useEvents();
   const [hasSentToday, setHasSentToday] = useState(false);
 
-  // Get the first partner's name, or use a default
-  const partnerName = relationships.length > 0 ? relationships[0].name : undefined;
+  // Get the first relationship's name, or use a default
+  const relationshipName = relationships.length > 0 ? relationships[0].name : undefined;
 
   const handleSendNudge = async () => {
     const success = await sendNudge({
-      partnerName,
+      partnerName: relationshipName,
       city: 'your city', // Could be enhanced to get actual city from profile
     });
 
@@ -46,13 +46,13 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
         relationships.length > 0 ? relationships[0].id : null,
         'nudge_requested',
         {
-          action_description: 'Requested personalized date ideas via email nudge',
-          partner_name: partnerName,
+          action_description: 'Requested personalized activity ideas via email nudge',
+          relationship_name: relationshipName,
           city: 'your city'
         }
       );
 
-      toast.success('🎁 Your personalized date ideas are on the way! Check your email in a few minutes.');
+      toast.success('🎁 Your personalized activity ideas are on the way! Check your email in a few minutes.');
       setHasSentToday(true);
       onNudgeSent?.();
     } else {
@@ -67,7 +67,7 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
           🎯 Try Your First Personalized Nudge
         </CardTitle>
         <CardDescription className="text-base">
-          Experience Careloom's magic! We'll send you 3 personalized date ideas tailored to your city, 
+          Experience Careloom's magic! We'll send you 3 personalized activity ideas tailored to your city, 
           budget, and relationship style - delivered straight to your inbox in minutes.
         </CardDescription>
       </CardHeader>
@@ -75,7 +75,7 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
         <div className="bg-white/60 rounded-xl p-4 border border-rose-100">
           <p className="text-sm text-rose-700 mb-2 font-medium">What you'll get:</p>
           <ul className="text-sm text-rose-600/80 space-y-1">
-            <li>• 3 personalized date ideas for your city</li>
+            <li>• 3 personalized activity ideas for your city</li>
             <li>• Budget estimates and timing suggestions</li>
             <li>• Local venue recommendations</li>
             <li>• Weather-appropriate activities</li>
@@ -90,17 +90,17 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              Crafting Your Perfect Date Ideas...
+              Crafting Your Perfect Activity Ideas...
             </>
           ) : hasSentToday ? (
             <>
               <Mail className="h-5 w-5 mr-2" />
-              Date Ideas Sent! Check Your Email ✓
+              Activity Ideas Sent! Check Your Email ✓
             </>
           ) : (
             <>
               <Mail className="h-5 w-5 mr-2" />
-              Send Me My Personalized Date Ideas
+              Send Me My Personalized Activity Ideas
             </>
           )}
         </Button>
@@ -108,10 +108,10 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
         {hasSentToday && (
           <div className="bg-rose-100/60 rounded-lg p-3 text-center">
             <p className="text-sm text-rose-700 font-medium">
-              🎉 Your date ideas are on the way!
+              🎉 Your activity ideas are on the way!
             </p>
             <p className="text-xs text-rose-600/80 mt-1">
-              Check your email in the next few minutes for 3 amazing date suggestions
+              Check your email in the next few minutes for 3 amazing activity suggestions
             </p>
           </div>
         )}
