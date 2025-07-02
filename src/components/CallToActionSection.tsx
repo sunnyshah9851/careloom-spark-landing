@@ -76,18 +76,8 @@ const CallToActionSection = () => {
           </div>
         </div>
 
-        {/* Final Hook */}
-        <div className="mt-12 bg-rose-100/50 rounded-2xl p-6 animate-fade-in [animation-delay:400ms]">
-          <p className="text-lg text-rose-800 font-medium mb-2">
-            🎉 Special Launch Offer
-          </p>
-          <p className="text-rose-700/80">
-            First 100 users get a bonus "Activity Mystery Box" with local gift cards and experience vouchers
-          </p>
-        </div>
-
         {/* Footer Note */}
-        <p className="text-sm text-rose-600/60 mt-8 animate-fade-in [animation-delay:500ms]">
+        <p className="text-sm text-rose-600/60 mt-8 animate-fade-in [animation-delay:400ms]">
           No spam, ever. Unsubscribe anytime. 
           <span className="block mt-1">Made with 💕 to help people create lasting memories together</span>
         </p>
