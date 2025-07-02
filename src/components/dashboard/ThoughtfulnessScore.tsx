@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
@@ -72,7 +73,7 @@ const ThoughtfulnessScore = ({ relationships }: ThoughtfulnessScoreProps) => {
       <Card className="relative overflow-visible">
         <div className={`absolute inset-0 bg-gradient-to-br ${getScoreColor(score.total)} opacity-5`} />
         <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-lg">
+          <CardTitle className="flex items-center gap-2 text-lg text-rose-800">
             Thoughtfulness Score
             <Tooltip delayDuration={0}>
               <TooltipTrigger asChild>

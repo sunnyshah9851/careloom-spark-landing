@@ -70,11 +70,11 @@ const RecentActivity = () => {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-rose-800">
             <Activity className="h-5 w-5 text-rose-500" />
             Recent Activity
           </CardTitle>
-          <CardDescription>Your recent relationship activities</CardDescription>
+          <CardDescription className="text-rose-800">Your recent relationship activities</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
@@ -88,11 +88,11 @@ const RecentActivity = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-rose-800">
           <Activity className="h-5 w-5 text-rose-500" />
           Recent Activity
         </CardTitle>
-        <CardDescription>Your recent relationship activities from the last week</CardDescription>
+        <CardDescription className="text-rose-800">Your recent relationship activities from the last week</CardDescription>
       </CardHeader>
       <CardContent>
         {error && (

@@ -80,7 +80,7 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
           <CardTitle className="flex items-center gap-2 text-rose-800">
             🤝 Ready for Your Personalized Connection Nudge?
           </CardTitle>
-          <CardDescription className="text-base">
+          <CardDescription className="text-rose-800">
             Add someone important to you first, and we'll send you personalized connection ideas 
             designed specifically for your relationship with them.
           </CardDescription>
@@ -105,7 +105,7 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
         <CardTitle className="flex items-center gap-2 text-rose-800">
           💕 Get Personalized Ideas for You & {primaryRelationship.name}
         </CardTitle>
-        <CardDescription className="text-base">
+        <CardDescription className="text-rose-800">
           Ready to deepen your connection with {primaryRelationship.name}? We'll send you 3 personalized 
           {primaryRelationship.relationship_type === 'partner' ? ' romance-building' : 
            primaryRelationship.relationship_type === 'family' ? ' family bonding' : 
