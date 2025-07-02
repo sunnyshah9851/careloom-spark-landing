@@ -23,7 +23,7 @@
     --secondary-foreground: 76 51 62;
 
     --muted: 246 239 241;
-    --muted-foreground: 139 120 127;
+    --muted-foreground: 107 86 93;
 
     --accent: 253 236 239;
     --accent-foreground: 157 78 101;
@@ -101,6 +101,20 @@
     @apply font-playfair text-foreground;
   }
 
+  /* Improved link styles for better readability */
+  a {
+    @apply text-rose-700 hover:text-rose-800 transition-colors duration-200;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+
+  /* Button hover improvements */
+  button:hover {
+    @apply transition-all duration-200;
+  }
+
   /* Mobile viewport fixes */
   html {
     -webkit-text-size-adjust: 100%;
@@ -123,10 +137,38 @@
   }
   
   .text-gradient {
-    background: linear-gradient(135deg, #c08862 0%, #9d4e65 100%);
+    background: linear-gradient(135deg, #9d4e65 0%, #7f4155 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    color: transparent;
+  }
+
+  /* Improved text contrast utilities */
+  .text-readable {
+    @apply text-rose-800;
+  }
+  
+  .text-readable-light {
+    @apply text-rose-700;
+  }
+  
+  .text-readable-muted {
+    @apply text-rose-600;
+  }
+
+  /* Better hover states */
+  .hover-readable:hover {
+    @apply text-rose-900 bg-rose-50;
+  }
+  
+  .hover-button:hover {
+    @apply bg-rose-600 text-white transform scale-105;
+  }
+
+  /* Improved placeholder text */
+  .placeholder-readable::placeholder {
+    @apply text-rose-500 opacity-75;
   }
 
   /* Mobile-specific gradient fallbacks */
@@ -146,5 +188,50 @@
       background-clip: unset;
       color: hsl(var(--primary));
     }
+  }
+
+  /* Enhanced form input styles */
+  .form-input {
+    @apply text-rose-800 placeholder:text-rose-500 placeholder:opacity-75 border-rose-200 focus:border-rose-400 focus:ring-rose-400;
+  }
+  
+  .form-input:focus {
+    @apply outline-none ring-2 ring-rose-400 ring-opacity-50;
+  }
+
+  /* Better card hover effects */
+  .card-hover:hover {
+    @apply shadow-lg border-rose-300 transform translate-y-[-2px] transition-all duration-200;
+  }
+
+  /* Improved navigation styles */
+  .nav-link {
+    @apply text-rose-700 hover:text-rose-900 hover:bg-rose-50 px-3 py-2 rounded-md transition-all duration-200;
+  }
+  
+  .nav-link.active {
+    @apply text-rose-900 bg-rose-100 font-medium;
+  }
+
+  /* Better button variants */
+  .btn-primary {
+    @apply bg-rose-600 text-white hover:bg-rose-700 hover:shadow-md transform hover:scale-105 transition-all duration-200;
+  }
+  
+  .btn-secondary {
+    @apply bg-rose-100 text-rose-800 hover:bg-rose-200 hover:text-rose-900 border border-rose-300 hover:border-rose-400 transition-all duration-200;
+  }
+  
+  .btn-ghost {
+    @apply text-rose-700 hover:text-rose-900 hover:bg-rose-50 transition-all duration-200;
+  }
+
+  /* Improved disabled states */
+  .disabled {
+    @apply opacity-60 cursor-not-allowed;
+  }
+  
+  .disabled:hover {
+    @apply transform-none scale-100;
   }
 }
