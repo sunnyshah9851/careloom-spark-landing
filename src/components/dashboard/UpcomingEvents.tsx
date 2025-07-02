@@ -112,44 +112,60 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
   };
 
   return (
-    <Card>
+    <Card className="bg-gradient-to-br from-blue-50 to-purple-50 border-blue-200">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-rose-500" />
-          Upcoming Events This Month
+        <CardTitle className="flex items-center gap-2 text-xl">
+          <Calendar className="h-6 w-6 text-blue-600" />
+          Upcoming Events
         </CardTitle>
-        <CardDescription>
-          Special moments in the next 30 days
+        <CardDescription className="text-base">
+          Important dates in the next 30 days
         </CardDescription>
       </CardHeader>
       <CardContent>
         {events.length === 0 ? (
-          <p className="text-rose-700 text-center py-4 font-medium">
-            No events in the next month. Add your relationship details to see upcoming birthdays and anniversaries!
-          </p>
+          <div className="text-center py-8">
+            <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className="text-muted-foreground font-medium mb-2">
+              No upcoming events
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Add birthdays and anniversaries to your relationships to see them here
+            </p>
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {events.map((event, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-rose-50 rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-full ${event.type === 'anniversary' ? 'bg-rose-200' : 'bg-blue-200'}`}>
+              <div key={index} className="flex items-center justify-between p-4 bg-white/70 rounded-xl border border-white/50 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-4">
+                  <div className={`p-3 rounded-full ${
+                    event.type === 'anniversary' 
+                      ? 'bg-red-100 text-red-600' 
+                      : 'bg-blue-100 text-blue-600'
+                  }`}>
                     {event.type === 'anniversary' ? (
-                      <Heart className="h-4 w-4 text-rose-600" />
+                      <Heart className="h-5 w-5" />
                     ) : (
-                      <Calendar className="h-4 w-4 text-blue-600" />
+                      <Calendar className="h-5 w-5" />
                     )}
                   </div>
                   <div>
-                    <p className="font-medium text-rose-900">{event.name}</p>
-                    <p className="text-sm text-rose-600">{formatDate(event.date)}</p>
+                    <p className="font-semibold text-foreground text-lg">{event.name}</p>
+                    <p className="text-muted-foreground">{formatDate(event.date)}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-rose-700">
+                  <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    event.daysUntil === 0 
+                      ? 'bg-red-100 text-red-700' 
+                      : event.daysUntil <= 3 
+                      ? 'bg-orange-100 text-orange-700'
+                      : 'bg-blue-100 text-blue-700'
+                  }`}>
                     {event.daysUntil === 0 ? 'Today!' : 
                      event.daysUntil === 1 ? 'Tomorrow' : 
                      `${event.daysUntil} days`}
-                  </p>
+                  </div>
                 </div>
               </div>
             ))}
