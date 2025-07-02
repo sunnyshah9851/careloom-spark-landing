@@ -24,6 +24,8 @@ interface Relationship {
   name: string;
   birthday: string | null;
   anniversary: string | null;
+  birthday_notification_frequency: string;
+  anniversary_notification_frequency: string;
   profile_id: string;
   profiles: {
     email: string;
@@ -31,23 +33,50 @@ interface Relationship {
   };
 }
 
+// Helper function to get days offset from frequency
+const getFrequencyDays = (frequency: string): number => {
+  switch (frequency) {
+    case '1_day': return 1;
+    case '3_days': return 3;
+    case '1_week': return 7;
+    case '2_weeks': return 14;
+    case '1_month': return 30;
+    case 'none': return -1; // -1 means no notifications
+    default: return 7; // default to 1 week
+  }
+};
+
+// Helper function to check if a date matches the reminder criteria
+const shouldSendReminder = (eventDate: string, frequency: string): boolean => {
+  const daysOffset = getFrequencyDays(frequency);
+  if (daysOffset === -1) return false; // No notifications
+  
+  const today = new Date();
+  const reminderDate = new Date();
+  reminderDate.setDate(today.getDate() + daysOffset);
+  
+  const currentYear = today.getFullYear();
+  const eventThisYear = new Date(`${currentYear}-${eventDate.slice(5)}`);
+  
+  // Check if the reminder date matches today
+  return (
+    reminderDate.getDate() === eventThisYear.getDate() &&
+    reminderDate.getMonth() === eventThisYear.getMonth()
+  );
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('Starting birthday/anniversary reminder check...');
-
-    // Calculate the date 3 days from now
-    const reminderDate = new Date();
-    reminderDate.setDate(reminderDate.getDate() + 3);
-    const reminderDateStr = reminderDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+    console.log('Starting personalized birthday/anniversary reminder check...');
     
-    // Get current year for date comparisons
-    const currentYear = new Date().getFullYear();
+    const today = new Date();
+    const currentYear = today.getFullYear();
 
-    // Fetch relationships with upcoming birthdays or anniversaries
+    // Fetch all relationships with their notification preferences
     const { data: relationships, error: fetchError } = await supabase
       .from('relationships')
       .select(`
@@ -55,10 +84,11 @@ const handler = async (req: Request): Promise<Response> => {
         name,
         birthday,
         anniversary,
+        birthday_notification_frequency,
+        anniversary_notification_frequency,
         profile_id,
         profiles!inner(email, full_name)
       `)
-      .or(`birthday.eq.${reminderDateStr.slice(5)},anniversary.eq.${reminderDateStr.slice(5)}`) // Match MM-DD format
       .not('profiles.email', 'is', null);
 
     if (fetchError) {
@@ -66,7 +96,7 @@ const handler = async (req: Request): Promise<Response> => {
       throw fetchError;
     }
 
-    console.log(`Found ${relationships?.length || 0} potential reminders`);
+    console.log(`Found ${relationships?.length || 0} relationships to check`);
 
     const emailsSent = [];
 
@@ -74,8 +104,9 @@ const handler = async (req: Request): Promise<Response> => {
       const rel = relationship as Relationship;
       
       // Check for birthday reminder
-      if (rel.birthday && rel.birthday.slice(5) === reminderDateStr.slice(5)) {
+      if (rel.birthday && shouldSendReminder(rel.birthday, rel.birthday_notification_frequency)) {
         const birthdayThisYear = `${currentYear}-${rel.birthday.slice(5)}`;
+        const daysUntil = getFrequencyDays(rel.birthday_notification_frequency);
         
         // Check if we already sent a reminder for this birthday this year
         const { data: existingBirthdayLog } = await supabase
@@ -84,7 +115,7 @@ const handler = async (req: Request): Promise<Response> => {
           .eq('relationship_id', rel.id)
           .eq('reminder_type', 'birthday')
           .eq('event_date', birthdayThisYear)
-          .eq('reminder_date', reminderDateStr)
+          .gte('sent_at', `${currentYear}-01-01`)
           .single();
 
         if (!existingBirthdayLog) {
@@ -94,7 +125,8 @@ const handler = async (req: Request): Promise<Response> => {
             rel.profiles.full_name,
             rel.name,
             'birthday',
-            reminderDate
+            daysUntil,
+            new Date(birthdayThisYear)
           );
 
           if (emailResult.success) {
@@ -104,22 +136,24 @@ const handler = async (req: Request): Promise<Response> => {
               .insert({
                 relationship_id: rel.id,
                 reminder_type: 'birthday',
-                reminder_date: reminderDateStr,
+                reminder_date: today.toISOString().split('T')[0],
                 event_date: birthdayThisYear
               });
 
             emailsSent.push({
               type: 'birthday',
               recipient: rel.profiles.email,
-              partner: rel.name
+              partner: rel.name,
+              daysUntil
             });
           }
         }
       }
 
       // Check for anniversary reminder
-      if (rel.anniversary && rel.anniversary.slice(5) === reminderDateStr.slice(5)) {
+      if (rel.anniversary && shouldSendReminder(rel.anniversary, rel.anniversary_notification_frequency)) {
         const anniversaryThisYear = `${currentYear}-${rel.anniversary.slice(5)}`;
+        const daysUntil = getFrequencyDays(rel.anniversary_notification_frequency);
         
         // Check if we already sent a reminder for this anniversary this year
         const { data: existingAnniversaryLog } = await supabase
@@ -128,7 +162,7 @@ const handler = async (req: Request): Promise<Response> => {
           .eq('relationship_id', rel.id)
           .eq('reminder_type', 'anniversary')
           .eq('event_date', anniversaryThisYear)
-          .eq('reminder_date', reminderDateStr)
+          .gte('sent_at', `${currentYear}-01-01`)
           .single();
 
         if (!existingAnniversaryLog) {
@@ -138,7 +172,8 @@ const handler = async (req: Request): Promise<Response> => {
             rel.profiles.full_name,
             rel.name,
             'anniversary',
-            reminderDate
+            daysUntil,
+            new Date(anniversaryThisYear)
           );
 
           if (emailResult.success) {
@@ -148,14 +183,15 @@ const handler = async (req: Request): Promise<Response> => {
               .insert({
                 relationship_id: rel.id,
                 reminder_type: 'anniversary',
-                reminder_date: reminderDateStr,
+                reminder_date: today.toISOString().split('T')[0],
                 event_date: anniversaryThisYear
               });
 
             emailsSent.push({
               type: 'anniversary',
               recipient: rel.profiles.email,
-              partner: rel.name
+              partner: rel.name,
+              daysUntil
             });
           }
         }
@@ -193,6 +229,7 @@ async function sendReminderEmail(
   recipientName: string,
   partnerName: string,
   eventType: 'birthday' | 'anniversary',
+  daysUntil: number,
   eventDate: Date
 ): Promise<{ success: boolean; error?: string }> {
   try {
@@ -203,22 +240,25 @@ async function sendReminderEmail(
       month: 'long', 
       day: 'numeric' 
     });
+    
+    const daysText = daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`;
+    const emoji = eventType === 'birthday' ? '🎂' : '💕';
 
     const emailResponse = await resend.emails.send({
       from: "Careloom <reminders@lovable.app>",
       to: [recipientEmail],
-      subject: `🎉 Reminder: ${partnerName}'s ${eventTypeDisplay} is in 3 days!`,
+      subject: `${emoji} Reminder: ${partnerName}'s ${eventTypeDisplay} is ${daysText}!`,
       html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fdf2f8;">
           <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #fce7f3;">
             <div style="text-align: center; margin-bottom: 32px;">
-              <h1 style="color: #be185d; font-size: 28px; margin: 0; font-weight: 700;">🎉 Special Day Reminder</h1>
+              <h1 style="color: #be185d; font-size: 28px; margin: 0; font-weight: 700;">${emoji} Special Day Reminder</h1>
             </div>
             
             <div style="background: #fdf2f8; border-radius: 8px; padding: 24px; margin-bottom: 24px; border-left: 4px solid #ec4899;">
               <h2 style="color: #881337; margin: 0 0 12px 0; font-size: 20px;">Hi ${recipientName}!</h2>
               <p style="color: #4c1d95; font-size: 16px; line-height: 1.6; margin: 0;">
-                This is a friendly reminder that <strong>${partnerName}'s ${eventType}</strong> is coming up in just <strong>3 days</strong> on <strong>${dateString}</strong>.
+                This is a friendly reminder that <strong>${partnerName}'s ${eventType}</strong> is ${daysText} on <strong>${dateString}</strong>.
               </p>
             </div>
 
@@ -243,13 +283,16 @@ async function sendReminderEmail(
               <p style="color: #6b7280; font-size: 14px; margin: 0;">
                 Sent with love from <span style="color: #ec4899; font-weight: 600;">Careloom</span> 💖
               </p>
+              <p style="color: #9ca3af; font-size: 12px; margin: 8px 0 0 0;">
+                You're receiving this because you set up a reminder ${daysUntil === 1 ? '1 day' : daysUntil + ' days'} before ${partnerName}'s ${eventType}.
+              </p>
             </div>
           </div>
         </div>
       `,
     });
 
-    console.log(`${eventTypeDisplay} reminder email sent to ${recipientEmail} for ${partnerName}`);
+    console.log(`${eventTypeDisplay} reminder email sent to ${recipientEmail} for ${partnerName} (${daysUntil} days before)`);
     return { success: true };
 
   } catch (error: any) {
