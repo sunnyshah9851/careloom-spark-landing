@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CityInput } from '@/components/ui/city-input';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useEvents } from '@/hooks/useEvents';
@@ -151,11 +152,11 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           <Label htmlFor="city" className="text-sm font-medium text-gray-900">
             City
           </Label>
-          <Input
+          <CityInput
             id="city"
             value={formData.city}
-            onChange={(e) => handleInputChange('city', e.target.value)}
-            placeholder="What city do they live in?"
+            onChange={(value) => handleInputChange('city', value)}
+            placeholder="Search for a city..."
             className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
           />
         </div>
