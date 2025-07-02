@@ -46,23 +46,35 @@ const getFrequencyDays = (frequency: string): number => {
   }
 };
 
-// Helper function to check if a date matches the reminder criteria
+// Fixed function to check if a date matches the reminder criteria
 const shouldSendReminder = (eventDate: string, frequency: string): boolean => {
   const daysOffset = getFrequencyDays(frequency);
   if (daysOffset === -1) return false; // No notifications
   
   const today = new Date();
-  const reminderDate = new Date();
-  reminderDate.setDate(today.getDate() + daysOffset);
+  today.setUTCHours(0, 0, 0, 0); // Normalize to start of day UTC
   
-  const currentYear = today.getFullYear();
-  const eventThisYear = new Date(`${currentYear}-${eventDate.slice(5)}`);
+  const currentYear = today.getUTCFullYear();
   
-  // Check if the reminder date matches today
-  return (
-    reminderDate.getDate() === eventThisYear.getDate() &&
-    reminderDate.getMonth() === eventThisYear.getMonth()
-  );
+  // Create the event date for this year in UTC
+  const eventThisYear = new Date(`${currentYear}-${eventDate.slice(5)}T00:00:00.000Z`);
+  
+  // Calculate the reminder date (X days before the event)
+  const reminderDate = new Date(eventThisYear);
+  reminderDate.setUTCDate(eventThisYear.getUTCDate() - daysOffset);
+  
+  console.log(`Debug shouldSendReminder:`, {
+    eventDate,
+    frequency,
+    daysOffset,
+    today: today.toISOString().split('T')[0],
+    eventThisYear: eventThisYear.toISOString().split('T')[0],
+    reminderDate: reminderDate.toISOString().split('T')[0],
+    shouldSend: today.getTime() === reminderDate.getTime()
+  });
+  
+  // Check if today is the reminder date
+  return today.getTime() === reminderDate.getTime();
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -71,10 +83,16 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log('Starting personalized birthday/anniversary reminder check...');
+    const url = new URL(req.url);
+    const isDebug = url.searchParams.get('debug') === 'true';
+    
+    console.log(`=== Birthday Reminder Function Started ===`);
+    console.log(`Execution time: ${new Date().toISOString()}`);
+    console.log(`Debug mode: ${isDebug}`);
     
     const today = new Date();
     const currentYear = today.getFullYear();
+    console.log(`Today: ${today.toISOString().split('T')[0]} (UTC)`);
 
     // Fetch all relationships with their notification preferences
     const { data: relationships, error: fetchError } = await supabase
@@ -99,106 +117,200 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Found ${relationships?.length || 0} relationships to check`);
 
     const emailsSent = [];
+    const debugInfo = [];
 
     for (const relationship of relationships || []) {
       const rel = relationship as Relationship;
       
+      console.log(`\n--- Checking relationship: ${rel.name} ---`);
+      console.log(`Profile: ${rel.profiles.full_name} (${rel.profiles.email})`);
+      
       // Check for birthday reminder
-      if (rel.birthday && shouldSendReminder(rel.birthday, rel.birthday_notification_frequency)) {
-        const birthdayThisYear = `${currentYear}-${rel.birthday.slice(5)}`;
-        const daysUntil = getFrequencyDays(rel.birthday_notification_frequency);
+      if (rel.birthday) {
+        console.log(`Birthday: ${rel.birthday}, Frequency: ${rel.birthday_notification_frequency}`);
         
-        // Check if we already sent a reminder for this birthday this year
-        const { data: existingBirthdayLog } = await supabase
-          .from('reminder_logs')
-          .select('id')
-          .eq('relationship_id', rel.id)
-          .eq('reminder_type', 'birthday')
-          .eq('event_date', birthdayThisYear)
-          .gte('sent_at', `${currentYear}-01-01`)
-          .single();
+        const shouldSend = shouldSendReminder(rel.birthday, rel.birthday_notification_frequency);
+        console.log(`Should send birthday reminder: ${shouldSend}`);
+        
+        if (isDebug) {
+          debugInfo.push({
+            name: rel.name,
+            type: 'birthday',
+            date: rel.birthday,
+            frequency: rel.birthday_notification_frequency,
+            shouldSend,
+            email: rel.profiles.email
+          });
+        }
 
-        if (!existingBirthdayLog) {
-          // Send birthday reminder
-          const emailResult = await sendReminderEmail(
-            rel.profiles.email,
-            rel.profiles.full_name,
-            rel.name,
-            'birthday',
-            daysUntil,
-            new Date(birthdayThisYear)
-          );
+        if (shouldSend && !isDebug) {
+          const birthdayThisYear = `${currentYear}-${rel.birthday.slice(5)}`;
+          const daysUntil = getFrequencyDays(rel.birthday_notification_frequency);
+          
+          console.log(`Checking for existing birthday log for ${rel.name}...`);
+          
+          // Check if we already sent a reminder for this birthday this year
+          const { data: existingBirthdayLog } = await supabase
+            .from('reminder_logs')
+            .select('id')
+            .eq('relationship_id', rel.id)
+            .eq('reminder_type', 'birthday')
+            .eq('event_date', birthdayThisYear)
+            .gte('sent_at', `${currentYear}-01-01`)
+            .single();
 
-          if (emailResult.success) {
-            // Log the sent reminder
-            await supabase
-              .from('reminder_logs')
-              .insert({
-                relationship_id: rel.id,
-                reminder_type: 'birthday',
-                reminder_date: today.toISOString().split('T')[0],
-                event_date: birthdayThisYear
+          if (!existingBirthdayLog) {
+            console.log(`Sending birthday reminder for ${rel.name}...`);
+            
+            // Send birthday reminder
+            const emailResult = await sendReminderEmail(
+              rel.profiles.email,
+              rel.profiles.full_name,
+              rel.name,
+              'birthday',
+              daysUntil,
+              new Date(birthdayThisYear)
+            );
+
+            if (emailResult.success) {
+              console.log(`Birthday email sent successfully for ${rel.name}`);
+              
+              // Log the sent reminder
+              const { error: logError } = await supabase
+                .from('reminder_logs')
+                .insert({
+                  relationship_id: rel.id,
+                  reminder_type: 'birthday',
+                  reminder_date: today.toISOString().split('T')[0],
+                  event_date: birthdayThisYear
+                });
+
+              if (logError) {
+                console.error(`Error logging birthday reminder for ${rel.name}:`, logError);
+              } else {
+                console.log(`Birthday reminder logged successfully for ${rel.name}`);
+              }
+
+              emailsSent.push({
+                type: 'birthday',
+                recipient: rel.profiles.email,
+                partner: rel.name,
+                daysUntil
               });
-
-            emailsSent.push({
-              type: 'birthday',
-              recipient: rel.profiles.email,
-              partner: rel.name,
-              daysUntil
-            });
+            } else {
+              console.error(`Failed to send birthday email for ${rel.name}:`, emailResult.error);
+            }
+          } else {
+            console.log(`Birthday reminder already sent for ${rel.name} this year`);
           }
         }
+      } else {
+        console.log(`No birthday set for ${rel.name}`);
       }
 
       // Check for anniversary reminder
-      if (rel.anniversary && shouldSendReminder(rel.anniversary, rel.anniversary_notification_frequency)) {
-        const anniversaryThisYear = `${currentYear}-${rel.anniversary.slice(5)}`;
-        const daysUntil = getFrequencyDays(rel.anniversary_notification_frequency);
+      if (rel.anniversary) {
+        console.log(`Anniversary: ${rel.anniversary}, Frequency: ${rel.anniversary_notification_frequency}`);
         
-        // Check if we already sent a reminder for this anniversary this year
-        const { data: existingAnniversaryLog } = await supabase
-          .from('reminder_logs')
-          .select('id')
-          .eq('relationship_id', rel.id)
-          .eq('reminder_type', 'anniversary')
-          .eq('event_date', anniversaryThisYear)
-          .gte('sent_at', `${currentYear}-01-01`)
-          .single();
+        const shouldSend = shouldSendReminder(rel.anniversary, rel.anniversary_notification_frequency);
+        console.log(`Should send anniversary reminder: ${shouldSend}`);
+        
+        if (isDebug) {
+          debugInfo.push({
+            name: rel.name,
+            type: 'anniversary',
+            date: rel.anniversary,
+            frequency: rel.anniversary_notification_frequency,
+            shouldSend,
+            email: rel.profiles.email
+          });
+        }
 
-        if (!existingAnniversaryLog) {
-          // Send anniversary reminder
-          const emailResult = await sendReminderEmail(
-            rel.profiles.email,
-            rel.profiles.full_name,
-            rel.name,
-            'anniversary',
-            daysUntil,
-            new Date(anniversaryThisYear)
-          );
+        if (shouldSend && !isDebug) {
+          const anniversaryThisYear = `${currentYear}-${rel.anniversary.slice(5)}`;
+          const daysUntil = getFrequencyDays(rel.anniversary_notification_frequency);
+          
+          console.log(`Checking for existing anniversary log for ${rel.name}...`);
+          
+          // Check if we already sent a reminder for this anniversary this year
+          const { data: existingAnniversaryLog } = await supabase
+            .from('reminder_logs')
+            .select('id')
+            .eq('relationship_id', rel.id)
+            .eq('reminder_type', 'anniversary')
+            .eq('event_date', anniversaryThisYear)
+            .gte('sent_at', `${currentYear}-01-01`)
+            .single();
 
-          if (emailResult.success) {
-            // Log the sent reminder
-            await supabase
-              .from('reminder_logs')
-              .insert({
-                relationship_id: rel.id,
-                reminder_type: 'anniversary',
-                reminder_date: today.toISOString().split('T')[0],
-                event_date: anniversaryThisYear
+          if (!existingAnniversaryLog) {
+            console.log(`Sending anniversary reminder for ${rel.name}...`);
+            
+            // Send anniversary reminder
+            const emailResult = await sendReminderEmail(
+              rel.profiles.email,
+              rel.profiles.full_name,
+              rel.name,
+              'anniversary',
+              daysUntil,
+              new Date(anniversaryThisYear)
+            );
+
+            if (emailResult.success) {
+              console.log(`Anniversary email sent successfully for ${rel.name}`);
+              
+              // Log the sent reminder
+              const { error: logError } = await supabase
+                .from('reminder_logs')
+                .insert({
+                  relationship_id: rel.id,
+                  reminder_type: 'anniversary',
+                  reminder_date: today.toISOString().split('T')[0],
+                  event_date: anniversaryThisYear
+                });
+
+              if (logError) {
+                console.error(`Error logging anniversary reminder for ${rel.name}:`, logError);
+              } else {
+                console.log(`Anniversary reminder logged successfully for ${rel.name}`);
+              }
+
+              emailsSent.push({
+                type: 'anniversary',
+                recipient: rel.profiles.email,
+                partner: rel.name,
+                daysUntil
               });
-
-            emailsSent.push({
-              type: 'anniversary',
-              recipient: rel.profiles.email,
-              partner: rel.name,
-              daysUntil
-            });
+            } else {
+              console.error(`Failed to send anniversary email for ${rel.name}:`, emailResult.error);
+            }
+          } else {
+            console.log(`Anniversary reminder already sent for ${rel.name} this year`);
           }
         }
+      } else {
+        console.log(`No anniversary set for ${rel.name}`);
       }
     }
 
+    console.log(`\n=== Summary ===`);
     console.log(`Successfully sent ${emailsSent.length} reminder emails`);
+    console.log(`Function execution completed at: ${new Date().toISOString()}`);
+
+    if (isDebug) {
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          debug: true,
+          today: today.toISOString().split('T')[0],
+          debugInfo,
+          message: 'Debug mode - no emails sent'
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
 
     return new Response(
       JSON.stringify({ 
@@ -243,6 +355,8 @@ async function sendReminderEmail(
     
     const daysText = daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`;
     const emoji = eventType === 'birthday' ? '🎂' : '💕';
+
+    console.log(`Attempting to send ${eventType} email to ${recipientEmail} for ${partnerName}`);
 
     const emailResponse = await resend.emails.send({
       from: "Careloom <reminders@lovable.app>",
@@ -292,7 +406,7 @@ async function sendReminderEmail(
       `,
     });
 
-    console.log(`${eventTypeDisplay} reminder email sent to ${recipientEmail} for ${partnerName} (${daysUntil} days before)`);
+    console.log(`${eventTypeDisplay} reminder email sent successfully:`, emailResponse);
     return { success: true };
 
   } catch (error: any) {
