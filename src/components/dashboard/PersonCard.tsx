@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,19 +72,20 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
       console.log('Updating frequencies:', frequencies);
       console.log('Relationship ID:', relationship.id);
       
-      // Test the database connection and constraints first
-      const { data: testData, error: testError } = await supabase
-        .from('relationships')
-        .select('birthday_notification_frequency, anniversary_notification_frequency')
-        .eq('id', relationship.id)
-        .single();
-        
-      if (testError) {
-        console.error('Error fetching current data:', testError);
-        throw new Error(`Database connection error: ${testError.message}`);
+      // Validate the values before sending
+      const validValues = ['1_day', '3_days', '1_week', '2_weeks', '1_month', 'none'];
+      
+      if (!validValues.includes(frequencies.birthday_notification_frequency)) {
+        console.error('Invalid birthday frequency value:', frequencies.birthday_notification_frequency);
+        toast.error('Invalid birthday frequency value');
+        return;
       }
       
-      console.log('Current database values:', testData);
+      if (!validValues.includes(frequencies.anniversary_notification_frequency)) {
+        console.error('Invalid anniversary frequency value:', frequencies.anniversary_notification_frequency);
+        toast.error('Invalid anniversary frequency value');
+        return;
+      }
       
       const { error } = await supabase
         .from('relationships')
@@ -97,6 +99,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
         console.error('Supabase error:', error);
         console.error('Error details:', error.details);
         console.error('Error hint:', error.hint);
+        console.error('Error code:', error.code);
         throw error;
       }
 
