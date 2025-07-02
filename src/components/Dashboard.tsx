@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import DashboardLayout from './DashboardLayout';
 import DashboardOverview from './dashboard/DashboardOverview';
-import DashboardEvents from './dashboard/DashboardEvents';
+import DashboardPeople from './dashboard/DashboardPeople';
 import DashboardMemories from './dashboard/DashboardMemories';
 import DashboardProfile from './dashboard/DashboardProfile';
 import DashboardSettings from './dashboard/DashboardSettings';
@@ -108,8 +107,8 @@ const Dashboard = () => {
     switch (activeTab) {
       case 'overview':
         return <DashboardOverview relationships={relationships} profile={profile} />;
-      case 'events':
-        return <DashboardEvents relationships={relationships} profile={profile} />;
+      case 'people':
+        return <DashboardPeople relationships={relationships} profile={profile} onRelationshipsUpdate={fetchUserData} />;
       case 'memories':
         return <DashboardMemories />;
       case 'profile':

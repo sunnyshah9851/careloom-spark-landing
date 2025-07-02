@@ -1,11 +1,10 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import CareloomLogo from './CareloomLogo';
 import { 
   LayoutDashboard, 
-  Calendar, 
+  Users, 
   Heart, 
   Settings, 
   User,
@@ -33,7 +32,7 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
 
   const navigationItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'events', label: 'Upcoming Events', icon: Calendar },
+    { id: 'people', label: 'People in Your Circle', icon: Users },
     { id: 'memories', label: 'Memories', icon: Heart },
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'settings', label: 'Settings', icon: Settings },
