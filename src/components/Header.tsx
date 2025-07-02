@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button';
 import CareloomLogo from './CareloomLogo';
 import { useAuth } from '@/contexts/AuthContext';
+import { Sparkles } from 'lucide-react';
 
 const Header = () => {
   const { signInWithGoogle } = useAuth();
@@ -17,9 +18,12 @@ const Header = () => {
           
           {/* Navigation - Hidden on mobile, shown on tablet+ */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#features" className="text-rose-700 hover:text-rose-900 transition-colors">
-              Features
-            </a>
+            <button 
+              onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
+              className="text-rose-700 hover:text-rose-900 transition-colors"
+            >
+              Sample Date Ideas
+            </button>
             <a href="#how-it-works" className="text-rose-700 hover:text-rose-900 transition-colors">
               How it Works
             </a>
@@ -40,10 +44,12 @@ const Header = () => {
             </Button>
             <Button 
               onClick={signInWithGoogle}
-              className="bg-rose-500 hover:bg-rose-600 text-white border-0 text-sm sm:text-base px-3 sm:px-6"
+              className="bg-rose-500 hover:bg-rose-600 text-white border-0 text-sm sm:text-base px-3 sm:px-6 flex items-center gap-2"
               size="sm"
             >
-              Sign Up
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Get Date Ideas</span>
+              <span className="sm:hidden">Start</span>
             </Button>
           </div>
         </div>

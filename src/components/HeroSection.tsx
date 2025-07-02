@@ -1,6 +1,6 @@
 
 import { Button } from '@/components/ui/button';
-import { Heart } from 'lucide-react';
+import { Heart, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const HeroSection = () => {
@@ -19,38 +19,67 @@ const HeroSection = () => {
           </div>
         </div>
 
+        {/* Problem Hook */}
+        <div className="mb-6 animate-fade-in">
+          <p className="text-lg md:text-xl text-rose-700/90 mb-2">
+            Tired of the same dinner-and-movie routine?
+          </p>
+        </div>
+
         {/* Main Headline */}
-        <h1 className="text-5xl md:text-7xl font-playfair font-bold mb-6 animate-fade-in">
-          <span className="text-gradient">Never miss</span>
+        <h1 className="text-5xl md:text-7xl font-playfair font-bold mb-6 animate-fade-in [animation-delay:100ms]">
+          <span className="text-gradient">Get personalized</span>
           <br />
-          <span className="text-rose-700">a moment that matters</span>
+          <span className="text-rose-700">date ideas delivered</span>
+          <br />
+          <span className="text-rose-600">to your inbox</span>
         </h1>
 
-        {/* Subheadline */}
-        <p className="text-xl md:text-2xl text-rose-800/80 mb-8 max-w-2xl mx-auto leading-relaxed animate-fade-in [animation-delay:200ms]">
-          Your personal relationship assistant that sends thoughtful reminders, 
-          curated date ideas, and helps you celebrate every special moment with the people you love.
+        {/* Value Proposition */}
+        <p className="text-xl md:text-2xl text-rose-800/80 mb-4 max-w-3xl mx-auto leading-relaxed animate-fade-in [animation-delay:200ms]">
+          Never run out of romantic ideas again. From cozy rainy day activities to 
+          unforgettable adventures, get 3 personalized date suggestions every week.
         </p>
 
-        {/* Get Started Button */}
-        <div className="max-w-md mx-auto animate-scale-in [animation-delay:400ms]">
+        {/* Timeline Promise */}
+        <p className="text-lg text-rose-700/70 mb-8 animate-fade-in [animation-delay:300ms]">
+          ✨ Get your first personalized date idea in under 2 minutes
+        </p>
+
+        {/* Primary CTA */}
+        <div className="max-w-md mx-auto mb-6 animate-scale-in [animation-delay:400ms]">
           <Button 
             onClick={signInWithGoogle}
             size="lg"
-            className="h-14 px-8 text-lg rounded-2xl bg-rose-500 hover:bg-rose-600 shadow-lg transform transition-all duration-200 hover:scale-105"
+            className="h-16 px-10 text-xl rounded-2xl bg-rose-500 hover:bg-rose-600 shadow-lg transform transition-all duration-200 hover:scale-105 w-full"
           >
-            Get Started with Google
+            <Sparkles className="h-6 w-6 mr-3" />
+            Get My First Date Idea
           </Button>
-          <p className="text-sm text-rose-600/70 mt-4">
-            Join 1,000+ couples already using Careloom ✨
+        </div>
+
+        {/* Secondary CTA */}
+        <div className="mb-8 animate-fade-in [animation-delay:500ms]">
+          <button 
+            className="text-rose-700 hover:text-rose-900 underline text-lg font-medium"
+            onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
+          >
+            See Sample Date Ideas →
+          </button>
+        </div>
+
+        {/* Social Proof */}
+        <div className="animate-fade-in [animation-delay:600ms]">
+          <p className="text-rose-600/70 mb-4 text-lg">
+            Join 2,500+ couples who've discovered their new favorite date spots ✨
           </p>
         </div>
 
         {/* Trust Indicators */}
-        <div className="mt-16 flex flex-wrap justify-center items-center gap-8 opacity-60 animate-fade-in [animation-delay:600ms]">
-          <div className="text-sm text-rose-700">🔒 Privacy First</div>
-          <div className="text-sm text-rose-700">🤖 AI-Powered</div>
-          <div className="text-sm text-rose-700">💝 Free to Start</div>
+        <div className="mt-16 flex flex-wrap justify-center items-center gap-8 opacity-60 animate-fade-in [animation-delay:700ms]">
+          <div className="text-sm text-rose-700">🎯 Personalized to Your City</div>
+          <div className="text-sm text-rose-700">💝 Free Forever Plan</div>
+          <div className="text-sm text-rose-700">🚀 Start Immediately</div>
         </div>
       </div>
     </section>
