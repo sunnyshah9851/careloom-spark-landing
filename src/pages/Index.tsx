@@ -7,7 +7,7 @@ import HeroSection from '@/components/HeroSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import CallToActionSection from '@/components/CallToActionSection';
 import Dashboard from '@/components/Dashboard';
-import Onboarding from '@/components/Onboarding';
+import { Onboarding } from '@/components/onboarding';
 
 const Index = () => {
   const { user, loading } = useAuth();
