@@ -46,13 +46,13 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
         relationships.length > 0 ? relationships[0].id : null,
         'nudge_requested',
         {
-          action_description: 'Requested personalized activity ideas via email nudge',
+          action_description: 'Requested personalized connection ideas via email nudge',
           relationship_name: relationshipName,
           city: 'your city'
         }
       );
 
-      toast.success('🎁 Your personalized activity ideas are on the way! Check your email in a few minutes.');
+      toast.success('🎁 Your personalized connection ideas are on the way! Check your email in a few minutes.');
       setHasSentToday(true);
       onNudgeSent?.();
     } else {
@@ -64,21 +64,21 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
     <Card className="border-2 border-dashed border-rose-200 hover:border-rose-300 transition-colors bg-gradient-to-br from-rose-50/50 to-cream-50/50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-rose-800">
-          🎯 Try Your First Personalized Nudge
+          🤝 Experience Your First Connection Nudge
         </CardTitle>
         <CardDescription className="text-base">
-          Experience Careloom's magic! We'll send you 3 personalized activity ideas tailored to your city, 
-          budget, and relationship style - delivered straight to your inbox in minutes.
+          Ready to prioritize real connection? We'll send you 3 personalized ideas to help you 
+          create meaningful moments with the people you care about - delivered to your inbox in minutes.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="bg-white/60 rounded-xl p-4 border border-rose-100">
           <p className="text-sm text-rose-700 mb-2 font-medium">What you'll get:</p>
           <ul className="text-sm text-rose-600/80 space-y-1">
-            <li>• 3 personalized activity ideas for your city</li>
-            <li>• Budget estimates and timing suggestions</li>
-            <li>• Local venue recommendations</li>
-            <li>• Weather-appropriate activities</li>
+            <li>• 3 connection-focused experience ideas</li>
+            <li>• Screen-free activity suggestions</li>
+            <li>• Local spots perfect for quality time</li>
+            <li>• Conversation starters and memory-makers</li>
           </ul>
         </div>
         
@@ -90,17 +90,17 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
           {isLoading ? (
             <>
               <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              Crafting Your Perfect Activity Ideas...
+              Crafting Your Perfect Connection Ideas...
             </>
           ) : hasSentToday ? (
             <>
               <Mail className="h-5 w-5 mr-2" />
-              Activity Ideas Sent! Check Your Email ✓
+              Connection Ideas Sent! Check Your Email ✓
             </>
           ) : (
             <>
               <Mail className="h-5 w-5 mr-2" />
-              Send Me My Personalized Activity Ideas
+              Send Me My Connection Ideas
             </>
           )}
         </Button>
@@ -108,10 +108,10 @@ const TryNudgeCard = ({ relationships, onNudgeSent }: TryNudgeCardProps) => {
         {hasSentToday && (
           <div className="bg-rose-100/60 rounded-lg p-3 text-center">
             <p className="text-sm text-rose-700 font-medium">
-              🎉 Your activity ideas are on the way!
+              🎉 Your connection ideas are on the way!
             </p>
             <p className="text-xs text-rose-600/80 mt-1">
-              Check your email in the next few minutes for 3 amazing activity suggestions
+              Check your email for 3 meaningful ways to connect with those who matter most
             </p>
           </div>
         )}

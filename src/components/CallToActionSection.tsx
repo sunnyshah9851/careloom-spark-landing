@@ -12,12 +12,12 @@ const CallToActionSection = () => {
         {/* Main CTA Content */}
         <div className="mb-12 animate-fade-in">
           <h2 className="text-4xl md:text-5xl font-playfair font-bold text-rose-800 mb-6">
-            Ready to never run out of
-            <span className="text-gradient block">meaningful activity ideas again?</span>
+            Ready to choose connection
+            <span className="text-gradient block">over digital distraction?</span>
           </h2>
           <p className="text-xl text-rose-700/80 max-w-2xl mx-auto leading-relaxed mb-6">
-            Join thousands of people who get personalized activity ideas delivered weekly. 
-            Start creating unforgettable memories with everyone who matters to you.
+            Join thousands who've rediscovered the joy of being truly present with the people they love. 
+            Start creating the meaningful moments that matter most.
           </p>
           <div className="flex justify-center items-center gap-6 text-rose-700/70 mb-8">
             <div className="flex items-center gap-2">
@@ -26,11 +26,11 @@ const CallToActionSection = () => {
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
-              <span>Your city</span>
+              <span>Your community</span>
             </div>
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
-              <span>Personalized</span>
+              <span>Real connection</span>
             </div>
           </div>
         </div>
@@ -43,7 +43,7 @@ const CallToActionSection = () => {
             className="h-16 px-10 text-xl rounded-2xl bg-rose-500 hover:bg-rose-600 shadow-lg transform transition-all duration-200 hover:scale-105 w-full"
           >
             <Sparkles className="h-6 w-6 mr-3" />
-            Get My First Activity Idea Now
+            Start My Connection Journey
           </Button>
         </div>
 
@@ -53,33 +53,33 @@ const CallToActionSection = () => {
             className="text-rose-700 hover:text-rose-900 underline text-lg font-medium"
             onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
           >
-            See More Sample Activity Ideas
+            See How Others Are Connecting
           </button>
         </div>
 
         {/* Benefits */}
         <div className="grid md:grid-cols-3 gap-6 text-center animate-fade-in [animation-delay:300ms]">
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-md">
-            <div className="text-2xl mb-2">🚀</div>
-            <h3 className="font-semibold text-rose-800 mb-2">Start Immediately</h3>
-            <p className="text-sm text-rose-700/70">Get your first activity idea in 2 minutes</p>
+            <div className="text-2xl mb-2">🤝</div>
+            <h3 className="font-semibold text-rose-800 mb-2">Deeper Relationships</h3>
+            <p className="text-sm text-rose-700/70">Strengthen bonds through shared experiences</p>
           </div>
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-md">
             <div className="text-2xl mb-2">💝</div>
             <h3 className="font-semibold text-rose-800 mb-2">Free Forever Plan</h3>
-            <p className="text-sm text-rose-700/70">Core activity ideas always free</p>
+            <p className="text-sm text-rose-700/70">Connection should never be behind a paywall</p>
           </div>
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 shadow-md">
-            <div className="text-2xl mb-2">🎯</div>
-            <h3 className="font-semibold text-rose-800 mb-2">Perfectly Personalized</h3>
-            <p className="text-sm text-rose-700/70">Tailored to your city, budget & relationships</p>
+            <div className="text-2xl mb-2">🌟</div>
+            <h3 className="font-semibold text-rose-800 mb-2">Lasting Memories</h3>
+            <p className="text-sm text-rose-700/70">Create moments you'll treasure forever</p>
           </div>
         </div>
 
         {/* Footer Note */}
         <p className="text-sm text-rose-600/60 mt-8 animate-fade-in [animation-delay:400ms]">
           No spam, ever. Unsubscribe anytime. 
-          <span className="block mt-1">Made with 💕 to help people create lasting memories together</span>
+          <span className="block mt-1">Made with 💕 to help people choose presence over digital distraction</span>
         </p>
       </div>
     </section>

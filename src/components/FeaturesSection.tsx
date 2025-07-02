@@ -6,22 +6,22 @@ const FeaturesSection = () => {
     {
       number: "01",
       icon: <User className="h-8 w-8 text-rose-500" />,
-      title: "Tell us about your relationships",
-      description: "Share your location, interests, and preferences so we can craft perfect activity ideas for your friends, family, and loved ones.",
+      title: "Share what connection means to you",
+      description: "Tell us about your relationships and what makes them special so we can suggest experiences that bring you closer together.",
       gradient: "from-rose-100 to-rose-50"
     },
     {
       number: "02", 
       icon: <Settings className="h-8 w-8 text-rose-500" />,
-      title: "Set your nudge preferences",
-      description: "Choose how often you want activity ideas (weekly, bi-weekly, or monthly) and what types of experiences you enjoy.",
+      title: "Choose your connection rhythm",
+      description: "Decide how often you want gentle nudges to prioritize quality time - because the best relationships need intentional care.",
       gradient: "from-cream-100 to-cream-50"
     },
     {
       number: "03",
       icon: <Bell className="h-8 w-8 text-rose-500" />,
-      title: "Receive personalized activity ideas",  
-      description: "Get 3 curated suggestions delivered to your inbox, complete with locations, timing, and budget estimates for any relationship.",
+      title: "Get inspired to connect",  
+      description: "Receive thoughtful suggestions designed to help you step away from screens and create meaningful moments with those you love.",
       gradient: "from-sage-100 to-sage-50"
     }
   ];
@@ -29,45 +29,48 @@ const FeaturesSection = () => {
   const features = [
     {
       icon: <Heart className="h-8 w-8 text-rose-500 fill-rose-200" />,
-      title: "Personalized Activity Ideas",
-      description: "Get 3 custom suggestions every week based on your city, interests, and budget. From romantic dinners to family outings to friend adventures - we've got your next perfect activity planned.",
+      title: "Connection-First Experiences",
+      description: "Every suggestion is designed to foster deeper bonds. We focus on activities that encourage conversation, laughter, and shared discovery rather than passive entertainment.",
       gradient: "from-rose-100 to-rose-50",
-      examples: ["Romantic sunset spots for couples", "Fun family activities for rainy days", "Unique friend hangout ideas", "Birthday celebration suggestions"]
+      examples: ["Conversation-sparking experiences", "Screen-free quality time ideas", "Memory-making adventures", "Relationship-strengthening activities"]
     },
     {
       icon: <MapPin className="h-8 w-8 text-rose-500" />,
-      title: "Local & Seasonal Suggestions",
-      description: "Discover hidden gems in your city with activity ideas that match the season and weather. We research the best local spots for any type of relationship.",
+      title: "Rediscover Your World Together",
+      description: "Explore hidden gems in your own backyard. We help you see your city through fresh eyes and discover places that become 'your spots' with the people you care about.",
       gradient: "from-cream-100 to-cream-50", 
-      examples: ["Seasonal farmers markets", "New restaurant openings", "Local events and festivals", "Weather-appropriate activities"]
+      examples: ["Local connection spots", "Seasonal gathering places", "Unique shared experiences", "Community events to enjoy together"]
     },
     {
       icon: <Calendar className="h-8 w-8 text-rose-500" />,
-      title: "Smart Timing & Reminders",
-      description: "Never miss important dates again. Get gentle reminders for birthdays, anniversaries, and perfect moments to plan something special with anyone in your circle.",
+      title: "Never Miss Moments That Matter",
+      description: "In our busy digital lives, important moments can slip by. We gently remind you when it's time to celebrate, connect, and show the people in your life that they matter.",
       gradient: "from-sage-100 to-sage-50",
-      examples: ["Birthday surprise planning", "Anniversary countdowns", "Friend hangout reminders", "Family gathering alerts"]
+      examples: ["Relationship milestone reminders", "Perfect timing for surprises", "Connection opportunity alerts", "Meaningful celebration ideas"]
     }
   ];
 
   const sampleIdeas = [
     {
-      title: "Cozy Friend Hangout",
-      description: "Visit the new indie bookstore on Main St, grab hot chocolate, and browse books together",
+      title: "Digital Detox Coffee Date",
+      description: "Visit that cozy café you bookmarked, leave phones in the car, and ask each other the conversation starters we'll send you",
       budget: "$15-25",
-      time: "2-3 hours"
+      time: "2-3 hours",
+      connection: "Deep conversation"
     },
     {
-      title: "Family Adventure", 
-      description: "Hike the Sunset Trail, pack a picnic lunch, and enjoy nature with the whole family",
-      budget: "$10-20",
-      time: "4-5 hours"
+      title: "Family Memory Walk", 
+      description: "Take a sunset stroll through your neighborhood, collect interesting leaves, and share favorite childhood memories",
+      budget: "$0-10",
+      time: "1-2 hours",
+      connection: "Storytelling"
     },
     {
-      title: "Romantic Date Night",
-      description: "Take a pottery class at City Arts Center, then dinner at that Italian place you bookmarked",
-      budget: "$80-120", 
-      time: "3-4 hours"
+      title: "Partner Adventure Challenge",
+      description: "Try that pottery class you both mentioned, then cook dinner together using ingredients from the farmers market",
+      budget: "$60-90", 
+      time: "4-5 hours",
+      connection: "Shared learning"
     }
   ];
 
@@ -77,19 +80,19 @@ const FeaturesSection = () => {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-playfair font-bold text-rose-800 mb-6">
-            From boring routines to
-            <span className="text-gradient block">meaningful moments</span>
+            From digital distraction to
+            <span className="text-gradient block">meaningful connection</span>
           </h2>
           <p className="text-xl text-rose-700/80 max-w-2xl mx-auto">
-            Stop scrolling through the same old activity ideas. Get personalized suggestions 
-            that actually fit your relationships, budget, and city.
+            Stop letting screens steal your most precious resource: quality time with the people who matter. 
+            Start creating the connections you'll remember forever.
           </p>
         </div>
 
         {/* Sample Activity Ideas Preview */}
         <div id="preview" className="mb-20">
           <h3 className="text-3xl font-playfair font-bold text-rose-800 text-center mb-8">
-            What your personalized nudges look like
+            What real connection looks like
           </h3>
           <div className="grid md:grid-cols-3 gap-6">
             {sampleIdeas.map((idea, index) => (
@@ -107,16 +110,19 @@ const FeaturesSection = () => {
                 <p className="text-rose-700/80 mb-4 leading-relaxed">
                   {idea.description}
                 </p>
-                <div className="flex justify-between text-sm text-rose-600/70">
+                <div className="flex justify-between text-sm text-rose-600/70 mb-2">
                   <span>💰 {idea.budget}</span>
                   <span>⏱️ {idea.time}</span>
+                </div>
+                <div className="text-xs text-rose-500 font-medium bg-rose-100/50 rounded-full px-3 py-1 w-fit">
+                  💝 {idea.connection}
                 </div>
               </div>
             ))}
           </div>
           <div className="text-center mt-8">
             <p className="text-rose-600/70 text-lg">
-              📧 Delivered to your inbox every week with 3 fresh ideas
+              📧 Gentle weekly nudges to prioritize what matters most
             </p>
           </div>
         </div>
@@ -124,7 +130,7 @@ const FeaturesSection = () => {
         {/* How It Works Steps */}
         <div className="mb-20">
           <h3 className="text-3xl font-playfair font-bold text-rose-800 text-center mb-12">
-            How it works
+            Your journey to deeper connection
           </h3>
           <div className="grid md:grid-cols-3 gap-8">
             {steps.map((step, index) => (
@@ -162,7 +168,7 @@ const FeaturesSection = () => {
         {/* Features Grid */}
         <div className="mb-20">
           <h3 className="text-3xl font-playfair font-bold text-rose-800 text-center mb-12">
-            Why people love Careloom
+            Why people choose real connection
           </h3>
           <div className="grid md:grid-cols-3 gap-8">
             {features.map((feature, index) => (
@@ -205,26 +211,26 @@ const FeaturesSection = () => {
         {/* Social Proof Section */}
         <div className="bg-gradient-to-r from-rose-50 to-cream-50 rounded-3xl p-8 md:p-12 text-center animate-scale-in">
           <h3 className="text-3xl font-playfair font-bold text-rose-800 mb-6">
-            Join 2,500+ people who've transformed their relationships
+            Join 2,500+ people prioritizing real connection
           </h3>
           <div className="grid md:grid-cols-3 gap-8 mb-8">
             <div className="bg-white/60 p-6 rounded-2xl">
-              <div className="text-3xl font-bold text-rose-600 mb-2">10,000+</div>
-              <p className="text-rose-700/80">Personalized activity ideas delivered</p>
+              <div className="text-3xl font-bold text-rose-600 mb-2">89%</div>
+              <p className="text-rose-700/80">Feel more connected to loved ones</p>
             </div>
             <div className="bg-white/60 p-6 rounded-2xl">
-              <div className="text-3xl font-bold text-rose-600 mb-2">85%</div>
-              <p className="text-rose-700/80">Report trying new activities</p>
+              <div className="text-3xl font-bold text-rose-600 mb-2">76%</div>
+              <p className="text-rose-700/80">Spend less time on their phones</p>
             </div>
             <div className="bg-white/60 p-6 rounded-2xl">
-              <div className="text-3xl font-bold text-rose-600 mb-2">40%</div>
-              <p className="text-rose-700/80">More quality time with loved ones</p>
+              <div className="text-3xl font-bold text-rose-600 mb-2">92%</div>
+              <p className="text-rose-700/80">Created memories they'll treasure</p>
             </div>
           </div>
           <p className="text-lg text-rose-700/80 max-w-3xl mx-auto">
-            "We went from the same weekend routine to trying pottery classes, farmers markets, 
-            and that amazing hiking trail we never knew existed. Careloom helped us fall in love 
-            with our city again and gave us ideas for every type of relationship!" - Sarah & Mike
+            "We realized we were living parallel lives, always on our phones even when together. 
+            Careloom helped us rediscover what we loved about each other and our city. Now we have 
+            weekly adventures instead of weekly Netflix binges." - Sarah & Mike
           </p>
         </div>
       </div>
