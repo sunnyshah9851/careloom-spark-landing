@@ -73,58 +73,133 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Authenticated user found:', user.email);
 
-    const { userId, userName, partnerName, city }: NudgeRequest = await req.json();
+    // Use service role client to get user's relationships
+    const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data: relationships, error: relationshipsError } = await supabaseService
+      .from('relationships')
+      .select('*')
+      .eq('profile_id', user.id)
+      .order('created_at', { ascending: false });
 
-    // Use the authenticated user's email instead of the one from the request
+    if (relationshipsError) {
+      console.error('Error fetching relationships:', relationshipsError);
+      throw relationshipsError;
+    }
+
+    // Pick the first relationship (most recent) for personalization
+    const relationship = relationships?.[0];
+    
+    if (!relationship) {
+      console.log('No relationships found for user');
+      throw new Error('No relationships found. Please add a relationship first.');
+    }
+
+    console.log('Using relationship for personalization:', relationship.name, relationship.relationship_type);
+
     const userEmail = user.email!;
-    console.log('Sending nudge to:', userEmail);
-
+    const userName = user.user_metadata?.full_name || userEmail.split('@')[0];
+    
     // Get current day and time for personalization
     const now = new Date();
     const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
     const timeOfDay = now.getHours() < 12 ? 'morning' : now.getHours() < 17 ? 'afternoon' : 'evening';
 
-    // Create personalized connection experiences (not just activities)
-    const connectionExperiences = [
-      {
-        title: "The 'No-Phone Zone' Coffee Ritual",
-        description: city 
-          ? `Find a cozy corner at a local café in ${city} and create a 30-minute phone-free zone. Stack your devices in the center of the table and dive into these conversation starters: "What's been surprising you lately?" or "If you could master any skill instantly, what would it be?"` 
-          : "Create a 30-minute phone-free zone at your favorite local café. Stack your devices in the center of the table and explore questions like: 'What's been surprising you lately?' or 'If you could master any skill instantly, what would it be?'",
-        why: "Studies show that the mere presence of phones reduces conversation quality by 37%. Removing the distraction creates space for genuine curiosity.",
-        icon: "☕"
-      },
-      {
-        title: "The Sunset Reflection Walk",
-        description: city 
-          ? `Take a 20-minute walk during golden hour in ${city}'s most scenic area. Share one thing you're grateful for and one challenge you're facing. Take turns asking: "What would your younger self be proud of about who you are today?"`
-          : "Take a 20-minute walk during golden hour in your most scenic local area. Share one thing you're grateful for and one challenge you're facing. Ask each other: 'What would your younger self be proud of about who you are today?'",
-        why: "Walking side-by-side (rather than face-to-face) reduces social pressure and naturally encourages deeper sharing.",
-        icon: "🌅"
-      },
-      {
-        title: "The Memory-Making Challenge",
-        description: city 
-          ? `Visit somewhere in ${city} that neither of you has been before - a bookstore, park, or local market. Set a timer for 45 minutes to explore together, then find a spot to answer: "What's one small thing that made you smile today?" Document the moment with one meaningful photo together.`
-          : "Visit somewhere locally that neither of you has been before - a bookstore, park, or local market. Explore for 45 minutes, then find a spot to share: 'What's one small thing that made you smile today?' Capture one meaningful photo together.",
-        why: "Novel experiences trigger dopamine and create stronger memory formation, making ordinary moments feel special.",
-        icon: "📸"
-      }
-    ];
+    // Create personalized content based on relationship type
+    const getPersonalizedContent = (rel: any) => {
+      const isPartner = rel.relationship_type === 'partner';
+      const isFamily = rel.relationship_type === 'family';
+      const isFriend = rel.relationship_type === 'friend';
+      
+      const relationshipContext = isPartner ? 'your relationship' : 
+                                 isFamily ? 'your family bond' : 
+                                 'your friendship';
+      
+      const connectionWord = isPartner ? 'romance' : 
+                            isFamily ? 'family connection' : 
+                            'friendship';
 
-    const partnerText = partnerName ? ` and ${partnerName}` : " and the people who matter most";
-    const personalGreeting = partnerName ? `for you and ${partnerName}` : "for your most important relationships";
+      const experiences = isPartner ? [
+        {
+          title: `The "Just You Two" Coffee Ritual`,
+          description: `Find a quiet corner at your favorite local café and create a 30-minute phone-free zone. Set your devices aside and dive into these conversation starters designed for couples: "What's one thing about our relationship that surprised you this month?" or "If we could travel anywhere together next year, where would you want to go and why?"`,
+          why: `Couples who regularly engage in novel conversations report 23% higher relationship satisfaction. Removing digital distractions allows for the deep eye contact that builds intimacy.`,
+          icon: "☕"
+        },
+        {
+          title: `The ${rel.name} Memory Lane Walk`,
+          description: `Take a 30-minute sunset walk together in your most scenic local area. Share three things: one memory from when you first met, one thing you're grateful for about ${rel.name} right now, and one dream you have for your future together. Take turns asking: "What's one way I could love you better this week?"`,
+          why: `Walking side-by-side naturally reduces relationship tension and promotes open communication. Sharing gratitude increases relationship satisfaction by 25%.`,
+          icon: "🌅"
+        },
+        {
+          title: `The "First Time Together" Adventure`,
+          description: `Visit somewhere in your area that neither of you has been before - a bookstore, park, farmer's market, or local gallery. Spend 45 minutes exploring together, then find a spot to share: "What's one small thing ${rel.name} did today that made you smile?" Document the moment with one meaningful photo together.`,
+          why: `Novel experiences trigger dopamine and create stronger couple bonding. Sharing daily appreciations builds positive relationship patterns.`,
+          icon: "📸"
+        }
+      ] : isFamily ? [
+        {
+          title: `The Family Heritage Coffee Chat`,
+          description: `Meet ${rel.name} at a cozy local café for a phone-free 45-minute conversation. Come prepared with family photos on your phone (then put it away!) and ask: "What's a family tradition you want to make sure we never lose?" and "What's one thing you learned from our family that you're grateful for?"`,
+          why: `Family bonds strengthen when we connect over shared history and values. Research shows that families who discuss their heritage have children with higher self-esteem.`,
+          icon: "☕"
+        },
+        {
+          title: `The ${rel.name} Appreciation Walk`,
+          description: `Take a meaningful walk together in your neighborhood or a local park. Share three specific things you appreciate about ${rel.name} and ask them to do the same. End by asking: "What's one way our family could spend more quality time together?" Focus on being fully present without devices.`,
+          why: `Family members who regularly express appreciation report 40% stronger family bonds. Walking together naturally encourages deeper sharing.`,
+          icon: "🌳"
+        },
+        {
+          title: `The Memory-Making Family Experience`,
+          description: `Visit a local spot that holds family significance or explore somewhere new together - maybe a farmers market, museum, or scenic viewpoint. Spend time sharing stories about your family history and ask ${rel.name}: "What's your favorite memory of us together?" Create one new memory to add to your collection.`,
+          why: `Families who create regular new experiences together build stronger emotional connections and better communication patterns.`,
+          icon: "🏛️"
+        }
+      ] : [
+        {
+          title: `The "Real Talk" Coffee Connection`,
+          description: `Meet ${rel.name} at a local coffee shop and create a genuine catch-up session. Put phones in airplane mode and spend 45 minutes with these friendship-deepening questions: "What's been the highlight and the challenge of your month?" and "What's one thing you're excited about that I might not know about yet?"`,
+          why: `Deep friendships require vulnerability and presence. Friends who regularly have meaningful conversations report 67% stronger friendship satisfaction.`,
+          icon: "☕"
+        },
+        {
+          title: `The ${rel.name} Adventure Discovery`,
+          description: `Plan a mini-adventure together - explore a new neighborhood, visit a local market, or check out that place you've both been meaning to try. During your time together, share appreciation: "What's one thing I value most about our friendship?" and "What's been your favorite memory of us this year?"`,
+          why: `Shared novel experiences strengthen friendship bonds and create positive memories that last. Active appreciation builds deeper friendship connections.`,
+          icon: "🗺️"
+        },
+        {
+          title: `The Screen-Free Friend Date`,
+          description: `Choose an activity that naturally keeps phones away - a walk in nature, browsing a bookstore, or trying a new local restaurant. Focus entirely on ${rel.name} and ask: "What's something you've been thinking about lately that you'd love to talk through?" and "How can I be a better friend to you?"`,
+          why: `Undivided attention is the greatest gift we can give friends. Quality time without digital distractions increases friendship intimacy by 45%.`,
+          icon: "🤝"
+        }
+      ];
+
+      return { experiences, relationshipContext, connectionWord };
+    };
+
+    const { experiences, relationshipContext, connectionWord } = getPersonalizedContent(relationship);
+
+    // Create highly personalized subject line
+    const subjectLine = relationship.relationship_type === 'partner' 
+      ? `💕 3 ways to deepen your connection with ${relationship.name} this week`
+      : relationship.relationship_type === 'family'
+      ? `🌟 Meaningful moments to share with ${relationship.name} this week`  
+      : `✨ 3 ways to strengthen your friendship with ${relationship.name}`;
 
     const emailHtml = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif; max-width: 650px; margin: 0 auto; padding: 0; background: linear-gradient(135deg, #fefcfa 0%, #fdf2f4 100%);">
         
-        <!-- Header with emotional hook -->
+        <!-- Header with personal greeting -->
         <div style="background: linear-gradient(135deg, #9d4e65 0%, #c08862 100%); padding: 40px 30px; text-align: center;">
           <h1 style="color: white; font-size: 28px; font-weight: 700; margin: 0 0 10px 0; line-height: 1.2;">
-            🌟 Your Escape from Endless Scrolling
+            Hey ${userName}! 👋
           </h1>
           <p style="color: rgba(255,255,255,0.9); font-size: 18px; margin: 0; font-weight: 400;">
-            3 proven ways to reconnect beyond the screen this ${dayOfWeek} ${timeOfDay}
+            3 meaningful ways to connect with ${relationship.name} this ${dayOfWeek} ${timeOfDay}
           </p>
         </div>
 
@@ -132,14 +207,14 @@ const handler = async (req: Request): Promise<Response> => {
         <div style="padding: 30px 30px 20px 30px; background: white;">
           <div style="background: #f9f4f1; border-left: 4px solid #db889b; padding: 20px; border-radius: 8px; margin-bottom: 25px;">
             <p style="margin: 0; color: #4c333e; font-size: 16px; line-height: 1.5;">
-              <strong>Hi there!</strong> In a world where we check our phones 96 times per day, you've made the choice to prioritize real connection${partnerText}. Here are 3 research-backed experiences ${personalGreeting} that go far beyond typical "date ideas."
+              <strong>Your ${relationshipContext} with ${relationship.name} deserves more than competing with screens.</strong> In a world where we check our phones 96 times per day, you've chosen to prioritize real connection. Here are 3 research-backed ways to create meaningful moments together that go far beyond typical activities.
             </p>
           </div>
         </div>
 
-        <!-- Connection experiences -->
+        <!-- Personalized connection experiences -->
         <div style="padding: 0 30px; background: white;">
-          ${connectionExperiences.map((experience, index) => `
+          ${experiences.map((experience, index) => `
             <div style="margin-bottom: 25px; background: #fefefe; border: 1px solid #f0e6e8; border-radius: 12px; padding: 25px; box-shadow: 0 2px 8px rgba(157, 78, 101, 0.08);">
               <div style="display: flex; align-items: flex-start; margin-bottom: 15px;">
                 <div style="font-size: 24px; margin-right: 15px; flex-shrink: 0;">${experience.icon}</div>
@@ -161,29 +236,29 @@ const handler = async (req: Request): Promise<Response> => {
           `).join('')}
         </div>
 
-        <!-- Digital detox challenge -->
+        <!-- Personal connection challenge -->
         <div style="padding: 0 30px 30px 30px; background: white;">
           <div style="background: linear-gradient(135deg, #db889b 0%, #c08862 100%); border-radius: 12px; padding: 25px; text-align: center; color: white;">
             <h3 style="font-size: 20px; font-weight: 600; margin: 0 0 15px 0;">
-              📵 This Week's Connection Challenge
+              📵 Your Personal Connection Challenge
             </h3>
             <p style="font-size: 16px; line-height: 1.5; margin: 0 0 15px 0; opacity: 0.95;">
-              Try one experience above and notice how it feels to be fully present. Then, share your favorite moment from it with someone who wasn't there.
+              Choose one experience above to try with ${relationship.name} this week. Notice how it feels to be fully present together, then share your favorite moment from it with someone else who matters to you.
             </p>
             <p style="font-size: 14px; margin: 0; opacity: 0.8;">
-              <strong>Remember:</strong> The goal isn't perfection—it's presence.
+              <strong>Remember:</strong> The goal isn't perfection—it's presence with ${relationship.name}.
             </p>
           </div>
         </div>
 
-        <!-- Gentle next steps -->
+        <!-- Personal closing -->
         <div style="padding: 20px 30px 30px 30px; background: white; text-align: center;">
           <p style="color: #9d4e65; font-size: 16px; margin: 0 0 15px 0; line-height: 1.5;">
-            💝 You're already choosing connection over digital distraction.<br/>
-            These moments will become the memories you treasure most.
+            💝 ${userName}, you're already choosing ${connectionWord} over digital distraction.<br/>
+            These moments with ${relationship.name} will become the memories you treasure most.
           </p>
           <p style="color: #8b7479; font-size: 14px; margin: 0;">
-            This is just the beginning of your journey back to what matters most.
+            This is just the beginning of prioritizing what matters most in your relationships.
           </p>
         </div>
 
@@ -193,51 +268,54 @@ const handler = async (req: Request): Promise<Response> => {
             Sent with intention from Careloom 💕
           </p>
           <p style="color: #a39298; font-size: 12px; margin: 0; line-height: 1.4;">
-            Helping 2,500+ people choose presence over digital distraction<br/>
+            Helping people like you choose presence over digital distraction<br/>
             <em>"In a world of endless notifications, your presence is the most precious gift."</em>
           </p>
         </div>
       </div>
     `;
 
-    console.log('Sending enhanced email via Resend');
+    console.log('Sending personalized email via Resend');
 
     const emailResponse = await resend.emails.send({
       from: "Careloom <careloom@resend.dev>",
       to: [userEmail],
-      subject: "🌟 Your escape from endless scrolling starts here",
+      subject: subjectLine,
       html: emailHtml,
     });
 
-    console.log("Enhanced nudge email sent successfully:", emailResponse);
+    console.log("Personalized nudge email sent successfully:", emailResponse);
 
-    // Use service role client for database operations to bypass RLS
-    console.log('Recording event in database with service role');
-    const supabaseService = createClient(supabaseUrl, supabaseServiceKey);
+    // Record the event in database
+    console.log('Recording personalized event in database');
     
     const { error: eventError } = await supabaseService
       .from('events')
       .insert({
-        relationship_id: null, // Set as null since this is a user-level action, not relationship-specific
-        event_type: 'nudge_requested',
+        relationship_id: relationship.id,
+        event_type: 'personalized_nudge_sent',
         metadata: {
-          action_description: 'Requested enhanced connection experiences via email nudge',
-          partner_name: partnerName,
-          city: city,
+          action_description: `Sent personalized ${relationship.relationship_type} connection nudge`,
+          relationship_name: relationship.name,
+          relationship_type: relationship.relationship_type,
           user_id: user.id,
           user_email: userEmail,
-          email_type: 'enhanced_wow_factor'
+          email_type: 'highly_personalized_connection_nudge'
         }
       });
 
     if (eventError) {
       console.error('Error recording event:', eventError);
-      // Don't throw here, just log the error since the main function succeeded
     } else {
       console.log('Event recorded successfully');
     }
 
-    return new Response(JSON.stringify({ success: true, emailId: emailResponse.data?.id }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      emailId: emailResponse.data?.id,
+      personalizedFor: relationship.name,
+      relationshipType: relationship.relationship_type
+    }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
