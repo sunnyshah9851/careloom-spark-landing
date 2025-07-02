@@ -69,6 +69,21 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
   const handleFrequencyUpdate = async () => {
     try {
       console.log('Updating frequencies:', frequencies);
+      console.log('Relationship ID:', relationship.id);
+      
+      // Test the database connection and constraints first
+      const { data: testData, error: testError } = await supabase
+        .from('relationships')
+        .select('birthday_notification_frequency, anniversary_notification_frequency')
+        .eq('id', relationship.id)
+        .single();
+        
+      if (testError) {
+        console.error('Error fetching current data:', testError);
+        throw new Error(`Database connection error: ${testError.message}`);
+      }
+      
+      console.log('Current database values:', testData);
       
       const { error } = await supabase
         .from('relationships')
@@ -80,6 +95,8 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
 
       if (error) {
         console.error('Supabase error:', error);
+        console.error('Error details:', error.details);
+        console.error('Error hint:', error.hint);
         throw error;
       }
 
@@ -203,7 +220,10 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                 <label className="text-xs text-blue-700 mb-1 block">Birthday Reminders</label>
                 <Select
                   value={frequencies.birthday_notification_frequency}
-                  onValueChange={(value) => setFrequencies(prev => ({ ...prev, birthday_notification_frequency: value }))}
+                  onValueChange={(value) => {
+                    console.log('Birthday frequency changed to:', value);
+                    setFrequencies(prev => ({ ...prev, birthday_notification_frequency: value }));
+                  }}
                 >
                   <SelectTrigger className="h-8 text-xs border-blue-200">
                     <SelectValue />
@@ -223,7 +243,10 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                 <label className="text-xs text-blue-700 mb-1 block">Anniversary Reminders</label>
                 <Select
                   value={frequencies.anniversary_notification_frequency}
-                  onValueChange={(value) => setFrequencies(prev => ({ ...prev, anniversary_notification_frequency: value }))}
+                  onValueChange={(value) => {
+                    console.log('Anniversary frequency changed to:', value);
+                    setFrequencies(prev => ({ ...prev, anniversary_notification_frequency: value }));
+                  }}
                 >
                   <SelectTrigger className="h-8 text-xs border-blue-200">
                     <SelectValue />
