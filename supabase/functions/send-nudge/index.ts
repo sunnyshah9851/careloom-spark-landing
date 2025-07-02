@@ -3,7 +3,14 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const resendApiKey = Deno.env.get("RESEND_API_KEY");
+console.log('RESEND_API_KEY configured:', !!resendApiKey);
+
+if (!resendApiKey) {
+  console.error('RESEND_API_KEY not found in environment variables');
+}
+
+const resend = new Resend(resendApiKey);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -275,7 +282,11 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    console.log('Sending personalized email via Resend');
+    console.log('Sending personalized email via Resend to:', userEmail);
+
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY not configured. Please add your Resend API key to Supabase secrets.');
+    }
 
     const emailResponse = await resend.emails.send({
       from: "Careloom <careloom@resend.dev>",
