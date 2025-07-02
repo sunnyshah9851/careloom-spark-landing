@@ -92,33 +92,45 @@
     @apply border-border;
   }
 
+  html {
+    background-color: rgb(254, 252, 250);
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+
   body {
-    @apply bg-background text-foreground font-inter;
+    background-color: rgb(254, 252, 250) !important;
+    color: rgb(76, 51, 62);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+  }
+
+  #root {
+    background-color: rgb(254, 252, 250);
     min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-playfair text-foreground;
+    font-family: 'Playfair Display', serif;
+    color: rgb(76, 51, 62);
   }
 
   /* Improved link styles for better readability */
   a {
-    @apply text-rose-700 hover:text-rose-800 transition-colors duration-200;
+    color: rgb(185, 28, 28);
+    transition: color 0.2s;
   }
   
   a:hover {
+    color: rgb(153, 27, 27);
     text-decoration: underline;
   }
 
   /* Button hover improvements */
   button:hover {
-    @apply transition-all duration-200;
-  }
-
-  /* Mobile viewport fixes */
-  html {
-    -webkit-text-size-adjust: 100%;
-    -ms-text-size-adjust: 100%;
+    transition: all 0.2s;
   }
 
   /* Ensure safe area for mobile devices */
@@ -146,73 +158,123 @@
 
   /* Improved text contrast utilities */
   .text-readable {
-    @apply text-rose-800;
+    color: rgb(159, 18, 57);
   }
   
   .text-readable-light {
-    @apply text-rose-700;
+    color: rgb(185, 28, 28);
   }
   
   .text-readable-muted {
-    @apply text-rose-600;
+    color: rgb(220, 38, 38);
   }
 
   /* Better hover states */
   .hover-readable:hover {
-    @apply text-rose-900 bg-rose-50;
+    color: rgb(136, 19, 55);
+    background-color: rgb(255, 241, 242);
   }
   
   .hover-button:hover {
-    @apply bg-rose-600 text-white transform scale-105;
+    background-color: rgb(220, 38, 38);
+    color: white;
+    transform: scale(1.05);
   }
 
   /* Improved placeholder text */
   .placeholder-readable::placeholder {
-    @apply text-rose-500 opacity-75;
+    color: rgb(239, 68, 68);
+    opacity: 0.75;
   }
 
   /* Enhanced form input styles */
   .form-input {
-    @apply text-rose-800 placeholder:text-rose-500 placeholder:opacity-75 border-rose-200 focus:border-rose-400 focus:ring-rose-400;
+    color: rgb(159, 18, 57);
+    border-color: rgb(251, 207, 232);
+  }
+  
+  .form-input::placeholder {
+    color: rgb(239, 68, 68);
+    opacity: 0.75;
   }
   
   .form-input:focus {
-    @apply outline-none ring-2 ring-rose-400 ring-opacity-50;
+    outline: none;
+    border-color: rgb(244, 114, 182);
+    box-shadow: 0 0 0 2px rgba(244, 114, 182, 0.5);
   }
 
   /* Better card hover effects */
   .card-hover:hover {
-    @apply shadow-lg border-rose-300 transform translate-y-[-2px] transition-all duration-200;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: rgb(252, 165, 165);
+    transform: translateY(-2px);
+    transition: all 0.2s;
   }
 
   /* Improved navigation styles */
   .nav-link {
-    @apply text-rose-700 hover:text-rose-900 hover:bg-rose-50 px-3 py-2 rounded-md transition-all duration-200;
+    color: rgb(185, 28, 28);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+  }
+  
+  .nav-link:hover {
+    color: rgb(136, 19, 55);
+    background-color: rgb(255, 241, 242);
   }
   
   .nav-link.active {
-    @apply text-rose-900 bg-rose-100 font-medium;
+    color: rgb(136, 19, 55);
+    background-color: rgb(254, 226, 226);
+    font-weight: 500;
   }
 
   /* Better button variants */
   .btn-primary {
-    @apply bg-rose-600 text-white hover:bg-rose-700 hover:shadow-md transform hover:scale-105 transition-all duration-200;
+    background-color: rgb(220, 38, 38);
+    color: white;
+    transition: all 0.2s;
+  }
+  
+  .btn-primary:hover {
+    background-color: rgb(185, 28, 28);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
   }
   
   .btn-secondary {
-    @apply bg-rose-100 text-rose-800 hover:bg-rose-200 hover:text-rose-900 border border-rose-300 hover:border-rose-400 transition-all duration-200;
+    background-color: rgb(254, 226, 226);
+    color: rgb(159, 18, 57);
+    border: 1px solid rgb(252, 165, 165);
+    transition: all 0.2s;
+  }
+  
+  .btn-secondary:hover {
+    background-color: rgb(253, 207, 207);
+    color: rgb(136, 19, 55);
+    border-color: rgb(248, 113, 113);
   }
   
   .btn-ghost {
-    @apply text-rose-700 hover:text-rose-900 hover:bg-rose-50 transition-all duration-200;
+    color: rgb(185, 28, 28);
+    transition: all 0.2s;
+  }
+  
+  .btn-ghost:hover {
+    color: rgb(136, 19, 55);
+    background-color: rgb(255, 241, 242);
   }
 
   /* Improved disabled states */
   .disabled {
-    @apply opacity-60 cursor-not-allowed;
+    opacity: 0.6;
+    cursor: not-allowed;
   }
   
   .disabled:hover {
-    @apply transform-none scale-100;
+    transform: none;
+    scale: 1;
   }
 }
