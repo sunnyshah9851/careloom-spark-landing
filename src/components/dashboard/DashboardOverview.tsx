@@ -154,9 +154,7 @@ const DashboardOverview = ({ relationships, profile }: DashboardOverviewProps) =
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          {relationships.length === 0 && (
-            <AddRelationshipCard onRelationshipAdded={handleRelationshipAdded} />
-          )}
+          <AddRelationshipCard onRelationshipAdded={handleRelationshipAdded} />
         </div>
         
         <div className="space-y-6">
