@@ -51,9 +51,9 @@ const HeroSection = () => {
           <Button 
             onClick={signInWithGoogle}
             size="lg"
-            className="h-16 px-10 text-xl rounded-2xl bg-rose-500 hover:bg-rose-600 shadow-lg transform transition-all duration-200 hover:scale-105 w-full"
+            className="h-16 px-10 text-xl rounded-2xl shadow-lg transform transition-all duration-200 hover:scale-105 w-full !bg-rose-500 hover:!bg-rose-600 !text-white"
           >
-            <Sparkles className="h-6 w-6 mr-3" />
+            <Sparkles className="h-6 w-6 mr-3 !text-white" />
             Help Me Connect More Deeply
           </Button>
         </div>
