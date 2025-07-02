@@ -23,6 +23,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
     name: '',
     email: '',
     relationship_type: '',
+    city: '',
     birthday: '',
     anniversary: '',
     notes: '',
@@ -60,6 +61,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           name: formData.name,
           email: formData.email || null,
           relationship_type: formData.relationship_type,
+          city: formData.city || null,
           birthday: formData.birthday,
           anniversary: formData.anniversary || null,
           notes: formData.notes || null
@@ -143,6 +145,19 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="city" className="text-sm font-medium text-gray-900">
+            City
+          </Label>
+          <Input
+            id="city"
+            value={formData.city}
+            onChange={(e) => handleInputChange('city', e.target.value)}
+            placeholder="What city do they live in?"
+            className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500"
+          />
         </div>
 
         <div className="space-y-2">
