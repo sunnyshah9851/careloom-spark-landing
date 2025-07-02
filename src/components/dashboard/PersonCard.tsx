@@ -57,7 +57,8 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
   };
 
   const getFrequencyLabel = (frequency: string | undefined) => {
-    switch (frequency) {
+    const normalizedFreq = frequency === 'weekly' ? '1_week' : frequency;
+    switch (normalizedFreq) {
       case '1_day': return '1 day before';
       case '3_days': return '3 days before';
       case '1_week': return '1 week before';
@@ -73,8 +74,8 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
     
     setIsSaving(true);
     try {
-      console.log('Updating frequencies:', frequencies);
-      console.log('Relationship ID:', relationship.id);
+      console.log('Updating frequencies for relationship:', relationship.id);
+      console.log('New frequencies:', frequencies);
       
       const { data, error } = await supabase
         .from('relationships')
@@ -93,13 +94,23 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
       console.log('Update successful:', data);
       toast.success('Notification frequencies updated successfully');
       setIsEditingFrequencies(false);
-      onUpdate(); // Refresh the data
+      
+      // Force refresh the parent data
+      await onUpdate();
     } catch (error: any) {
       console.error('Error updating frequencies:', error);
       toast.error(`Failed to update notification frequencies: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleCancelFrequencyEdit = () => {
+    setFrequencies({
+      birthday_notification_frequency: relationship.birthday_notification_frequency === 'weekly' ? '1_week' : relationship.birthday_notification_frequency || '1_week',
+      anniversary_notification_frequency: relationship.anniversary_notification_frequency === 'weekly' ? '1_week' : relationship.anniversary_notification_frequency || '1_week'
+    });
+    setIsEditingFrequencies(false);
   };
 
   if (isEditing) {
@@ -268,13 +279,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
-                    setFrequencies({
-                      birthday_notification_frequency: relationship.birthday_notification_frequency || '1_week',
-                      anniversary_notification_frequency: relationship.anniversary_notification_frequency || '1_week'
-                    });
-                    setIsEditingFrequencies(false);
-                  }}
+                  onClick={handleCancelFrequencyEdit}
                   disabled={isSaving}
                   className="h-7 px-3 text-xs border-blue-200"
                 >
@@ -297,7 +302,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
           )}
         </div>
 
-        {/* Email */}
+        {/* Contact Info */}
         {relationship.email && (
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4 text-gray-500" />
