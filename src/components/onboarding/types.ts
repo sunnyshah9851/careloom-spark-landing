@@ -1,6 +1,7 @@
 export interface OnboardingData {
   name: string;
   relationshipType: string;
+  relationshipCity: string;
   birthday: Date | null;
   anniversary: Date | null;
   nudgeFrequency: string;

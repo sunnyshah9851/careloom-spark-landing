@@ -6,6 +6,7 @@ import { RelationshipTypeStep } from './RelationshipTypeStep';
 import { BirthdayStep } from './BirthdayStep';
 import { AnniversaryStep } from './AnniversaryStep';
 import { NudgeFrequencyStep } from './NudgeFrequencyStep';
+import { RelationshipCityStep } from './RelationshipCityStep';
 import { CityStep } from './CityStep';
 import { useOnboarding } from './useOnboarding';
 import { OnboardingProps } from './types';
@@ -40,12 +41,14 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       case 2:
         return <RelationshipTypeStep {...stepProps} />;
       case 3:
-        return <BirthdayStep {...stepProps} />;
+        return <RelationshipCityStep {...stepProps} />;
       case 4:
-        return <AnniversaryStep {...stepProps} />;
+        return <BirthdayStep {...stepProps} />;
       case 5:
-        return <NudgeFrequencyStep {...stepProps} />;
+        return <AnniversaryStep {...stepProps} />;
       case 6:
+        return <NudgeFrequencyStep {...stepProps} />;
+      case 7:
         return <CityStep {...stepProps} />;
       default:
         return <NameStep {...stepProps} />;

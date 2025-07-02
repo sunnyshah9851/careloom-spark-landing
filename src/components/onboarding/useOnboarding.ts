@@ -11,13 +11,14 @@ export const useOnboarding = () => {
   const [data, setData] = useState<OnboardingData>({
     name: '',
     relationshipType: 'partner',
+    relationshipCity: '',
     birthday: null,
     anniversary: null,
     nudgeFrequency: 'weekly',
     city: ''
   });
 
-  const totalSteps = 6;
+  const totalSteps = 7;
   const progress = (currentStep / totalSteps) * 100;
 
   const handleNext = () => {
@@ -60,6 +61,7 @@ export const useOnboarding = () => {
           profile_id: user.id,
           name: data.name,
           relationship_type: data.relationshipType,
+          city: data.relationshipCity,
           birthday: data.birthday?.toISOString().split('T')[0] || null,
           anniversary: data.anniversary?.toISOString().split('T')[0] || null,
           notes: `Nudge frequency: ${data.nudgeFrequency}`,
@@ -90,12 +92,14 @@ export const useOnboarding = () => {
       case 2:
         return true; // Relationship type has default
       case 3:
-        return data.birthday !== null;
+        return data.relationshipCity.trim().length > 0;
       case 4:
-        return true; // Anniversary is optional
+        return data.birthday !== null;
       case 5:
-        return true; // Nudge frequency has default
+        return true; // Anniversary is optional
       case 6:
+        return true; // Nudge frequency has default
+      case 7:
         return data.city.trim().length > 0;
       default:
         return false;

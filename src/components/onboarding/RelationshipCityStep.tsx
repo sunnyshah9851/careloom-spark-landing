@@ -1,22 +1,22 @@
 import { Input } from '@/components/ui/input';
 import { OnboardingStepProps } from './types';
 
-export const CityStep = ({ data, setData }: OnboardingStepProps) => {
+export const RelationshipCityStep = ({ data, setData }: OnboardingStepProps) => {
   return (
     <div className="text-center space-y-6">
-      <div className="text-7xl mb-6">🏙️</div>
+      <div className="text-7xl mb-6">📍</div>
       <h2 className="text-2xl font-playfair text-rose-800 mb-2">
-        What city do you live in?
+        What city does {data.name} live in?
       </h2>
       <p className="text-rose-700 mb-8 text-lg">
-        We'll use this for your account settings and local recommendations
+        We'll use this to suggest local activities and date ideas for when you're together
       </p>
       <div className="space-y-5">
         <div>
           <Input
-            value={data.city}
-            onChange={(e) => setData({ ...data, city: e.target.value })}
-            placeholder="Enter your city"
+            value={data.relationshipCity}
+            onChange={(e) => setData({ ...data, relationshipCity: e.target.value })}
+            placeholder="Enter their city"
             className="text-xl py-4 text-center border-2 border-rose-200 focus:border-rose-400 rounded-2xl bg-rose-50/50 placeholder:text-rose-500 text-rose-800"
             autoFocus
           />

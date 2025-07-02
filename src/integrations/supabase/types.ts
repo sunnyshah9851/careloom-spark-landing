@@ -105,6 +105,7 @@ export type Database = {
         Row: {
           anniversary: string | null
           birthday: string | null
+          city: string | null
           created_at: string
           email: string | null
           id: string
@@ -118,6 +119,7 @@ export type Database = {
         Insert: {
           anniversary?: string | null
           birthday?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -131,6 +133,7 @@ export type Database = {
         Update: {
           anniversary?: string | null
           birthday?: string | null
+          city?: string | null
           created_at?: string
           email?: string | null
           id?: string
