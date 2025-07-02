@@ -171,25 +171,6 @@
     @apply text-rose-500 opacity-75;
   }
 
-  /* Mobile-specific gradient fallbacks */
-  @media (max-width: 768px) {
-    .gradient-warm {
-      background: hsl(var(--background));
-    }
-    
-    .gradient-rose {
-      background: hsl(var(--secondary));
-    }
-    
-    .text-gradient {
-      background: none;
-      -webkit-background-clip: unset;
-      -webkit-text-fill-color: unset;
-      background-clip: unset;
-      color: hsl(var(--primary));
-    }
-  }
-
   /* Enhanced form input styles */
   .form-input {
     @apply text-rose-800 placeholder:text-rose-500 placeholder:opacity-75 border-rose-200 focus:border-rose-400 focus:ring-rose-400;
