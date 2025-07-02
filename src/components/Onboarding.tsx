@@ -19,6 +19,7 @@ interface OnboardingData {
   birthday: Date | null;
   anniversary: Date | null;
   nudgeFrequency: string;
+  city: string;
 }
 
 interface OnboardingProps {
@@ -34,10 +35,11 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
     relationshipType: 'partner',
     birthday: null,
     anniversary: null,
-    nudgeFrequency: 'weekly'
+    nudgeFrequency: 'weekly',
+    city: ''
   });
 
-  const totalSteps = 5; // Updated from 4 to 5
+  const totalSteps = 6; // Updated to include city step
   const progress = (currentStep / totalSteps) * 100;
 
   const handleNext = () => {
@@ -62,7 +64,19 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
+      // First, save/update the user's profile with city and nudge frequency
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .upsert({
+          id: user.id,
+          city: data.city,
+          nudge_frequency: data.nudgeFrequency,
+        });
+
+      if (profileError) throw profileError;
+
+      // Then, save the relationship
+      const { error: relationshipError } = await supabase
         .from('relationships')
         .insert({
           profile_id: user.id,
@@ -73,7 +87,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
           notes: `Nudge frequency: ${data.nudgeFrequency}`,
         });
 
-      if (error) throw error;
+      if (relationshipError) throw relationshipError;
 
       toast({
         title: "Welcome to Careloom! 🎉",
@@ -82,7 +96,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
 
       onComplete();
     } catch (error) {
-      console.error('Error saving relationship:', error);
+      console.error('Error saving data:', error);
       toast({
         title: "Oops!",
         description: "Something went wrong. Please try again.",
@@ -103,6 +117,8 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
         return true; // Anniversary is optional
       case 5:
         return true; // Nudge frequency has default
+      case 6:
+        return data.city.trim().length > 0;
       default:
         return false;
     }
@@ -415,6 +431,31 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
                     </label>
                   ))}
                 </RadioGroup>
+              </div>
+            )}
+
+            {/* Step 6: City */}
+            {currentStep === 6 && (
+              <div className="text-center space-y-6">
+                <div className="text-7xl mb-6">🏙️</div>
+                <h2 className="text-2xl font-playfair text-rose-800 mb-2">
+                  What city do you live in?
+                </h2>
+                <p className="text-rose-700 mb-8 text-lg">
+                  We'll use this to suggest local date ideas and activities
+                </p>
+                <div className="space-y-5">
+                  <div>
+                    <Input
+                      value={data.city}
+                      onChange={(e) => setData({ ...data, city: e.target.value })}
+                      placeholder="Enter your city"
+                      className="text-xl py-4 text-center border-2 border-rose-200 focus:border-rose-400 rounded-2xl bg-rose-50/50 placeholder:text-rose-500 text-rose-800"
+                      autoFocus
+                    />
+                    <p className="text-xs text-rose-600 mt-2 opacity-75">e.g., San Francisco, New York, London</p>
+                  </div>
+                </div>
               </div>
             )}
 
