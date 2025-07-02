@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Users, Edit, Save, X, Calendar, Mail, MapPin, Heart, Gift } from 'lucide-react';
+import { Plus, Users, Edit, Save, X, Calendar, Mail, Heart, Gift } from 'lucide-react';
 import AddRelationshipForm from './AddRelationshipForm';
 
 interface Relationship {
@@ -93,6 +93,14 @@ const DashboardPeople = ({ relationships, profile, onRelationshipsUpdate }: Dash
       month: 'long',
       day: 'numeric',
       year: 'numeric'
+    });
+  };
+
+  const formatDateShort = (dateString: string | undefined) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
     });
   };
 
@@ -249,6 +257,49 @@ const DashboardPeople = ({ relationships, profile, onRelationshipsUpdate }: Dash
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Important Dates Section */}
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Birthday */}
+                  <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Gift className="h-4 w-4 text-amber-600" />
+                      <Label className="text-xs font-medium text-amber-800">Birthday</Label>
+                    </div>
+                    {editingId === relationship.id ? (
+                      <Input
+                        type="date"
+                        value={editForm.birthday || ''}
+                        onChange={(e) => setEditForm({ ...editForm, birthday: e.target.value })}
+                        className="text-xs h-8 border-amber-300 focus:border-amber-500"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium text-amber-700">
+                        {relationship.birthday ? formatDateShort(relationship.birthday) : 'Not set'}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Anniversary */}
+                  <div className="bg-rose-50 rounded-lg p-3 border border-rose-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Heart className="h-4 w-4 text-rose-600" />
+                      <Label className="text-xs font-medium text-rose-800">Anniversary</Label>
+                    </div>
+                    {editingId === relationship.id ? (
+                      <Input
+                        type="date"
+                        value={editForm.anniversary || ''}
+                        onChange={(e) => setEditForm({ ...editForm, anniversary: e.target.value })}
+                        className="text-xs h-8 border-rose-300 focus:border-rose-500"
+                      />
+                    ) : (
+                      <p className="text-sm font-medium text-rose-700">
+                        {relationship.anniversary ? formatDateShort(relationship.anniversary) : 'Not set'}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
                 {/* Email */}
                 {(editingId === relationship.id || relationship.email) && (
                   <div className="flex items-center gap-2">
@@ -263,50 +314,6 @@ const DashboardPeople = ({ relationships, profile, onRelationshipsUpdate }: Dash
                       />
                     ) : (
                       <span className="text-sm text-gray-600">{relationship.email}</span>
-                    )}
-                  </div>
-                )}
-
-                {/* Birthday */}
-                {(editingId === relationship.id || relationship.birthday) && (
-                  <div className="flex items-center gap-2">
-                    <Gift className="h-4 w-4 text-amber-500" />
-                    {editingId === relationship.id ? (
-                      <div className="flex-1">
-                        <Label className="text-xs text-gray-500">Birthday</Label>
-                        <Input
-                          type="date"
-                          value={editForm.birthday || ''}
-                          onChange={(e) => setEditForm({ ...editForm, birthday: e.target.value })}
-                          className="text-sm"
-                        />
-                      </div>
-                    ) : (
-                      <span className="text-sm text-gray-600">
-                        Birthday: {formatDate(relationship.birthday)}
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                {/* Anniversary */}
-                {(editingId === relationship.id || relationship.anniversary) && (
-                  <div className="flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-rose-500" />
-                    {editingId === relationship.id ? (
-                      <div className="flex-1">
-                        <Label className="text-xs text-gray-500">Anniversary</Label>
-                        <Input
-                          type="date"
-                          value={editForm.anniversary || ''}
-                          onChange={(e) => setEditForm({ ...editForm, anniversary: e.target.value })}
-                          className="text-sm"
-                        />
-                      </div>
-                    ) : (
-                      <span className="text-sm text-gray-600">
-                        Anniversary: {formatDate(relationship.anniversary)}
-                      </span>
                     )}
                   </div>
                 )}
