@@ -33,6 +33,7 @@ interface PersonCardProps {
 const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingFrequencies, setIsEditingFrequencies] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [frequencies, setFrequencies] = useState({
     birthday_notification_frequency: relationship.birthday_notification_frequency || '1_week',
     anniversary_notification_frequency: relationship.anniversary_notification_frequency || '1_week'
@@ -68,47 +69,36 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
   };
 
   const handleFrequencyUpdate = async () => {
+    if (isSaving) return;
+    
+    setIsSaving(true);
     try {
       console.log('Updating frequencies:', frequencies);
       console.log('Relationship ID:', relationship.id);
       
-      // Validate the values before sending
-      const validValues = ['1_day', '3_days', '1_week', '2_weeks', '1_month', 'none'];
-      
-      if (!validValues.includes(frequencies.birthday_notification_frequency)) {
-        console.error('Invalid birthday frequency value:', frequencies.birthday_notification_frequency);
-        toast.error('Invalid birthday frequency value');
-        return;
-      }
-      
-      if (!validValues.includes(frequencies.anniversary_notification_frequency)) {
-        console.error('Invalid anniversary frequency value:', frequencies.anniversary_notification_frequency);
-        toast.error('Invalid anniversary frequency value');
-        return;
-      }
-      
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('relationships')
         .update({
           birthday_notification_frequency: frequencies.birthday_notification_frequency,
           anniversary_notification_frequency: frequencies.anniversary_notification_frequency
         })
-        .eq('id', relationship.id);
+        .eq('id', relationship.id)
+        .select();
 
       if (error) {
         console.error('Supabase error:', error);
-        console.error('Error details:', error.details);
-        console.error('Error hint:', error.hint);
-        console.error('Error code:', error.code);
         throw error;
       }
 
+      console.log('Update successful:', data);
       toast.success('Notification frequencies updated successfully');
       setIsEditingFrequencies(false);
-      onUpdate();
+      onUpdate(); // Refresh the data
     } catch (error: any) {
       console.error('Error updating frequencies:', error);
       toast.error(`Failed to update notification frequencies: ${error.message}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -269,10 +259,11 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                 <Button
                   size="sm"
                   onClick={handleFrequencyUpdate}
+                  disabled={isSaving}
                   className="h-7 px-3 text-xs bg-blue-600 hover:bg-blue-700"
                 >
                   <Save className="h-3 w-3 mr-1" />
-                  Save
+                  {isSaving ? 'Saving...' : 'Save'}
                 </Button>
                 <Button
                   size="sm"
@@ -284,6 +275,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                     });
                     setIsEditingFrequencies(false);
                   }}
+                  disabled={isSaving}
                   className="h-7 px-3 text-xs border-blue-200"
                 >
                   <X className="h-3 w-3 mr-1" />
