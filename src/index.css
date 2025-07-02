@@ -129,11 +129,11 @@
 
 @layer utilities {
   .gradient-warm {
-    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--card)) 50%, hsl(var(--muted)) 100%);
+    background: linear-gradient(135deg, rgb(254, 252, 250) 0%, rgb(255, 253, 251) 50%, rgb(246, 239, 241) 100%);
   }
   
   .gradient-rose {
-    background: linear-gradient(135deg, hsl(var(--accent)) 0%, hsl(var(--secondary)) 100%);
+    background: linear-gradient(135deg, rgb(253, 236, 239) 0%, rgb(249, 228, 233) 100%);
   }
   
   .text-gradient {
