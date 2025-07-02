@@ -1,4 +1,5 @@
-import { Input } from '@/components/ui/input';
+
+import { CityInput } from '@/components/ui/city-input';
 import { OnboardingStepProps } from './types';
 
 export const RelationshipCityStep = ({ data, setData }: OnboardingStepProps) => {
@@ -13,12 +14,11 @@ export const RelationshipCityStep = ({ data, setData }: OnboardingStepProps) => 
       </p>
       <div className="space-y-5">
         <div>
-          <Input
+          <CityInput
             value={data.relationshipCity}
-            onChange={(e) => setData({ ...data, relationshipCity: e.target.value })}
-            placeholder="Enter their city"
+            onChange={(value) => setData({ ...data, relationshipCity: value })}
+            placeholder="Search for their city..."
             className="text-xl py-4 text-center border-2 border-rose-200 focus:border-rose-400 rounded-2xl bg-rose-50/50 placeholder:text-rose-500 text-rose-800"
-            autoFocus
           />
           <p className="text-xs text-rose-600 mt-2 opacity-75">e.g., San Francisco, New York, London</p>
         </div>
