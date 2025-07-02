@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -69,6 +68,8 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
 
   const handleFrequencyUpdate = async () => {
     try {
+      console.log('Updating frequencies:', frequencies);
+      
       const { error } = await supabase
         .from('relationships')
         .update({
@@ -77,14 +78,17 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
         })
         .eq('id', relationship.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       toast.success('Notification frequencies updated successfully');
       setIsEditingFrequencies(false);
       onUpdate();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating frequencies:', error);
-      toast.error('Failed to update notification frequencies');
+      toast.error(`Failed to update notification frequencies: ${error.message}`);
     }
   };
 
