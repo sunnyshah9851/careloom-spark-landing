@@ -117,7 +117,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="name" className="text-sm font-medium text-gray-900">
+          <Label htmlFor="name" className="text-sm font-medium text-black">
             Name *
           </Label>
           <Input
@@ -131,7 +131,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="relationship_type" className="text-sm font-medium text-gray-900">
+          <Label htmlFor="relationship_type" className="text-sm font-medium text-black">
             Relationship Type *
           </Label>
           <Select value={formData.relationship_type} onValueChange={(value) => handleInputChange('relationship_type', value)}>
@@ -139,18 +139,18 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
               <SelectValue placeholder="Select relationship type" className="text-gray-500" />
             </SelectTrigger>
             <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
-              <SelectItem value="partner" className="text-black">Partner</SelectItem>
-              <SelectItem value="spouse" className="text-black">Spouse</SelectItem>
-              <SelectItem value="family" className="text-black">Family</SelectItem>
-              <SelectItem value="friend" className="text-black">Friend</SelectItem>
-              <SelectItem value="colleague" className="text-black">Colleague</SelectItem>
-              <SelectItem value="other" className="text-black">Other</SelectItem>
+              <SelectItem value="partner" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Partner</SelectItem>
+              <SelectItem value="spouse" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Spouse</SelectItem>
+              <SelectItem value="family" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Family</SelectItem>
+              <SelectItem value="friend" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Friend</SelectItem>
+              <SelectItem value="colleague" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Colleague</SelectItem>
+              <SelectItem value="other" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">Other</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="city" className="text-sm font-medium text-gray-900">
+          <Label htmlFor="city" className="text-sm font-medium text-black">
             City
           </Label>
           <CityInput
@@ -163,7 +163,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email" className="text-sm font-medium text-gray-900">
+          <Label htmlFor="email" className="text-sm font-medium text-black">
             Email {isPartnerRelationship && '*'}
           </Label>
           <Input
@@ -178,7 +178,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="birthday" className="text-sm font-medium text-gray-900">
+          <Label htmlFor="birthday" className="text-sm font-medium text-black">
             Birthday *
           </Label>
           <Input
@@ -192,7 +192,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="birthday_notification_frequency" className="text-sm font-medium text-gray-900">
+          <Label htmlFor="birthday_notification_frequency" className="text-sm font-medium text-black">
             Birthday Notification Frequency
           </Label>
           <Select value={formData.birthday_notification_frequency} onValueChange={(value) => handleInputChange('birthday_notification_frequency', value)}>
@@ -200,12 +200,12 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
-              <SelectItem value="1_day" className="text-black">1 day before</SelectItem>
-              <SelectItem value="3_days" className="text-black">3 days before</SelectItem>
-              <SelectItem value="1_week" className="text-black">1 week before</SelectItem>
-              <SelectItem value="2_weeks" className="text-black">2 weeks before</SelectItem>
-              <SelectItem value="1_month" className="text-black">1 month before</SelectItem>
-              <SelectItem value="none" className="text-black">No reminders</SelectItem>
+              <SelectItem value="1_day" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">1 day before</SelectItem>
+              <SelectItem value="3_days" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">3 days before</SelectItem>
+              <SelectItem value="1_week" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">1 week before</SelectItem>
+              <SelectItem value="2_weeks" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">2 weeks before</SelectItem>
+              <SelectItem value="1_month" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">1 month before</SelectItem>
+              <SelectItem value="none" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">No reminders</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -213,7 +213,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
         {isPartnerRelationship && (
           <>
             <div className="space-y-2">
-              <Label htmlFor="anniversary" className="text-sm font-medium text-gray-900">
+              <Label htmlFor="anniversary" className="text-sm font-medium text-black">
                 Anniversary
               </Label>
               <Input
@@ -226,7 +226,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="anniversary_notification_frequency" className="text-sm font-medium text-gray-900">
+              <Label htmlFor="anniversary_notification_frequency" className="text-sm font-medium text-black">
                 Anniversary Notification Frequency
               </Label>
               <Select value={formData.anniversary_notification_frequency} onValueChange={(value) => handleInputChange('anniversary_notification_frequency', value)}>
@@ -234,12 +234,12 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-300 shadow-lg z-50">
-                  <SelectItem value="1_day" className="text-black">1 day before</SelectItem>
-                  <SelectItem value="3_days" className="text-black">3 days before</SelectItem>
-                  <SelectItem value="1_week" className="text-black">1 week before</SelectItem>
-                  <SelectItem value="2_weeks" className="text-black">2 weeks before</SelectItem>
-                  <SelectItem value="1_month" className="text-black">1 month before</SelectItem>
-                  <SelectItem value="none" className="text-black">No reminders</SelectItem>
+                  <SelectItem value="1_day" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">1 day before</SelectItem>
+                  <SelectItem value="3_days" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">3 days before</SelectItem>
+                  <SelectItem value="1_week" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">1 week before</SelectItem>
+                  <SelectItem value="2_weeks" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">2 weeks before</SelectItem>
+                  <SelectItem value="1_month" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">1 month before</SelectItem>
+                  <SelectItem value="none" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">No reminders</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -247,7 +247,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="notes" className="text-sm font-medium text-gray-900">
+          <Label htmlFor="notes" className="text-sm font-medium text-black">
             Notes
           </Label>
           <Textarea
