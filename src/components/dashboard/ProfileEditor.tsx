@@ -15,6 +15,7 @@ interface Profile {
   partner_birthday: string;
   anniversary_date: string;
   reminder_frequency: string;
+  city?: string;
 }
 
 interface ProfileEditorProps {
@@ -148,6 +149,16 @@ const ProfileEditor = ({ profile, onProfileUpdate }: ProfileEditorProps) => {
             </div>
 
             <div>
+              <Label htmlFor="city">City</Label>
+              <Input
+                id="city"
+                value={editingProfile.city || ''}
+                onChange={(e) => handleInputChange('city', e.target.value)}
+                placeholder="Enter your city"
+              />
+            </div>
+
+            <div>
               <Label htmlFor="reminder_frequency">Reminder Frequency</Label>
               <select
                 id="reminder_frequency"
@@ -230,9 +241,14 @@ const ProfileEditor = ({ profile, onProfileUpdate }: ProfileEditorProps) => {
                 </p>
               </div>
               <div>
-                <Label className="text-sm font-medium text-gray-600">Reminder Frequency</Label>
-                <p className="text-lg text-gray-900 capitalize">{profile.reminder_frequency}</p>
+                <Label className="text-sm font-medium text-gray-600">City</Label>
+                <p className="text-lg text-gray-900">{profile.city || 'Not provided'}</p>
               </div>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-600">Reminder Frequency</Label>
+              <p className="text-lg text-gray-900 capitalize">{profile.reminder_frequency}</p>
             </div>
           </div>
         )}
