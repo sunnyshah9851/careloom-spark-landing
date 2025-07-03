@@ -100,7 +100,7 @@ const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
               value={formData.liked}
               onChange={(e) => handleInputChange('liked', e.target.value)}
               placeholder="Tell me what you're loving about Careloom..."
-              className="min-h-[80px] resize-none"
+              className="min-h-[80px] resize-none placeholder:text-gray-500"
             />
           </div>
 
@@ -113,7 +113,7 @@ const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
               value={formData.disliked}
               onChange={(e) => handleInputChange('disliked', e.target.value)}
               placeholder="What's frustrating or confusing? Help me fix it!"
-              className="min-h-[80px] resize-none"
+              className="min-h-[80px] resize-none placeholder:text-gray-500"
             />
           </div>
 
@@ -126,6 +126,7 @@ const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
               value={formData.pricing_feedback}
               onChange={(e) => handleInputChange('pricing_feedback', e.target.value)}
               placeholder="e.g., $5/month, $50/year, or your thoughts..."
+              className="placeholder:text-gray-500"
             />
             <p className="text-xs text-gray-500">
               This helps me figure out fair pricing that works for everyone!
