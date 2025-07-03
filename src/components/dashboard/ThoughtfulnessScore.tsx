@@ -75,7 +75,7 @@ const ThoughtfulnessScore = ({ relationships }: ThoughtfulnessScoreProps) => {
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-lg text-rose-800">
             Thoughtfulness Score
-            <Tooltip delayDuration={0}>
+            <Tooltip>
               <TooltipTrigger asChild>
                 <button className="p-2 rounded-full bg-rose-100 hover:bg-rose-200 transition-colors border border-rose-300 shadow-sm">
                   <HelpCircle className="h-5 w-5 text-rose-600 hover:text-rose-700" />
@@ -84,7 +84,7 @@ const ThoughtfulnessScore = ({ relationships }: ThoughtfulnessScoreProps) => {
               <TooltipContent 
                 side="bottom" 
                 align="center"
-                className="max-w-xs z-[9999] bg-white border border-gray-200 shadow-xl p-4 rounded-lg"
+                className="max-w-xs z-[99999] bg-white border border-gray-200 shadow-xl p-4 rounded-lg"
                 sideOffset={10}
               >
                 <div className="space-y-2 text-sm text-gray-700">
