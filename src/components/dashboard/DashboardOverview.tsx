@@ -1,4 +1,5 @@
 
+
 import DashboardStats from './DashboardStats';
 import UpcomingEvents from './UpcomingEvents';
 import TryNudgeCard from './TryNudgeCard';
@@ -38,7 +39,7 @@ export default function DashboardOverview({ relationships, profile }: DashboardO
         {/* Left Column */}
         <div className="space-y-6">
           <UpcomingEvents relationships={relationships} />
-          <TryNudgeCard relationships={relationships} profile={profile} />
+          <TryNudgeCard relationships={relationships} />
           <TryDateIdeasCard relationships={relationships} />
         </div>
 
@@ -52,3 +53,4 @@ export default function DashboardOverview({ relationships, profile }: DashboardO
     </div>
   );
 }
+
