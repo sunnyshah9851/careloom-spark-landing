@@ -1,10 +1,11 @@
-import { DashboardStats } from './DashboardStats';
-import { UpcomingEvents } from './UpcomingEvents';
-import { TryNudgeCard } from './TryNudgeCard';
+
+import DashboardStats from './DashboardStats';
+import UpcomingEvents from './UpcomingEvents';
+import TryNudgeCard from './TryNudgeCard';
 import { TryDateIdeasCard } from './TryDateIdeasCard';
-import { RecentActivity } from './RecentActivity';
-import { ThoughtfulnessScore } from './ThoughtfulnessScore';
-import { RelationshipHealthCard } from './RelationshipHealthCard';
+import RecentActivity from './RecentActivity';
+import ThoughtfulnessScore from './ThoughtfulnessScore';
+import RelationshipHealthCard from './RelationshipHealthCard';
 
 interface DashboardOverviewProps {
   relationships: any[];
