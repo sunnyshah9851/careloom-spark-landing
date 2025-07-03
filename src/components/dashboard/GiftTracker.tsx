@@ -28,11 +28,17 @@ interface GiftTrackerProps {
 
 const GiftTracker = ({ giftIdeas, onAddGift, onDeleteGift }: GiftTrackerProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [newGift, setNewGift] = useState({
+  const [newGift, setNewGift] = useState<{
+    title: string;
+    description: string;
+    price: string;
+    priority: 'low' | 'medium' | 'high';
+    category: string;
+  }>({
     title: '',
     description: '',
     price: '',
-    priority: 'medium' as const,
+    priority: 'medium',
     category: ''
   });
 
