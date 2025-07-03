@@ -29,6 +29,7 @@ interface Profile {
   id: string;
   email?: string;
   full_name?: string;
+  city?: string;
   created_at: string;
 }
 
@@ -97,6 +98,7 @@ const Dashboard = () => {
         .from('profiles')
         .update({
           full_name: updatedProfile.full_name,
+          city: updatedProfile.city,
         })
         .eq('id', user.id);
 

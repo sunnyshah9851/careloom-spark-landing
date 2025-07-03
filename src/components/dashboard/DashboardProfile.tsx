@@ -29,6 +29,7 @@ interface Profile {
   id: string;
   email?: string;
   full_name?: string;
+  city?: string;
   created_at: string;
 }
 
@@ -44,7 +45,8 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
   const { toast } = useToast();
   const [editingProfile, setEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState({
-    full_name: profile?.full_name || ''
+    full_name: profile?.full_name || '',
+    city: profile?.city || ''
   });
   const [loading, setLoading] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -182,6 +184,15 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
                       placeholder="Enter your full name"
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="city">City</Label>
+                    <Input
+                      id="city"
+                      value={profileForm.city}
+                      onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
+                      placeholder="Enter your city"
+                    />
+                  </div>
                   <div className="flex gap-3">
                     <Button 
                       type="submit" 
@@ -195,7 +206,10 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
                       variant="outline"
                       onClick={() => {
                         setEditingProfile(false);
-                        setProfileForm({ full_name: profile?.full_name || '' });
+                        setProfileForm({ 
+                          full_name: profile?.full_name || '',
+                          city: profile?.city || ''
+                        });
                       }}
                       className="text-rose-600 border-rose-200 hover:bg-rose-50"
                     >
@@ -212,6 +226,10 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
                   <div>
                     <Label className="text-sm font-medium text-gray-600">Email</Label>
                     <p className="text-lg text-gray-900">{profile?.email || user?.email || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">City</Label>
+                    <p className="text-lg text-gray-900">{profile?.city || 'Not provided'}</p>
                   </div>
                 </div>
               )}
