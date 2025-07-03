@@ -7,6 +7,7 @@ import ThoughtfulnessScore from './ThoughtfulnessScore';
 import RelationshipHealthCard from './RelationshipHealthCard';
 import AddRelationshipCard from './AddRelationshipCard';
 import AddRelationshipForm from './AddRelationshipForm';
+import TryNudgeCard from './TryNudgeCard';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Users } from 'lucide-react';
@@ -24,6 +25,12 @@ export default function DashboardOverview({ relationships, profile, onRefresh }:
 
   const handleAddRelationshipSuccess = () => {
     setShowAddForm(false);
+    if (onRefresh) {
+      onRefresh();
+    }
+  };
+
+  const handleNudgeSent = () => {
     if (onRefresh) {
       onRefresh();
     }
@@ -59,6 +66,11 @@ export default function DashboardOverview({ relationships, profile, onRefresh }:
         {/* Stats Grid */}
         <div className="mb-8">
           <DashboardStats relationships={relationships} />
+        </div>
+
+        {/* Try Nudge Card */}
+        <div className="mb-8">
+          <TryNudgeCard relationships={relationships} onNudgeSent={handleNudgeSent} />
         </div>
 
         {hasRelationships ? (
