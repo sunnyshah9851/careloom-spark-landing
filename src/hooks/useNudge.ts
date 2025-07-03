@@ -23,16 +23,25 @@ export const useNudge = () => {
     setError(null);
 
     try {
-      console.log('Sending nudge for user:', user.email);
+      console.log('Sending personalized nudge for user:', user.email);
       console.log('Nudge data:', data);
 
-      const { data: functionData, error: functionError } = await supabase.functions.invoke('send-nudge', {
+      // Get user's profile to get their city
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('city')
+        .eq('id', user.id)
+        .single();
+
+      const userCity = profile?.city || data.city || 'your city';
+
+      const { data: functionData, error: functionError } = await supabase.functions.invoke('send-date-ideas', {
         body: {
           userId: user.id,
           userEmail: user.email,
           userName: user.user_metadata?.full_name || user.email,
           partnerName: data.partnerName,
-          city: data.city,
+          city: userCity,
         },
       });
 
@@ -41,11 +50,11 @@ export const useNudge = () => {
         throw functionError;
       }
 
-      console.log('Nudge sent successfully:', functionData);
+      console.log('Personalized nudge sent successfully:', functionData);
       return true;
     } catch (err: any) {
-      console.error('Error sending nudge:', err);
-      setError(err.message || 'Failed to send nudge');
+      console.error('Error sending personalized nudge:', err);
+      setError(err.message || 'Failed to send personalized nudge');
       return false;
     } finally {
       setIsLoading(false);
