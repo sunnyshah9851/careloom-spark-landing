@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from "npm:resend@2.0.0";
@@ -85,9 +86,25 @@ const handler = async (req: Request): Promise<Response> => {
     const url = new URL(req.url);
     const isDebug = url.searchParams.get('debug') === 'true';
     
+    // Parse request body to check for force send option
+    let requestBody: any = {};
+    try {
+      const bodyText = await req.text();
+      if (bodyText) {
+        requestBody = JSON.parse(bodyText);
+      }
+    } catch (e) {
+      // Ignore parsing errors for empty bodies
+    }
+    
+    const isForceSend = requestBody.forceSend === true;
+    const forceRelationships = requestBody.relationships || [];
+    
     console.log(`=== Birthday Reminder Function Started ===`);
     console.log(`Execution time: ${new Date().toISOString()}`);
     console.log(`Debug mode: ${isDebug}`);
+    console.log(`Force send mode: ${isForceSend}`);
+    console.log(`Force relationships: ${forceRelationships}`);
     console.log(`Resend API Key present: ${!!resendApiKey}`);
     
     const today = new Date();
@@ -95,7 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`Today: ${today.toISOString().split('T')[0]} (UTC)`);
 
     // Fetch all relationships with their notification preferences
-    const { data: relationships, error: fetchError } = await supabase
+    let query = supabase
       .from('relationships')
       .select(`
         id,
@@ -108,6 +125,13 @@ const handler = async (req: Request): Promise<Response> => {
         profiles!inner(email, full_name)
       `)
       .not('profiles.email', 'is', null);
+
+    // If force sending, filter by specific relationships
+    if (isForceSend && forceRelationships.length > 0) {
+      query = query.in('name', forceRelationships);
+    }
+
+    const { data: relationships, error: fetchError } = await query;
 
     if (fetchError) {
       console.error('Error fetching relationships:', fetchError);
@@ -130,8 +154,8 @@ const handler = async (req: Request): Promise<Response> => {
       if (rel.birthday) {
         console.log(`Birthday: ${rel.birthday}, Frequency: ${rel.birthday_notification_frequency}`);
         
-        const shouldSend = shouldSendReminder(rel.birthday, rel.birthday_notification_frequency);
-        console.log(`Should send birthday reminder: ${shouldSend}`);
+        const shouldSend = isForceSend || shouldSendReminder(rel.birthday, rel.birthday_notification_frequency);
+        console.log(`Should send birthday reminder: ${shouldSend} (force: ${isForceSend})`);
         
         if (isDebug) {
           debugInfo.push({
@@ -150,18 +174,22 @@ const handler = async (req: Request): Promise<Response> => {
           
           console.log(`Checking for existing birthday log for ${rel.name}...`);
           
-          // Check if we already sent a reminder for this birthday this year
-          const { data: existingBirthdayLog } = await supabase
-            .from('reminder_logs')
-            .select('id')
-            .eq('relationship_id', rel.id)
-            .eq('reminder_type', 'birthday')
-            .eq('event_date', birthdayThisYear)
-            .gte('sent_at', `${currentYear}-01-01`)
-            .single();
+          // Check if we already sent a reminder for this birthday this year (skip for force send)
+          let existingBirthdayLog = null;
+          if (!isForceSend) {
+            const { data } = await supabase
+              .from('reminder_logs')
+              .select('id')
+              .eq('relationship_id', rel.id)
+              .eq('reminder_type', 'birthday')
+              .eq('event_date', birthdayThisYear)
+              .gte('sent_at', `${currentYear}-01-01`)
+              .single();
+            existingBirthdayLog = data;
+          }
 
-          if (!existingBirthdayLog) {
-            console.log(`Sending birthday reminder for ${rel.name}...`);
+          if (!existingBirthdayLog || isForceSend) {
+            console.log(`${isForceSend ? 'Force s' : 'S'}ending birthday reminder for ${rel.name}...`);
             
             // Send birthday reminder
             const emailResult = await sendReminderEmail(
@@ -176,27 +204,30 @@ const handler = async (req: Request): Promise<Response> => {
             if (emailResult.success) {
               console.log(`Birthday email sent successfully for ${rel.name}`);
               
-              // Log the sent reminder
-              const { error: logError } = await supabase
-                .from('reminder_logs')
-                .insert({
-                  relationship_id: rel.id,
-                  reminder_type: 'birthday',
-                  reminder_date: today.toISOString().split('T')[0],
-                  event_date: birthdayThisYear
-                });
+              // Log the sent reminder (only if not force send to avoid duplicates)
+              if (!isForceSend) {
+                const { error: logError } = await supabase
+                  .from('reminder_logs')
+                  .insert({
+                    relationship_id: rel.id,
+                    reminder_type: 'birthday',
+                    reminder_date: today.toISOString().split('T')[0],
+                    event_date: birthdayThisYear
+                  });
 
-              if (logError) {
-                console.error(`Error logging birthday reminder for ${rel.name}:`, logError);
-              } else {
-                console.log(`Birthday reminder logged successfully for ${rel.name}`);
+                if (logError) {
+                  console.error(`Error logging birthday reminder for ${rel.name}:`, logError);
+                } else {
+                  console.log(`Birthday reminder logged successfully for ${rel.name}`);
+                }
               }
 
               emailsSent.push({
                 type: 'birthday',
                 recipient: rel.profiles.email,
                 partner: rel.name,
-                daysUntil
+                daysUntil,
+                forceSent: isForceSend
               });
             } else {
               console.error(`Failed to send birthday email for ${rel.name}:`, emailResult.error);
@@ -204,7 +235,8 @@ const handler = async (req: Request): Promise<Response> => {
                 type: 'birthday',
                 recipient: rel.profiles.email,
                 partner: rel.name,
-                error: emailResult.error
+                error: emailResult.error,
+                forceSent: isForceSend
               });
             }
           } else {
@@ -215,12 +247,12 @@ const handler = async (req: Request): Promise<Response> => {
         console.log(`No birthday set for ${rel.name}`);
       }
 
-      // Check for anniversary reminder
+      // Check for anniversary reminder (similar logic)
       if (rel.anniversary) {
         console.log(`Anniversary: ${rel.anniversary}, Frequency: ${rel.anniversary_notification_frequency}`);
         
-        const shouldSend = shouldSendReminder(rel.anniversary, rel.anniversary_notification_frequency);
-        console.log(`Should send anniversary reminder: ${shouldSend}`);
+        const shouldSend = isForceSend || shouldSendReminder(rel.anniversary, rel.anniversary_notification_frequency);
+        console.log(`Should send anniversary reminder: ${shouldSend} (force: ${isForceSend})`);
         
         if (isDebug) {
           debugInfo.push({
@@ -239,18 +271,22 @@ const handler = async (req: Request): Promise<Response> => {
           
           console.log(`Checking for existing anniversary log for ${rel.name}...`);
           
-          // Check if we already sent a reminder for this anniversary this year
-          const { data: existingAnniversaryLog } = await supabase
-            .from('reminder_logs')
-            .select('id')
-            .eq('relationship_id', rel.id)
-            .eq('reminder_type', 'anniversary')
-            .eq('event_date', anniversaryThisYear)
-            .gte('sent_at', `${currentYear}-01-01`)
-            .single();
+          // Check if we already sent a reminder for this anniversary this year (skip for force send)
+          let existingAnniversaryLog = null;
+          if (!isForceSend) {
+            const { data } = await supabase
+              .from('reminder_logs')
+              .select('id')
+              .eq('relationship_id', rel.id)
+              .eq('reminder_type', 'anniversary')
+              .eq('event_date', anniversaryThisYear)
+              .gte('sent_at', `${currentYear}-01-01`)
+              .single();
+            existingAnniversaryLog = data;
+          }
 
-          if (!existingAnniversaryLog) {
-            console.log(`Sending anniversary reminder for ${rel.name}...`);
+          if (!existingAnniversaryLog || isForceSend) {
+            console.log(`${isForceSend ? 'Force s' : 'S'}ending anniversary reminder for ${rel.name}...`);
             
             // Send anniversary reminder
             const emailResult = await sendReminderEmail(
@@ -265,27 +301,30 @@ const handler = async (req: Request): Promise<Response> => {
             if (emailResult.success) {
               console.log(`Anniversary email sent successfully for ${rel.name}`);
               
-              // Log the sent reminder
-              const { error: logError } = await supabase
-                .from('reminder_logs')
-                .insert({
-                  relationship_id: rel.id,
-                  reminder_type: 'anniversary',
-                  reminder_date: today.toISOString().split('T')[0],
-                  event_date: anniversaryThisYear
-                });
+              // Log the sent reminder (only if not force send to avoid duplicates)
+              if (!isForceSend) {
+                const { error: logError } = await supabase
+                  .from('reminder_logs')
+                  .insert({
+                    relationship_id: rel.id,
+                    reminder_type: 'anniversary',
+                    reminder_date: today.toISOString().split('T')[0],
+                    event_date: anniversaryThisYear
+                  });
 
-              if (logError) {
-                console.error(`Error logging anniversary reminder for ${rel.name}:`, logError);
-              } else {
-                console.log(`Anniversary reminder logged successfully for ${rel.name}`);
+                if (logError) {
+                  console.error(`Error logging anniversary reminder for ${rel.name}:`, logError);
+                } else {
+                  console.log(`Anniversary reminder logged successfully for ${rel.name}`);
+                }
               }
 
               emailsSent.push({
                 type: 'anniversary',
                 recipient: rel.profiles.email,
                 partner: rel.name,
-                daysUntil
+                daysUntil,
+                forceSent: isForceSend
               });
             } else {
               console.error(`Failed to send anniversary email for ${rel.name}:`, emailResult.error);
@@ -293,7 +332,8 @@ const handler = async (req: Request): Promise<Response> => {
                 type: 'anniversary',
                 recipient: rel.profiles.email,
                 partner: rel.name,
-                error: emailResult.error
+                error: emailResult.error,
+                forceSent: isForceSend
               });
             }
           } else {
@@ -333,7 +373,8 @@ const handler = async (req: Request): Promise<Response> => {
         emailsSent: emailsSent.length,
         emailErrors: emailErrors.length,
         details: emailsSent,
-        errors: emailErrors.length > 0 ? emailErrors : undefined
+        errors: emailErrors.length > 0 ? emailErrors : undefined,
+        forceSent: isForceSend
       }),
       {
         status: 200,
