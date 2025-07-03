@@ -50,6 +50,54 @@ const DashboardOverview = ({ relationships, profile }: DashboardOverviewProps) =
     window.location.reload();
   };
 
+  // Calculate upcoming events in the next 30 days using the same logic as UpcomingEvents
+  const calculateUpcomingEventsCount = (): number => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const oneMonthFromNow = new Date(today);
+    oneMonthFromNow.setDate(oneMonthFromNow.getDate() + 30);
+
+    const getNextOccurrence = (dateString: string) => {
+      const date = new Date(dateString);
+      const currentYear = today.getFullYear();
+      const thisYear = new Date(currentYear, date.getMonth(), date.getDate());
+      thisYear.setHours(0, 0, 0, 0);
+      
+      if (thisYear < today) {
+        const nextYear = new Date(currentYear + 1, date.getMonth(), date.getDate());
+        nextYear.setHours(0, 0, 0, 0);
+        return nextYear;
+      }
+      
+      return thisYear;
+    };
+
+    const isWithinNext30Days = (eventDate: Date) => {
+      return eventDate >= today && eventDate <= oneMonthFromNow;
+    };
+
+    let upcomingEventsCount = 0;
+
+    relationships.forEach(relationship => {
+      if (relationship.birthday) {
+        const nextBirthday = getNextOccurrence(relationship.birthday);
+        if (isWithinNext30Days(nextBirthday)) {
+          upcomingEventsCount++;
+        }
+      }
+
+      if (relationship.anniversary) {
+        const nextAnniversary = getNextOccurrence(relationship.anniversary);
+        if (isWithinNext30Days(nextAnniversary)) {
+          upcomingEventsCount++;
+        }
+      }
+    });
+
+    return upcomingEventsCount;
+  };
+
   if (showAddForm) {
     return (
       <div className="p-6 max-w-2xl mx-auto">
@@ -145,7 +193,7 @@ const DashboardOverview = ({ relationships, profile }: DashboardOverviewProps) =
                   <div>
                     <p className="text-sm font-medium text-blue-600">Upcoming Events</p>
                     <p className="text-3xl font-bold text-blue-700">
-                      {relationships.filter(r => r.birthday || r.anniversary).length}
+                      {calculateUpcomingEventsCount()}
                     </p>
                   </div>
                   <Calendar className="h-8 w-8 text-blue-500" />
