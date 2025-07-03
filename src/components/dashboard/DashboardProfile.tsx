@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CityInput } from '@/components/ui/city-input';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -176,21 +177,23 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
               {editingProfile ? (
                 <form onSubmit={handleProfileSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="full_name">Full Name</Label>
+                    <Label htmlFor="full_name" className="text-gray-900">Full Name</Label>
                     <Input
                       id="full_name"
                       value={profileForm.full_name}
                       onChange={(e) => setProfileForm({ ...profileForm, full_name: e.target.value })}
                       placeholder="Enter your full name"
+                      className="text-gray-900"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="city">City</Label>
-                    <Input
+                    <Label htmlFor="city" className="text-gray-900">City</Label>
+                    <CityInput
                       id="city"
                       value={profileForm.city}
-                      onChange={(e) => setProfileForm({ ...profileForm, city: e.target.value })}
-                      placeholder="Enter your city"
+                      onChange={(value) => setProfileForm({ ...profileForm, city: value })}
+                      placeholder="Search for your city..."
+                      className="text-gray-900"
                     />
                   </div>
                   <div className="flex gap-3">
