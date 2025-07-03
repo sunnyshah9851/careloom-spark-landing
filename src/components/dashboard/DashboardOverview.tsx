@@ -1,21 +1,33 @@
 
+import { useState } from 'react';
 import DashboardStats from './DashboardStats';
 import UpcomingEvents from './UpcomingEvents';
 import RecentActivity from './RecentActivity';
 import ThoughtfulnessScore from './ThoughtfulnessScore';
 import RelationshipHealthCard from './RelationshipHealthCard';
 import AddRelationshipCard from './AddRelationshipCard';
+import AddRelationshipForm from './AddRelationshipForm';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Users } from 'lucide-react';
 
 interface DashboardOverviewProps {
   relationships: any[];
   profile: any;
+  onRefresh?: () => void;
 }
 
-export default function DashboardOverview({ relationships, profile }: DashboardOverviewProps) {
+export default function DashboardOverview({ relationships, profile, onRefresh }: DashboardOverviewProps) {
+  const [showAddForm, setShowAddForm] = useState(false);
   const hasRelationships = relationships && relationships.length > 0;
   const userName = profile?.full_name || profile?.email?.split('@')[0] || 'there';
+
+  const handleAddRelationshipSuccess = () => {
+    setShowAddForm(false);
+    if (onRefresh) {
+      onRefresh();
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -32,6 +44,7 @@ export default function DashboardOverview({ relationships, profile }: DashboardO
               </p>
             </div>
             <Button 
+              onClick={() => setShowAddForm(true)}
               className="bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-lg shadow-sm transition-all duration-200"
             >
               <Plus className="h-5 w-5 mr-2" />
@@ -107,6 +120,21 @@ export default function DashboardOverview({ relationships, profile }: DashboardO
           </div>
         )}
       </div>
+
+      {/* Add Relationship Modal */}
+      <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gray-900">
+              Add New Relationship
+            </DialogTitle>
+          </DialogHeader>
+          <AddRelationshipForm
+            onSuccess={handleAddRelationshipSuccess}
+            onCancel={() => setShowAddForm(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
