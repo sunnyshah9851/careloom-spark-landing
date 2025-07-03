@@ -23,7 +23,7 @@ export const useOnboarding = () => {
     city: ''
   });
 
-  const totalSteps = 9;
+  const totalSteps = 7;
   const progress = (currentStep / totalSteps) * 100;
 
   const handleNext = () => {
@@ -94,23 +94,19 @@ export const useOnboarding = () => {
 
   const canProceed = () => {
     switch (currentStep) {
-      case 1:
+      case 1: // Name
         return data.name.trim().length > 0;
-      case 2:
-        return true; // Relationship type has default
-      case 3:
+      case 2: // Relationship Type
+        return true; // Has default
+      case 3: // Relationship City
         return data.relationshipCity.trim().length > 0;
-      case 4:
+      case 4: // Birthday + Birthday Nudge
         return data.birthday !== null;
-      case 5:
-        return true; // Birthday nudge preferences are optional
-      case 6:
+      case 5: // Anniversary + Anniversary Nudge
         return true; // Anniversary is optional
-      case 7:
-        return true; // Anniversary nudge preferences are optional
-      case 8:
-        return true; // Nudge frequency has default
-      case 9:
+      case 6: // General Relationship Nudges
+        return true; // Has default
+      case 7: // Your City
         return data.city.trim().length > 0;
       default:
         return false;

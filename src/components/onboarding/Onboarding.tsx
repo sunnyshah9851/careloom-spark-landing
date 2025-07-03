@@ -46,16 +46,30 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       case 3:
         return <RelationshipCityStep {...stepProps} />;
       case 4:
-        return <BirthdayStep {...stepProps} />;
+        return (
+          <div className="space-y-8">
+            <BirthdayStep {...stepProps} />
+            {data.birthday && (
+              <div className="border-t border-rose-100 pt-6">
+                <BirthdayNudgeStep {...stepProps} />
+              </div>
+            )}
+          </div>
+        );
       case 5:
-        return <BirthdayNudgeStep {...stepProps} />;
+        return (
+          <div className="space-y-8">
+            <AnniversaryStep {...stepProps} />
+            {data.anniversary && (
+              <div className="border-t border-rose-100 pt-6">
+                <AnniversaryNudgeStep {...stepProps} />
+              </div>
+            )}
+          </div>
+        );
       case 6:
-        return <AnniversaryStep {...stepProps} />;
-      case 7:
-        return <AnniversaryNudgeStep {...stepProps} />;
-      case 8:
         return <NudgeFrequencyStep {...stepProps} />;
-      case 9:
+      case 7:
         return <CityStep {...stepProps} />;
       default:
         return <NameStep {...stepProps} />;
