@@ -1,6 +1,5 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.0';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from "npm:resend@2.0.0";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
@@ -89,6 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`=== Birthday Reminder Function Started ===`);
     console.log(`Execution time: ${new Date().toISOString()}`);
     console.log(`Debug mode: ${isDebug}`);
+    console.log(`Resend API Key present: ${!!resendApiKey}`);
     
     const today = new Date();
     const currentYear = today.getFullYear();
@@ -118,6 +118,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     const emailsSent = [];
     const debugInfo = [];
+    const emailErrors = [];
 
     for (const relationship of relationships || []) {
       const rel = relationship as Relationship;
@@ -199,6 +200,12 @@ const handler = async (req: Request): Promise<Response> => {
               });
             } else {
               console.error(`Failed to send birthday email for ${rel.name}:`, emailResult.error);
+              emailErrors.push({
+                type: 'birthday',
+                recipient: rel.profiles.email,
+                partner: rel.name,
+                error: emailResult.error
+              });
             }
           } else {
             console.log(`Birthday reminder already sent for ${rel.name} this year`);
@@ -282,6 +289,12 @@ const handler = async (req: Request): Promise<Response> => {
               });
             } else {
               console.error(`Failed to send anniversary email for ${rel.name}:`, emailResult.error);
+              emailErrors.push({
+                type: 'anniversary',
+                recipient: rel.profiles.email,
+                partner: rel.name,
+                error: emailResult.error
+              });
             }
           } else {
             console.log(`Anniversary reminder already sent for ${rel.name} this year`);
@@ -294,6 +307,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`\n=== Summary ===`);
     console.log(`Successfully sent ${emailsSent.length} reminder emails`);
+    console.log(`Failed to send ${emailErrors.length} emails`);
     console.log(`Function execution completed at: ${new Date().toISOString()}`);
 
     if (isDebug) {
@@ -303,6 +317,7 @@ const handler = async (req: Request): Promise<Response> => {
           debug: true,
           today: today.toISOString().split('T')[0],
           debugInfo,
+          emailErrors: emailErrors.length > 0 ? emailErrors : undefined,
           message: 'Debug mode - no emails sent'
         }),
         {
@@ -316,7 +331,9 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ 
         success: true, 
         emailsSent: emailsSent.length,
-        details: emailsSent 
+        emailErrors: emailErrors.length,
+        details: emailsSent,
+        errors: emailErrors.length > 0 ? emailErrors : undefined
       }),
       {
         status: 200,
@@ -357,9 +374,10 @@ async function sendReminderEmail(
     const emoji = eventType === 'birthday' ? '🎂' : '💕';
 
     console.log(`Attempting to send ${eventType} email to ${recipientEmail} for ${partnerName}`);
+    console.log(`Using Resend API key: ${resendApiKey ? 'Present' : 'Missing'}`);
 
     const emailResponse = await resend.emails.send({
-      from: "Careloom <reminders@lovable.app>",
+      from: "Careloom <onboarding@resend.dev>",
       to: [recipientEmail],
       subject: `${emoji} Reminder: ${partnerName}'s ${eventTypeDisplay} is ${daysText}!`,
       html: `
@@ -406,11 +424,23 @@ async function sendReminderEmail(
       `,
     });
 
-    console.log(`${eventTypeDisplay} reminder email sent successfully:`, emailResponse);
+    console.log(`${eventTypeDisplay} reminder email sent successfully:`, JSON.stringify(emailResponse, null, 2));
     return { success: true };
 
   } catch (error: any) {
     console.error(`Error sending ${eventType} reminder email:`, error);
+    
+    // Enhanced error logging for Resend API issues
+    if (error.message?.includes('API key')) {
+      console.error('RESEND API KEY ISSUE: Please check if your Resend API key is valid and not expired');
+    }
+    if (error.message?.includes('domain')) {
+      console.error('DOMAIN ISSUE: Please verify your sending domain is verified in Resend dashboard');
+    }
+    if (error.message?.includes('rate limit')) {
+      console.error('RATE LIMIT: Resend API rate limit exceeded');
+    }
+    
     return { success: false, error: error.message };
   }
 }
