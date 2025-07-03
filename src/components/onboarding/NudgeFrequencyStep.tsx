@@ -1,3 +1,4 @@
+
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Mail, Heart, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -29,13 +30,16 @@ export const NudgeFrequencyStep = ({ data, setData }: OnboardingStepProps) => {
     <div className="text-center space-y-6">
       <div className="text-7xl mb-6">📬</div>
       <h2 className="text-2xl font-playfair text-rose-800 mb-2">
-        How often would you like gentle nudges?
+        General Relationship Nudges
       </h2>
+      <p className="text-rose-700 mb-4 text-lg">
+        How often would you like gentle nudges to spend quality time with {data.name}?
+      </p>
       <div className="bg-rose-50 p-4 rounded-2xl mb-6 text-left">
         <div className="flex items-start space-x-3">
           <Mail className="h-5 w-5 text-rose-600 mt-1 flex-shrink-0" />
           <div>
-            <p className="text-rose-800 font-medium mb-2">What to expect:</p>
+            <p className="text-rose-800 font-medium mb-2">These nudges include:</p>
             <div className="space-y-2 text-sm text-rose-700">
               <div className="flex items-center space-x-2">
                 <Heart className="h-4 w-4" />
@@ -50,6 +54,9 @@ export const NudgeFrequencyStep = ({ data, setData }: OnboardingStepProps) => {
                 <span>Personalized suggestions based on your relationship type</span>
               </div>
             </div>
+            <p className="text-xs text-rose-600 mt-3 italic">
+              * Separate from birthday and anniversary reminders you've already set up
+            </p>
           </div>
         </div>
       </div>

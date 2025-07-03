@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,12 +14,16 @@ export const useOnboarding = () => {
     relationshipType: 'partner',
     relationshipCity: '',
     birthday: null,
+    birthdayNudgeEnabled: true,
+    birthdayNudgeFrequency: '1_week',
     anniversary: null,
+    anniversaryNudgeEnabled: true,
+    anniversaryNudgeFrequency: '1_week',
     nudgeFrequency: 'weekly',
     city: ''
   });
 
-  const totalSteps = 7;
+  const totalSteps = 9;
   const progress = (currentStep / totalSteps) * 100;
 
   const handleNext = () => {
@@ -54,7 +59,7 @@ export const useOnboarding = () => {
 
       if (profileError) throw profileError;
 
-      // Then, save the relationship
+      // Then, save the relationship with the new nudge preferences
       const { error: relationshipError } = await supabase
         .from('relationships')
         .insert({
@@ -64,14 +69,16 @@ export const useOnboarding = () => {
           city: data.relationshipCity,
           birthday: data.birthday?.toISOString().split('T')[0] || null,
           anniversary: data.anniversary?.toISOString().split('T')[0] || null,
-          notes: `Nudge frequency: ${data.nudgeFrequency}`,
+          birthday_notification_frequency: data.birthdayNudgeEnabled ? data.birthdayNudgeFrequency : 'none',
+          anniversary_notification_frequency: data.anniversaryNudgeEnabled ? data.anniversaryNudgeFrequency : 'none',
+          notes: `General nudge frequency: ${data.nudgeFrequency}`,
         });
 
       if (relationshipError) throw relationshipError;
 
       toast({
         title: "Welcome to Careloom! 🎉",
-        description: "Your relationship has been set up successfully.",
+        description: "Your relationship and reminder preferences have been set up successfully.",
       });
 
       onComplete();
@@ -96,10 +103,14 @@ export const useOnboarding = () => {
       case 4:
         return data.birthday !== null;
       case 5:
-        return true; // Anniversary is optional
+        return true; // Birthday nudge preferences are optional
       case 6:
-        return true; // Nudge frequency has default
+        return true; // Anniversary is optional
       case 7:
+        return true; // Anniversary nudge preferences are optional
+      case 8:
+        return true; // Nudge frequency has default
+      case 9:
         return data.city.trim().length > 0;
       default:
         return false;

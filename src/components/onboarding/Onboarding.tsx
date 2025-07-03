@@ -1,10 +1,13 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { NameStep } from './NameStep';
 import { RelationshipTypeStep } from './RelationshipTypeStep';
 import { BirthdayStep } from './BirthdayStep';
+import { BirthdayNudgeStep } from './BirthdayNudgeStep';
 import { AnniversaryStep } from './AnniversaryStep';
+import { AnniversaryNudgeStep } from './AnniversaryNudgeStep';
 import { NudgeFrequencyStep } from './NudgeFrequencyStep';
 import { RelationshipCityStep } from './RelationshipCityStep';
 import { CityStep } from './CityStep';
@@ -45,10 +48,14 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       case 4:
         return <BirthdayStep {...stepProps} />;
       case 5:
-        return <AnniversaryStep {...stepProps} />;
+        return <BirthdayNudgeStep {...stepProps} />;
       case 6:
-        return <NudgeFrequencyStep {...stepProps} />;
+        return <AnniversaryStep {...stepProps} />;
       case 7:
+        return <AnniversaryNudgeStep {...stepProps} />;
+      case 8:
+        return <NudgeFrequencyStep {...stepProps} />;
+      case 9:
         return <CityStep {...stepProps} />;
       default:
         return <NameStep {...stepProps} />;
