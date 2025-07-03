@@ -13,7 +13,7 @@ const PeopleSearch = ({ searchTerm, onSearchChange }: PeopleSearchProps) => {
         placeholder="Search by name or relationship type..."
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
-        className="border-rose-200 focus:border-rose-400"
+        className="border-rose-200 focus:border-rose-400 placeholder:text-gray-500"
       />
     </div>
   );
