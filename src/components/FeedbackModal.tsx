@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -138,7 +137,7 @@ const FeedbackModal = ({ isOpen, onClose }: FeedbackModalProps) => {
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1"
+              className="flex-1 hover:text-gray-900 hover:bg-gray-50"
             >
               Maybe Later
             </Button>
