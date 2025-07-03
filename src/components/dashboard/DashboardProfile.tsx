@@ -147,8 +147,8 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
 
       <Tabs defaultValue="profile" className="space-y-6">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="profile">Personal Info</TabsTrigger>
-          <TabsTrigger value="relationships">Relationships</TabsTrigger>
+          <TabsTrigger value="profile" className="text-gray-900 data-[state=active]:text-gray-900">Personal Info</TabsTrigger>
+          <TabsTrigger value="relationships" className="text-gray-900 data-[state=active]:text-gray-900">Relationships</TabsTrigger>
         </TabsList>
 
         <TabsContent value="profile">
