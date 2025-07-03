@@ -16,7 +16,7 @@ export default function DashboardOverview({ relationships, profile }: DashboardO
   const userName = profile?.full_name || profile?.email?.split('@')[0] || 'there';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       {/* Welcome Section */}
       <div className="text-center">
         <h2 className="text-2xl font-semibold font-playfair text-rose-700">
