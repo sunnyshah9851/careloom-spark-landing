@@ -109,6 +109,7 @@ export type Database = {
           birthday_notification_frequency: string | null
           city: string | null
           created_at: string
+          date_ideas_frequency: string | null
           email: string | null
           id: string
           last_nudge_sent: string | null
@@ -125,6 +126,7 @@ export type Database = {
           birthday_notification_frequency?: string | null
           city?: string | null
           created_at?: string
+          date_ideas_frequency?: string | null
           email?: string | null
           id?: string
           last_nudge_sent?: string | null
@@ -141,6 +143,7 @@ export type Database = {
           birthday_notification_frequency?: string | null
           city?: string | null
           created_at?: string
+          date_ideas_frequency?: string | null
           email?: string | null
           id?: string
           last_nudge_sent?: string | null

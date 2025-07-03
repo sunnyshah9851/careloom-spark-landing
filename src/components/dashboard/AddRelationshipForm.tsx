@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +33,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
     notes: '',
     birthday_notification_frequency: '1_week',
     anniversary_notification_frequency: '1_week',
-    nudge_frequency: 'weekly'
+    date_ideas_frequency: 'weekly'
   });
 
   const nudgeOptions = [
@@ -80,19 +81,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
     setIsLoading(true);
 
     try {
-      // First, save/update the user's profile with nudge frequency if it's a partner/spouse relationship
-      if (isPartnerRelationship) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: user.id,
-            nudge_frequency: formData.nudge_frequency,
-          });
-
-        if (profileError) throw profileError;
-      }
-
-      // Then, save the relationship
+      // Save the relationship with date_ideas_frequency
       const { data, error } = await supabase
         .from('relationships')
         .insert({
@@ -105,7 +94,8 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           anniversary: formData.anniversary || null,
           notes: formData.notes || null,
           birthday_notification_frequency: formData.birthday_notification_frequency,
-          anniversary_notification_frequency: formData.anniversary_notification_frequency
+          anniversary_notification_frequency: formData.anniversary_notification_frequency,
+          date_ideas_frequency: isPartnerRelationship ? formData.date_ideas_frequency : null
         })
         .select()
         .single();
@@ -124,7 +114,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           relationship_type: formData.relationship_type,
           birthday_notification_frequency: formData.birthday_notification_frequency,
           anniversary_notification_frequency: formData.anniversary_notification_frequency,
-          ...(isPartnerRelationship && { nudge_frequency: formData.nudge_frequency })
+          ...(isPartnerRelationship && { date_ideas_frequency: formData.date_ideas_frequency })
         }
       );
 
@@ -331,8 +321,8 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
                   How often do you want to be inspired?
                 </Label>
                 <RadioGroup
-                  value={formData.nudge_frequency}
-                  onValueChange={(value) => handleInputChange('nudge_frequency', value)}
+                  value={formData.date_ideas_frequency}
+                  onValueChange={(value) => handleInputChange('date_ideas_frequency', value)}
                   className="space-y-2"
                 >
                   {nudgeOptions.map((option) => (
@@ -341,7 +331,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
                       htmlFor={`nudge-${option.value}`}
                       className={cn(
                         "relative flex items-center space-x-3 p-3 border-2 rounded-2xl cursor-pointer transition-all duration-200 hover:scale-105",
-                        formData.nudge_frequency === option.value 
+                        formData.date_ideas_frequency === option.value 
                           ? "bg-gradient-to-r from-rose-100 to-pink-100 border-rose-400 shadow-lg" 
                           : "border-rose-200 hover:bg-rose-50 hover:border-rose-300"
                       )}
