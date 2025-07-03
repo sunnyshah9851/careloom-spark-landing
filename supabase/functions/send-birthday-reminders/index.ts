@@ -377,7 +377,7 @@ async function sendReminderEmail(
     console.log(`Using Resend API key: ${resendApiKey ? 'Present' : 'Missing'}`);
 
     const emailResponse = await resend.emails.send({
-      from: "Careloom <onboarding@resend.dev>",
+      from: "Careloom <careloom@resend.dev>",
       to: [recipientEmail],
       subject: `${emoji} Reminder: ${partnerName}'s ${eventTypeDisplay} is ${daysText}!`,
       html: `
