@@ -1,9 +1,7 @@
 
-
 import DashboardStats from './DashboardStats';
 import UpcomingEvents from './UpcomingEvents';
 import TryNudgeCard from './TryNudgeCard';
-import { TryDateIdeasCard } from './TryDateIdeasCard';
 import RecentActivity from './RecentActivity';
 import ThoughtfulnessScore from './ThoughtfulnessScore';
 import RelationshipHealthCard from './RelationshipHealthCard';
@@ -40,7 +38,6 @@ export default function DashboardOverview({ relationships, profile }: DashboardO
         <div className="space-y-6">
           <UpcomingEvents relationships={relationships} />
           <TryNudgeCard relationships={relationships} />
-          <TryDateIdeasCard relationships={relationships} />
         </div>
 
         {/* Right Column */}
@@ -53,4 +50,3 @@ export default function DashboardOverview({ relationships, profile }: DashboardO
     </div>
   );
 }
-
