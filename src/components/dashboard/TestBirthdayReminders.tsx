@@ -47,7 +47,9 @@ export const TestBirthdayReminders = () => {
       return;
     }
 
-    const shouldSendToday = results.debug.relationships.filter((rel: any) => rel.shouldSendToday);
+    const shouldSendToday = results.debug.relationships.filter((rel: any) => 
+      rel.shouldSendBirthdayToday || rel.shouldSendAnniversaryToday
+    );
     
     if (shouldSendToday.length === 0) {
       toast({
@@ -82,7 +84,6 @@ export const TestBirthdayReminders = () => {
           description: `Force sent ${data.emailsSent || 0} emails. Check the results below.`,
         });
         
-        // Update results to show the force send results
         setResults(prev => ({
           ...prev,
           forceSendResults: data
@@ -100,14 +101,27 @@ export const TestBirthdayReminders = () => {
     }
   };
 
-  const shouldSendCount = results?.debug?.relationships?.filter((rel: any) => rel.shouldSendToday)?.length || 0;
+  const shouldSendCount = results?.debug?.relationships?.filter((rel: any) => 
+    rel.shouldSendBirthdayToday || rel.shouldSendAnniversaryToday
+  )?.length || 0;
+
+  const formatDateTime = (dateTimeString: string) => {
+    return new Date(dateTimeString).toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+  };
 
   return (
-    <Card className="w-full max-w-4xl">
+    <Card className="w-full max-w-6xl">
       <CardHeader>
-        <CardTitle>Debug Birthday Reminders</CardTitle>
+        <CardTitle>Debug Birthday Reminders & Email Forecast</CardTitle>
         <CardDescription>
-          Test your birthday reminder configuration and see why emails might not be sent
+          Test your birthday reminder configuration and see exactly when emails will be sent in the next 3 days
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -117,7 +131,7 @@ export const TestBirthdayReminders = () => {
             disabled={isLoading}
             className="flex-1"
           >
-            {isLoading ? 'Testing...' : 'Debug Birthday Reminders'}
+            {isLoading ? 'Testing...' : 'Debug & Forecast Emails'}
           </Button>
           
           {shouldSendCount > 0 && (
@@ -133,7 +147,62 @@ export const TestBirthdayReminders = () => {
         </div>
         
         {results && (
-          <div className="mt-4 space-y-4">
+          <div className="mt-4 space-y-6">
+            {/* Email Forecast Section */}
+            {results.debug?.forecast && (
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h3 className="font-semibold mb-4 text-blue-900">📅 Email Forecast (Next 3 Days)</h3>
+                {results.debug.forecast.map((day: any, index: number) => (
+                  <div key={day.date} className={`mb-4 p-3 rounded-lg ${day.isToday ? 'bg-yellow-100 border border-yellow-300' : 'bg-white border border-gray-200'}`}>
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-medium text-gray-900">
+                        {day.dayName}, {new Date(day.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                        {day.isToday && <span className="ml-2 text-xs bg-yellow-200 px-2 py-1 rounded">TODAY</span>}
+                      </h4>
+                      <span className="text-sm text-gray-600">
+                        {day.emailCount} email{day.emailCount !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    
+                    {day.emails.length > 0 ? (
+                      <div className="space-y-2">
+                        {day.emails.map((email: any, emailIndex: number) => (
+                          <div key={emailIndex} className="text-sm bg-gray-50 p-2 rounded border-l-4 border-blue-400">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <span className="font-medium text-gray-900">
+                                  {email.type === 'birthday' && '🎂'} 
+                                  {email.type === 'anniversary' && '💕'} 
+                                  {email.type === 'date_ideas' && '💡'} 
+                                  {email.type.charAt(0).toUpperCase() + email.type.slice(1).replace('_', ' ')}
+                                </span>
+                                <div className="text-gray-700">
+                                  To: <span className="font-medium">{email.recipientName}</span> ({email.recipient})
+                                </div>
+                                {email.partner && (
+                                  <div className="text-gray-600">
+                                    About: {email.partner}
+                                    {email.eventDate && ` (${new Date(email.eventDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs text-gray-500">{email.scheduledTime}</div>
+                                <div className="text-xs text-gray-400">{formatDateTime(email.fullDateTime)}</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500 italic">No emails scheduled</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Debug Results Section */}
             <div className="p-4 bg-gray-50 rounded-lg">
               <h3 className="font-semibold mb-2">Debug Results:</h3>
               <pre className="text-sm overflow-auto whitespace-pre-wrap">

@@ -32,18 +32,19 @@ const handler = async (req: Request): Promise<Response> => {
       hasResendKey: !!resendApiKey,
     };
     
-    // Fetch all relationships with birthdays
+    // Fetch all relationships with birthdays and anniversaries
     const { data: relationships, error: fetchError } = await supabase
       .from('relationships')
       .select(`
         id,
         name,
         birthday,
+        anniversary,
         birthday_notification_frequency,
+        anniversary_notification_frequency,
         profile_id,
         profiles!inner(email, full_name)
       `)
-      .not('birthday', 'is', null)
       .not('profiles.email', 'is', null);
 
     if (fetchError) {
@@ -51,37 +52,106 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const today = new Date();
+    
+    // Generate forecast for next 3 days
+    const forecast = [];
+    for (let i = 0; i <= 3; i++) {
+      const forecastDate = new Date(today);
+      forecastDate.setDate(today.getDate() + i);
+      forecastDate.setUTCHours(0, 0, 0, 0);
+      
+      const dateString = forecastDate.toISOString().split('T')[0];
+      const dayEmails = [];
+      
+      relationships?.forEach(rel => {
+        // Check birthday reminders
+        if (rel.birthday) {
+          const shouldSend = checkIfShouldSendOnDate(rel.birthday, rel.birthday_notification_frequency, forecastDate);
+          if (shouldSend) {
+            dayEmails.push({
+              type: 'birthday',
+              recipient: rel.profiles.email,
+              recipientName: rel.profiles.full_name,
+              partner: rel.name,
+              eventDate: rel.birthday,
+              frequency: rel.birthday_notification_frequency,
+              scheduledTime: '09:00 UTC (Birthday Reminders)',
+              fullDateTime: `${dateString}T09:00:00.000Z`
+            });
+          }
+        }
+        
+        // Check anniversary reminders
+        if (rel.anniversary) {
+          const shouldSend = checkIfShouldSendOnDate(rel.anniversary, rel.anniversary_notification_frequency, forecastDate);
+          if (shouldSend) {
+            dayEmails.push({
+              type: 'anniversary',
+              recipient: rel.profiles.email,
+              recipientName: rel.profiles.full_name,
+              partner: rel.name,
+              eventDate: rel.anniversary,
+              frequency: rel.anniversary_notification_frequency,
+              scheduledTime: '09:00 UTC (Birthday Reminders)',
+              fullDateTime: `${dateString}T09:00:00.000Z`
+            });
+          }
+        }
+        
+        // Check date ideas (only for romantic relationships)
+        if (rel.date_ideas_frequency && rel.date_ideas_frequency !== 'never') {
+          const shouldSendDateIdeas = checkIfShouldSendDateIdeasOnDate(rel.date_ideas_frequency, forecastDate);
+          if (shouldSendDateIdeas) {
+            dayEmails.push({
+              type: 'date_ideas',
+              recipient: rel.profiles.email,
+              recipientName: rel.profiles.full_name,
+              partner: rel.name,
+              frequency: rel.date_ideas_frequency,
+              scheduledTime: '10:00 UTC (Date Ideas)',
+              fullDateTime: `${dateString}T10:00:00.000Z`
+            });
+          }
+        }
+      });
+      
+      if (dayEmails.length > 0 || i === 0) { // Always include today even if no emails
+        forecast.push({
+          date: dateString,
+          dayName: forecastDate.toLocaleDateString('en-US', { weekday: 'long' }),
+          isToday: i === 0,
+          emailCount: dayEmails.length,
+          emails: dayEmails
+        });
+      }
+    }
+
     const debugInfo = {
       envCheck,
       today: today.toISOString().split('T')[0],
       totalRelationships: relationships?.length || 0,
       relationshipsWithBirthdays: relationships?.filter(r => r.birthday).length || 0,
+      relationshipsWithAnniversaries: relationships?.filter(r => r.anniversary).length || 0,
+      relationshipsWithDateIdeas: relationships?.filter(r => r.date_ideas_frequency && r.date_ideas_frequency !== 'never').length || 0,
+      forecast,
       relationships: relationships?.map(rel => ({
         name: rel.name,
         birthday: rel.birthday,
-        frequency: rel.birthday_notification_frequency,
+        anniversary: rel.anniversary,
+        birthdayFrequency: rel.birthday_notification_frequency,
+        anniversaryFrequency: rel.anniversary_notification_frequency,
+        dateIdeasFrequency: rel.date_ideas_frequency,
         email: rel.profiles.email,
-        shouldSendToday: checkIfShouldSendToday(rel.birthday, rel.birthday_notification_frequency)
+        shouldSendBirthdayToday: rel.birthday ? checkIfShouldSendOnDate(rel.birthday, rel.birthday_notification_frequency, today) : false,
+        shouldSendAnniversaryToday: rel.anniversary ? checkIfShouldSendOnDate(rel.anniversary, rel.anniversary_notification_frequency, today) : false,
+        shouldSendDateIdeasToday: rel.date_ideas_frequency && rel.date_ideas_frequency !== 'never' ? checkIfShouldSendDateIdeasOnDate(rel.date_ideas_frequency, today) : false
       })) || []
     };
-
-    // Test calling the actual birthday reminder function
-    const testResult = await fetch(`${supabaseUrl}/functions/v1/send-birthday-reminders?debug=true`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${supabaseServiceKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ debug: true })
-    });
-
-    const testResponse = await testResult.json();
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        debug: debugInfo,
-        testResult: testResponse
+        debug: debugInfo
       }),
       {
         status: 200,
@@ -101,31 +171,56 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-function checkIfShouldSendToday(birthday: string, frequency: string): boolean {
-  const getFrequencyDays = (freq: string): number => {
-    switch (freq) {
-      case '1_day': return 1;
-      case '3_days': return 3;
-      case '1_week': return 7;
-      case '2_weeks': return 14;
-      case '1_month': return 30;
-      case 'none': return -1;
-      default: return 7;
-    }
-  };
+function getFrequencyDays(frequency: string): number {
+  switch (frequency) {
+    case '1_day': return 1;
+    case '3_days': return 3;
+    case '1_week': return 7;
+    case '2_weeks': return 14;
+    case '1_month': return 30;
+    case 'none': return -1;
+    default: return 7;
+  }
+}
 
+function checkIfShouldSendOnDate(eventDate: string, frequency: string, checkDate: Date): boolean {
   const daysOffset = getFrequencyDays(frequency);
   if (daysOffset === -1) return false;
   
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
+  const normalizedCheckDate = new Date(checkDate);
+  normalizedCheckDate.setUTCHours(0, 0, 0, 0);
   
-  const currentYear = today.getUTCFullYear();
-  const eventThisYear = new Date(`${currentYear}-${birthday.slice(5)}T00:00:00.000Z`);
+  const currentYear = normalizedCheckDate.getUTCFullYear();
+  const eventThisYear = new Date(`${currentYear}-${eventDate.slice(5)}T00:00:00.000Z`);
   const reminderDate = new Date(eventThisYear);
   reminderDate.setUTCDate(eventThisYear.getUTCDate() - daysOffset);
   
-  return today.getTime() === reminderDate.getTime();
+  return normalizedCheckDate.getTime() === reminderDate.getTime();
+}
+
+function checkIfShouldSendDateIdeasOnDate(frequency: string, checkDate: Date): boolean {
+  const normalizedCheckDate = new Date(checkDate);
+  normalizedCheckDate.setUTCHours(0, 0, 0, 0);
+  
+  const dayOfWeek = normalizedCheckDate.getUTCDay(); // 0 = Sunday, 1 = Monday, etc.
+  
+  switch (frequency) {
+    case 'weekly':
+      return dayOfWeek === 1; // Monday
+    case 'biweekly':
+      // Every other Monday - use week number
+      const weekNumber = Math.floor((normalizedCheckDate.getTime() - new Date(normalizedCheckDate.getUTCFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000));
+      return dayOfWeek === 1 && weekNumber % 2 === 0;
+    case 'monthly':
+      // First Monday of each month
+      const firstOfMonth = new Date(normalizedCheckDate.getUTCFullYear(), normalizedCheckDate.getUTCMonth(), 1);
+      const firstMonday = new Date(firstOfMonth);
+      firstMonday.setUTCDate(1 + (8 - firstOfMonth.getUTCDay()) % 7);
+      return normalizedCheckDate.getTime() === firstMonday.getTime();
+    case 'never':
+    default:
+      return false;
+  }
 }
 
 serve(handler);
