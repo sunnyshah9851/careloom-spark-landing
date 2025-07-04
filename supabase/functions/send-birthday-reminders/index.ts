@@ -41,27 +41,48 @@ const getFrequencyDays = (frequency: string): number => {
     case '1_week': return 7;
     case '2_weeks': return 14;
     case '1_month': return 30;
-    case 'none': return -1; // -1 means no notifications
-    default: return 7; // default to 1 week
+    case 'none': return -1;
+    default: return 7;
   }
 };
 
-// Fixed function to check if a date matches the reminder criteria
+// Corrected function to check if a date matches the reminder criteria
 const shouldSendReminder = (eventDate: string, frequency: string): boolean => {
   const daysOffset = getFrequencyDays(frequency);
-  if (daysOffset === -1) return false; // No notifications
+  if (daysOffset === -1) return false;
   
   const today = new Date();
-  today.setUTCHours(0, 0, 0, 0); // Normalize to start of day UTC
+  today.setUTCHours(0, 0, 0, 0);
   
   const currentYear = today.getUTCFullYear();
   
-  // Create the event date for this year in UTC
-  const eventThisYear = new Date(`${currentYear}-${eventDate.slice(5)}T00:00:00.000Z`);
+  // Parse the event date (format: YYYY-MM-DD or MM-DD)
+  let eventMonth: number, eventDay: number;
+  if (eventDate.includes('-')) {
+    const parts = eventDate.split('-');
+    if (parts.length === 3) {
+      // Full date format YYYY-MM-DD
+      eventMonth = parseInt(parts[1]);
+      eventDay = parseInt(parts[2]);
+    } else {
+      // MM-DD format
+      eventMonth = parseInt(parts[0]);
+      eventDay = parseInt(parts[1]);
+    }
+  } else {
+    console.error('Invalid date format:', eventDate);
+    return false;
+  }
+  
+  // Create the event date for this year
+  const eventThisYear = new Date(currentYear, eventMonth - 1, eventDay);
+  eventThisYear.setUTCHours(0, 0, 0, 0);
   
   // Calculate the reminder date (X days before the event)
   const reminderDate = new Date(eventThisYear);
-  reminderDate.setUTCDate(eventThisYear.getUTCDate() - daysOffset);
+  reminderDate.setDate(eventThisYear.getDate() - daysOffset);
+  
+  const shouldSend = today.getTime() === reminderDate.getTime();
   
   console.log(`Debug shouldSendReminder:`, {
     eventDate,
@@ -70,11 +91,10 @@ const shouldSendReminder = (eventDate: string, frequency: string): boolean => {
     today: today.toISOString().split('T')[0],
     eventThisYear: eventThisYear.toISOString().split('T')[0],
     reminderDate: reminderDate.toISOString().split('T')[0],
-    shouldSend: today.getTime() === reminderDate.getTime()
+    shouldSend
   });
   
-  // Check if today is the reminder date
-  return today.getTime() === reminderDate.getTime();
+  return shouldSend;
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -83,10 +103,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const url = new URL(req.url);
-    const isDebug = url.searchParams.get('debug') === 'true';
+    console.log(`=== Birthday Reminder Function Started ===`);
+    console.log(`Execution time: ${new Date().toISOString()}`);
+    console.log(`Function called from: ${req.headers.get('user-agent') || 'unknown'}`);
     
-    // Parse request body to check for force send option
+    // Parse request
     let requestBody: any = {};
     try {
       const bodyText = await req.text();
@@ -94,25 +115,21 @@ const handler = async (req: Request): Promise<Response> => {
         requestBody = JSON.parse(bodyText);
       }
     } catch (e) {
-      // Ignore parsing errors for empty bodies
+      console.log('No request body or invalid JSON');
     }
     
+    const isDebug = requestBody.debug === true;
     const isForceSend = requestBody.forceSend === true;
-    const forceRelationships = requestBody.relationships || [];
+    const isScheduled = requestBody.scheduled === true;
     
-    console.log(`=== Birthday Reminder Function Started ===`);
-    console.log(`Execution time: ${new Date().toISOString()}`);
-    console.log(`Debug mode: ${isDebug}`);
-    console.log(`Force send mode: ${isForceSend}`);
-    console.log(`Force relationships: ${forceRelationships}`);
-    console.log(`Resend API Key present: ${!!resendApiKey}`);
+    console.log(`Mode: debug=${isDebug}, forceSend=${isForceSend}, scheduled=${isScheduled}`);
     
     const today = new Date();
-    const currentYear = today.getFullYear();
     console.log(`Today: ${today.toISOString().split('T')[0]} (UTC)`);
 
     // Fetch all relationships with their notification preferences
-    let query = supabase
+    console.log('Fetching relationships...');
+    const { data: relationships, error: fetchError } = await supabase
       .from('relationships')
       .select(`
         id,
@@ -125,13 +142,6 @@ const handler = async (req: Request): Promise<Response> => {
         profiles!inner(email, full_name)
       `)
       .not('profiles.email', 'is', null);
-
-    // If force sending, filter by specific relationships
-    if (isForceSend && forceRelationships.length > 0) {
-      query = query.in('name', forceRelationships);
-    }
-
-    const { data: relationships, error: fetchError } = await query;
 
     if (fetchError) {
       console.error('Error fetching relationships:', fetchError);
@@ -169,85 +179,61 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         if (shouldSend && !isDebug) {
+          const currentYear = today.getFullYear();
           const birthdayThisYear = `${currentYear}-${rel.birthday.slice(5)}`;
           const daysUntil = getFrequencyDays(rel.birthday_notification_frequency);
           
-          console.log(`Checking for existing birthday log for ${rel.name}...`);
+          console.log(`Sending birthday reminder for ${rel.name}...`);
           
-          // Check if we already sent a reminder for this birthday this year (skip for force send)
-          let existingBirthdayLog = null;
-          if (!isForceSend) {
-            const { data } = await supabase
-              .from('reminder_logs')
-              .select('id')
-              .eq('relationship_id', rel.id)
-              .eq('reminder_type', 'birthday')
-              .eq('event_date', birthdayThisYear)
-              .gte('sent_at', `${currentYear}-01-01`)
-              .single();
-            existingBirthdayLog = data;
-          }
+          // Send birthday reminder
+          const emailResult = await sendReminderEmail(
+            rel.profiles.email,
+            rel.profiles.full_name,
+            rel.name,
+            'birthday',
+            daysUntil,
+            new Date(birthdayThisYear)
+          );
 
-          if (!existingBirthdayLog || isForceSend) {
-            console.log(`${isForceSend ? 'Force s' : 'S'}ending birthday reminder for ${rel.name}...`);
+          if (emailResult.success) {
+            console.log(`Birthday email sent successfully for ${rel.name}`);
             
-            // Send birthday reminder
-            const emailResult = await sendReminderEmail(
-              rel.profiles.email,
-              rel.profiles.full_name,
-              rel.name,
-              'birthday',
-              daysUntil,
-              new Date(birthdayThisYear)
-            );
+            // Log the sent reminder (only if not force send)
+            if (!isForceSend) {
+              const { error: logError } = await supabase
+                .from('reminder_logs')
+                .insert({
+                  relationship_id: rel.id,
+                  reminder_type: 'birthday',
+                  reminder_date: today.toISOString().split('T')[0],
+                  event_date: birthdayThisYear
+                });
 
-            if (emailResult.success) {
-              console.log(`Birthday email sent successfully for ${rel.name}`);
-              
-              // Log the sent reminder (only if not force send to avoid duplicates)
-              if (!isForceSend) {
-                const { error: logError } = await supabase
-                  .from('reminder_logs')
-                  .insert({
-                    relationship_id: rel.id,
-                    reminder_type: 'birthday',
-                    reminder_date: today.toISOString().split('T')[0],
-                    event_date: birthdayThisYear
-                  });
-
-                if (logError) {
-                  console.error(`Error logging birthday reminder for ${rel.name}:`, logError);
-                } else {
-                  console.log(`Birthday reminder logged successfully for ${rel.name}`);
-                }
+              if (logError) {
+                console.error(`Error logging birthday reminder for ${rel.name}:`, logError);
               }
-
-              emailsSent.push({
-                type: 'birthday',
-                recipient: rel.profiles.email,
-                partner: rel.name,
-                daysUntil,
-                forceSent: isForceSend
-              });
-            } else {
-              console.error(`Failed to send birthday email for ${rel.name}:`, emailResult.error);
-              emailErrors.push({
-                type: 'birthday',
-                recipient: rel.profiles.email,
-                partner: rel.name,
-                error: emailResult.error,
-                forceSent: isForceSend
-              });
             }
+
+            emailsSent.push({
+              type: 'birthday',
+              recipient: rel.profiles.email,
+              partner: rel.name,
+              daysUntil,
+              forceSent: isForceSend
+            });
           } else {
-            console.log(`Birthday reminder already sent for ${rel.name} this year`);
+            console.error(`Failed to send birthday email for ${rel.name}:`, emailResult.error);
+            emailErrors.push({
+              type: 'birthday',
+              recipient: rel.profiles.email,
+              partner: rel.name,
+              error: emailResult.error
+            });
           }
         }
-      } else {
-        console.log(`No birthday set for ${rel.name}`);
       }
 
-      // Check for anniversary reminder (similar logic)
+      // Similar logic for anniversary reminders
       if (rel.anniversary) {
         console.log(`Anniversary: ${rel.anniversary}, Frequency: ${rel.anniversary_notification_frequency}`);
         
@@ -266,86 +252,60 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         if (shouldSend && !isDebug) {
+          const currentYear = today.getFullYear();
           const anniversaryThisYear = `${currentYear}-${rel.anniversary.slice(5)}`;
           const daysUntil = getFrequencyDays(rel.anniversary_notification_frequency);
           
-          console.log(`Checking for existing anniversary log for ${rel.name}...`);
+          console.log(`Sending anniversary reminder for ${rel.name}...`);
           
-          // Check if we already sent a reminder for this anniversary this year (skip for force send)
-          let existingAnniversaryLog = null;
-          if (!isForceSend) {
-            const { data } = await supabase
-              .from('reminder_logs')
-              .select('id')
-              .eq('relationship_id', rel.id)
-              .eq('reminder_type', 'anniversary')
-              .eq('event_date', anniversaryThisYear)
-              .gte('sent_at', `${currentYear}-01-01`)
-              .single();
-            existingAnniversaryLog = data;
-          }
+          const emailResult = await sendReminderEmail(
+            rel.profiles.email,
+            rel.profiles.full_name,
+            rel.name,
+            'anniversary',
+            daysUntil,
+            new Date(anniversaryThisYear)
+          );
 
-          if (!existingAnniversaryLog || isForceSend) {
-            console.log(`${isForceSend ? 'Force s' : 'S'}ending anniversary reminder for ${rel.name}...`);
+          if (emailResult.success) {
+            console.log(`Anniversary email sent successfully for ${rel.name}`);
             
-            // Send anniversary reminder
-            const emailResult = await sendReminderEmail(
-              rel.profiles.email,
-              rel.profiles.full_name,
-              rel.name,
-              'anniversary',
-              daysUntil,
-              new Date(anniversaryThisYear)
-            );
+            if (!isForceSend) {
+              const { error: logError } = await supabase
+                .from('reminder_logs')
+                .insert({
+                  relationship_id: rel.id,
+                  reminder_type: 'anniversary',
+                  reminder_date: today.toISOString().split('T')[0],
+                  event_date: anniversaryThisYear
+                });
 
-            if (emailResult.success) {
-              console.log(`Anniversary email sent successfully for ${rel.name}`);
-              
-              // Log the sent reminder (only if not force send to avoid duplicates)
-              if (!isForceSend) {
-                const { error: logError } = await supabase
-                  .from('reminder_logs')
-                  .insert({
-                    relationship_id: rel.id,
-                    reminder_type: 'anniversary',
-                    reminder_date: today.toISOString().split('T')[0],
-                    event_date: anniversaryThisYear
-                  });
-
-                if (logError) {
-                  console.error(`Error logging anniversary reminder for ${rel.name}:`, logError);
-                } else {
-                  console.log(`Anniversary reminder logged successfully for ${rel.name}`);
-                }
+              if (logError) {
+                console.error(`Error logging anniversary reminder for ${rel.name}:`, logError);
               }
-
-              emailsSent.push({
-                type: 'anniversary',
-                recipient: rel.profiles.email,
-                partner: rel.name,
-                daysUntil,
-                forceSent: isForceSend
-              });
-            } else {
-              console.error(`Failed to send anniversary email for ${rel.name}:`, emailResult.error);
-              emailErrors.push({
-                type: 'anniversary',
-                recipient: rel.profiles.email,
-                partner: rel.name,
-                error: emailResult.error,
-                forceSent: isForceSend
-              });
             }
+
+            emailsSent.push({
+              type: 'anniversary',
+              recipient: rel.profiles.email,
+              partner: rel.name,
+              daysUntil,
+              forceSent: isForceSend
+            });
           } else {
-            console.log(`Anniversary reminder already sent for ${rel.name} this year`);
+            console.error(`Failed to send anniversary email for ${rel.name}:`, emailResult.error);
+            emailErrors.push({
+              type: 'anniversary',
+              recipient: rel.profiles.email,
+              partner: rel.name,
+              error: emailResult.error
+            });
           }
         }
-      } else {
-        console.log(`No anniversary set for ${rel.name}`);
       }
     }
 
-    console.log(`\n=== Summary ===`);
+    console.log(`\n=== Function Summary ===`);
     console.log(`Successfully sent ${emailsSent.length} reminder emails`);
     console.log(`Failed to send ${emailErrors.length} emails`);
     console.log(`Function execution completed at: ${new Date().toISOString()}`);
@@ -357,7 +317,6 @@ const handler = async (req: Request): Promise<Response> => {
           debug: true,
           today: today.toISOString().split('T')[0],
           debugInfo,
-          emailErrors: emailErrors.length > 0 ? emailErrors : undefined,
           message: 'Debug mode - no emails sent'
         }),
         {
@@ -373,8 +332,7 @@ const handler = async (req: Request): Promise<Response> => {
         emailsSent: emailsSent.length,
         emailErrors: emailErrors.length,
         details: emailsSent,
-        errors: emailErrors.length > 0 ? emailErrors : undefined,
-        forceSent: isForceSend
+        errors: emailErrors.length > 0 ? emailErrors : undefined
       }),
       {
         status: 200,
@@ -385,7 +343,10 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error('Error in send-birthday-reminders function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        stack: error.stack 
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -414,74 +375,47 @@ async function sendReminderEmail(
     const daysText = daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`;
     const emoji = eventType === 'birthday' ? '🎂' : '💕';
 
-    console.log(`Attempting to send ${eventType} email to ${recipientEmail} for ${partnerName}`);
-    console.log(`Using Resend API key: ${resendApiKey ? 'Present' : 'Missing'}`);
+    console.log(`Sending ${eventType} email to ${recipientEmail} for ${partnerName}`);
 
     const emailResponse = await resend.emails.send({
-      from: "Careloom <careloom@resend.dev>",
+      from: "Careloom <hello@careloom.com>",
       to: [recipientEmail],
-      subject: `${emoji} Reminder: ${partnerName}'s ${eventTypeDisplay} is ${daysText}!`,
+      subject: `${partnerName}'s ${eventTypeDisplay} is ${daysText}`,
       html: `
-        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #fdf2f8;">
-          <div style="background: white; border-radius: 12px; padding: 32px; border: 1px solid #fce7f3;">
-            <div style="text-align: center; margin-bottom: 32px;">
-              <h1 style="color: #be185d; font-size: 28px; margin: 0; font-weight: 700;">${emoji} Special Day Reminder</h1>
-            </div>
-            
-            <div style="background: #fdf2f8; border-radius: 8px; padding: 24px; margin-bottom: 24px; border-left: 4px solid #ec4899;">
-              <h2 style="color: #881337; margin: 0 0 12px 0; font-size: 20px;">Hi ${recipientName}!</h2>
-              <p style="color: #4c1d95; font-size: 16px; line-height: 1.6; margin: 0;">
-                This is a friendly reminder that <strong>${partnerName}'s ${eventType}</strong> is ${daysText} on <strong>${dateString}</strong>.
-              </p>
-            </div>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #2563eb;">Hi ${recipientName}!</h2>
+          
+          <p style="font-size: 16px; line-height: 1.5; color: #374151;">
+            This is a friendly reminder that <strong>${partnerName}'s ${eventType}</strong> is ${daysText} on <strong>${dateString}</strong>.
+          </p>
 
-            <div style="background: #f0fdf4; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
-              <h3 style="color: #14532d; margin: 0 0 12px 0; font-size: 18px;">💡 Some ideas to make it special:</h3>
-              <ul style="color: #166534; font-size: 14px; line-height: 1.6; margin: 8px 0; padding-left: 20px;">
-                ${eventType === 'birthday' ? `
-                  <li>Plan a surprise celebration</li>
-                  <li>Choose a thoughtful gift</li>
-                  <li>Write a heartfelt card or message</li>
-                  <li>Organize a gathering with friends and family</li>
-                ` : `
-                  <li>Plan a romantic dinner</li>
-                  <li>Recreate your first date</li>
-                  <li>Create a photo album of memories</li>
-                  <li>Plan a special getaway</li>
-                `}
-              </ul>
-            </div>
-
-            <div style="text-align: center; margin-top: 32px;">
-              <p style="color: #6b7280; font-size: 14px; margin: 0;">
-                Sent with love from <span style="color: #ec4899; font-weight: 600;">Careloom</span> 💖
-              </p>
-              <p style="color: #9ca3af; font-size: 12px; margin: 8px 0 0 0;">
-                You're receiving this because you set up a reminder ${daysUntil === 1 ? '1 day' : daysUntil + ' days'} before ${partnerName}'s ${eventType}.
-              </p>
-            </div>
+          <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin: 20px 0;">
+            <h3 style="color: #1f2937; margin-top: 0;">Some ideas to make it special:</h3>
+            <ul style="color: #4b5563; line-height: 1.6;">
+              ${eventType === 'birthday' ? `
+                <li>Plan a surprise celebration</li>
+                <li>Choose a thoughtful gift</li>
+                <li>Write a heartfelt card</li>
+              ` : `
+                <li>Plan a romantic dinner</li>
+                <li>Recreate your first date</li>
+                <li>Create a photo album of memories</li>
+              `}
+            </ul>
           </div>
+
+          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+            Sent with care from Careloom
+          </p>
         </div>
       `,
     });
 
-    console.log(`${eventTypeDisplay} reminder email sent successfully:`, JSON.stringify(emailResponse, null, 2));
+    console.log(`${eventTypeDisplay} reminder email sent successfully:`, emailResponse);
     return { success: true };
 
   } catch (error: any) {
     console.error(`Error sending ${eventType} reminder email:`, error);
-    
-    // Enhanced error logging for Resend API issues
-    if (error.message?.includes('API key')) {
-      console.error('RESEND API KEY ISSUE: Please check if your Resend API key is valid and not expired');
-    }
-    if (error.message?.includes('domain')) {
-      console.error('DOMAIN ISSUE: Please verify your sending domain is verified in Resend dashboard');
-    }
-    if (error.message?.includes('rate limit')) {
-      console.error('RATE LIMIT: Resend API rate limit exceeded');
-    }
-    
     return { success: false, error: error.message };
   }
 }

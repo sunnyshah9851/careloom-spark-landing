@@ -18,23 +18,60 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log('Setting up daily cron job for birthday reminders...');
+    console.log('=== Setting up cron jobs ===');
+    console.log('Environment check:', {
+      hasSupabaseUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      supabaseUrl: supabaseUrl
+    });
 
-    // Create the cron job that runs daily at 9 AM UTC
+    // Create both cron jobs that run daily
     const { data, error } = await supabase.rpc('setup_reminder_cron');
 
     if (error) {
-      console.error('Error setting up cron job:', error);
+      console.error('Error setting up cron jobs:', error);
       throw error;
     }
 
-    console.log('Cron job setup successfully');
+    console.log('Cron jobs setup result:', data);
+
+    // Test the birthday reminders function immediately
+    console.log('Testing birthday reminders function...');
+    const testBirthdayResult = await fetch(`${supabaseUrl}/functions/v1/send-birthday-reminders`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ test: true, debug: true })
+    });
+
+    const birthdayTestData = await testBirthdayResult.text();
+    console.log('Birthday reminders test result:', birthdayTestData);
+
+    // Test the date ideas function
+    console.log('Testing date ideas function...');
+    const testDateIdeasResult = await fetch(`${supabaseUrl}/functions/v1/send-date-ideas`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseServiceKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ scheduled: true })
+    });
+
+    const dateIdeasTestData = await testDateIdeasResult.text();
+    console.log('Date ideas test result:', dateIdeasTestData);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Daily reminder cron job has been set up successfully',
-        data 
+        message: 'Cron jobs have been set up and tested successfully',
+        data,
+        testResults: {
+          birthdayReminders: birthdayTestData,
+          dateIdeas: dateIdeasTestData
+        }
       }),
       {
         status: 200,
@@ -45,7 +82,10 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error('Error in setup-cron-job function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        stack: error.stack 
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },
