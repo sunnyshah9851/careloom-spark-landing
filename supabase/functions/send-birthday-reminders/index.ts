@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from "npm:resend@2.0.0";
@@ -163,9 +162,9 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`Profile: ${rel.profiles.full_name} (${rel.profiles.email})`);
       console.log(`Relationship email: ${rel.email}`);
       
-      // Determine the recipient email - use relationship email if available, otherwise profile email
-      const recipientEmail = rel.email || rel.profiles.email;
-      console.log(`Will send to: ${recipientEmail}`);
+      // Always send to the profile owner's email
+      const recipientEmail = rel.profiles.email;
+      console.log(`Will send to profile owner: ${recipientEmail}`);
       
       // Check for birthday reminder
       if (rel.birthday) {
@@ -193,10 +192,10 @@ const handler = async (req: Request): Promise<Response> => {
           
           console.log(`Sending birthday reminder for ${rel.name} to ${recipientEmail}...`);
           
-          // Send birthday reminder to the correct email
+          // Send birthday reminder to the profile owner
           const emailResult = await sendReminderEmail(
             recipientEmail,
-            rel.profiles.full_name, // Profile owner's name (who set up the reminder)
+            rel.profiles.full_name, // Profile owner's name (who receives the reminder)
             rel.name, // The person whose birthday it is
             'birthday',
             daysUntil,
