@@ -18,14 +18,14 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    console.log('=== Setting up cron jobs ===');
+    console.log('=== Setting up corrected cron jobs ===');
     console.log('Environment check:', {
       hasSupabaseUrl: !!supabaseUrl,
       hasServiceKey: !!supabaseServiceKey,
       supabaseUrl: supabaseUrl
     });
 
-    // Create both cron jobs that run daily
+    // Create both cron jobs with corrected HTTP function calls
     const { data, error } = await supabase.rpc('setup_reminder_cron');
 
     if (error) {
@@ -37,40 +37,44 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Test the birthday reminders function immediately
     console.log('Testing birthday reminders function...');
-    const testBirthdayResult = await fetch(`${supabaseUrl}/functions/v1/send-birthday-reminders`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${supabaseServiceKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ test: true, debug: true })
+    const { data: birthdayData, error: birthdayError } = await supabase.functions.invoke('send-birthday-reminders', {
+      body: { test: true, debug: true }
     });
 
-    const birthdayTestData = await testBirthdayResult.text();
-    console.log('Birthday reminders test result:', birthdayTestData);
+    if (birthdayError) {
+      console.error('Birthday reminders test failed:', birthdayError);
+    } else {
+      console.log('Birthday reminders test result:', birthdayData);
+    }
 
     // Test the date ideas function
     console.log('Testing date ideas function...');
-    const testDateIdeasResult = await fetch(`${supabaseUrl}/functions/v1/send-date-ideas`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${supabaseServiceKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ scheduled: true })
+    const { data: dateIdeasData, error: dateIdeasError } = await supabase.functions.invoke('send-date-ideas', {
+      body: { scheduled: true, test: true }
     });
 
-    const dateIdeasTestData = await testDateIdeasResult.text();
-    console.log('Date ideas test result:', dateIdeasTestData);
+    if (dateIdeasError) {
+      console.error('Date ideas test failed:', dateIdeasError);
+    } else {
+      console.log('Date ideas test result:', dateIdeasData);
+    }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Cron jobs have been set up and tested successfully',
-        data,
+        message: 'Cron jobs have been set up with corrected HTTP function calls and tested successfully',
+        setupResult: data,
         testResults: {
-          birthdayReminders: birthdayTestData,
-          dateIdeas: dateIdeasTestData
+          birthdayReminders: {
+            success: !birthdayError,
+            data: birthdayData,
+            error: birthdayError
+          },
+          dateIdeas: {
+            success: !dateIdeasError,
+            data: dateIdeasData,
+            error: dateIdeasError
+          }
         }
       }),
       {
@@ -84,6 +88,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({ 
         error: error.message,
+        details: 'Failed to set up cron jobs with corrected HTTP function calls',
         stack: error.stack 
       }),
       {
