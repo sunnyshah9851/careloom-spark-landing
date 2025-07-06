@@ -242,6 +242,13 @@ export const TestBirthdayReminders = () => {
                     <div className="text-pink-800">Anniversary Reminders</div>
                   </div>
                 </div>
+                
+                {/* Add today's date display */}
+                <div className="mt-4 text-center">
+                  <div className="text-sm text-blue-700">
+                    <strong>Today:</strong> {results.today} | <strong>Current Time:</strong> {new Date().toISOString()}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -259,14 +266,15 @@ export const TestBirthdayReminders = () => {
                     }`}
                   >
                     <div className="flex justify-between items-start">
-                      <div>
+                      <div className="flex-grow">
                         <h4 className="font-medium text-gray-900">
                           {rel.type === 'birthday' ? '🎂' : '💕'} {rel.name} ({rel.type})
                         </h4>
-                        <div className="text-sm text-gray-600 mt-1">
-                          <div>Email: {rel.email}</div>
-                          <div>Date: {rel.date}</div>
-                          <div>Frequency: {rel.frequency}</div>
+                        <div className="text-sm text-gray-600 mt-1 space-y-1">
+                          <div><strong>Profile Owner:</strong> {rel.profileOwner}</div>
+                          <div><strong>Event Date:</strong> {rel.date}</div>
+                          <div><strong>Frequency:</strong> {rel.frequency}</div>
+                          <div><strong>Should Send Today:</strong> {rel.shouldSend ? 'YES' : 'NO'}</div>
                         </div>
                       </div>
                       <div className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -324,15 +332,24 @@ export const TestBirthdayReminders = () => {
         )}
 
         <div className="text-sm text-blue-600 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h4 className="font-medium mb-2">🔧 Troubleshooting Steps:</h4>
+          <h4 className="font-medium mb-2">🔧 Why You Might Not Have Received An Email:</h4>
           <ol className="list-decimal list-inside space-y-1">
-            <li>First click "Debug & Forecast" to see what emails should be sent</li>
-            <li>If relationships show up but "Should Send Today" is 0, check your birthday/anniversary dates and notification frequencies</li>
-            <li>Use "Test Email Delivery" to verify the email sending system is working</li>
-            <li>If emails should send today, use "Force Send" to manually trigger them</li>
-            <li>Check your email inbox AND spam folder for reminders</li>
-            <li>Verify your Resend API key is configured correctly in Supabase secrets</li>
+            <li><strong>Timing:</strong> Automated emails are sent daily at 9:00 AM UTC. If it's not that time yet, wait for the scheduled run.</li>
+            <li><strong>Already Sent:</strong> If an email was already sent today for this birthday, it won't send again until tomorrow.</li>
+            <li><strong>Date Calculation:</strong> The reminder timing is based on your notification frequency setting (e.g., 3 days before).</li>
+            <li><strong>Email Provider:</strong> Check your spam/junk folder - sometimes automated emails end up there.</li>
+            <li><strong>Birthday Date:</strong> Verify the birthday date is set correctly in MM-DD format.</li>
+            <li><strong>API Configuration:</strong> Ensure your Resend API key is configured and domain is verified.</li>
           </ol>
+          
+          <div className="mt-3">
+            <strong>Next Steps:</strong>
+            <ol className="list-decimal list-inside space-y-1 mt-1">
+              <li>Click "Debug & Forecast" to see if your relationship should trigger an email today</li>
+              <li>If it shows "Should Send Today = YES", use "Force Send" to manually trigger the email</li>
+              <li>Check your email (including spam folder) after force sending</li>
+            </ol>
+          </div>
         </div>
       </CardContent>
     </Card>
