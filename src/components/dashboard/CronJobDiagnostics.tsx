@@ -17,87 +17,42 @@ export const CronJobDiagnostics = () => {
     try {
       console.log('=== RUNNING CRON JOB DIAGNOSTICS ===');
       
-      // Check if cron jobs exist and their status
-      const { data: cronJobs, error: cronError } = await supabase
-        .rpc('sql', {
-          query: `
-            SELECT 
-              jobname, 
-              schedule, 
-              command, 
-              active,
-              created_at,
-              updated_at
-            FROM cron.job 
-            WHERE jobname IN ('daily-birthday-reminders', 'daily-date-ideas');
-          `
-        });
-
-      if (cronError) {
-        console.error('Error checking cron jobs:', cronError);
-        throw new Error(`Cron job check failed: ${cronError.message}`);
+      // Since we can't directly query cron tables, let's check if setup function works
+      const { data: setupResult, error: setupError } = await supabase.rpc('setup_reminder_cron');
+      
+      if (setupError) {
+        console.error('Error calling setup function:', setupError);
+        throw new Error(`Setup function failed: ${setupError.message}`);
       }
 
-      // Check cron job history/logs
-      const { data: cronHistory, error: historyError } = await supabase
-        .rpc('sql', {
-          query: `
-            SELECT 
-              jobid,
-              runid,
-              job_pid,
-              database,
-              username,
-              command,
-              status,
-              return_message,
-              start_time,
-              end_time
-            FROM cron.job_run_details 
-            WHERE command LIKE '%send-birthday-reminders%' OR command LIKE '%send-date-ideas%'
-            ORDER BY start_time DESC 
-            LIMIT 20;
-          `
-        });
+      // Test calling the actual functions to see if they work
+      const birthdayTest = await supabase.functions.invoke('send-birthday-reminders', {
+        body: { debug: true, test: true }
+      });
 
-      if (historyError) {
-        console.error('Error checking cron history:', historyError);
-        // Don't throw here, as this might not be available in all Supabase tiers
-      }
-
-      // Check if extensions are enabled
-      const { data: extensions, error: extError } = await supabase
-        .rpc('sql', {
-          query: `
-            SELECT extname, extversion 
-            FROM pg_extension 
-            WHERE extname IN ('pg_cron', 'pg_net', 'http');
-          `
-        });
-
-      if (extError) {
-        console.error('Error checking extensions:', extError);
-        throw new Error(`Extension check failed: ${extError.message}`);
-      }
+      const dateIdeasTest = await supabase.functions.invoke('send-date-ideas', {
+        body: { scheduled: true, test: true }
+      });
 
       const diagnosticResults = {
-        cronJobs: cronJobs || [],
-        cronHistory: cronHistory || [],
-        extensions: extensions || [],
+        setupResult,
+        birthdayFunctionWorking: !birthdayTest.error,
+        birthdayTestData: birthdayTest.data || birthdayTest.error,
+        dateIdeasFunctionWorking: !dateIdeasTest.error,
+        dateIdeasTestData: dateIdeasTest.data || dateIdeasTest.error,
         timestamp: new Date().toISOString()
       };
 
       console.log('=== DIAGNOSTIC RESULTS ===');
-      console.log('Cron Jobs:', cronJobs);
-      console.log('Cron History:', cronHistory);
-      console.log('Extensions:', extensions);
+      console.log('Setup Result:', setupResult);
+      console.log('Birthday Function Test:', birthdayTest);
+      console.log('Date Ideas Function Test:', dateIdeasTest);
 
       setDiagnostics(diagnosticResults);
 
-      const activeJobs = cronJobs?.filter(job => job.active) || [];
       toast({
         title: "Diagnostics Complete",
-        description: `Found ${cronJobs?.length || 0} scheduled jobs, ${activeJobs.length} active. ${extensions?.length || 0} extensions enabled.`,
+        description: `Setup function result: ${setupResult}. Functions tested.`,
       });
 
     } catch (err: any) {
@@ -174,103 +129,90 @@ export const CronJobDiagnostics = () => {
             {/* System Status */}
             <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
               <h3 className="font-semibold mb-3 text-blue-900">📊 System Status</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="text-center p-3 bg-white rounded">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {diagnostics.extensions?.length || 0}
-                  </div>
-                  <div className="text-blue-800">Extensions Enabled</div>
-                  <div className="text-xs text-gray-600 mt-1">
-                    {diagnostics.extensions?.map((ext: any) => ext.extname).join(', ') || 'None'}
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="text-center p-3 bg-white rounded">
                   <div className="text-2xl font-bold text-green-600">
-                    {diagnostics.cronJobs?.length || 0}
+                    {diagnostics.birthdayFunctionWorking ? '✅' : '❌'}
                   </div>
-                  <div className="text-green-800">Scheduled Jobs</div>
+                  <div className="text-green-800">Birthday Function</div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    {diagnostics.birthdayFunctionWorking ? 'Working' : 'Error'}
+                  </div>
                 </div>
                 <div className="text-center p-3 bg-white rounded">
                   <div className="text-2xl font-bold text-purple-600">
-                    {diagnostics.cronJobs?.filter((job: any) => job.active).length || 0}
+                    {diagnostics.dateIdeasFunctionWorking ? '✅' : '❌'}
                   </div>
-                  <div className="text-purple-800">Active Jobs</div>
+                  <div className="text-purple-800">Date Ideas Function</div>
+                  <div className="text-xs text-gray-600 mt-1">
+                    {diagnostics.dateIdeasFunctionWorking ? 'Working' : 'Error'}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* Cron Jobs Details */}
-            {diagnostics.cronJobs && diagnostics.cronJobs.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="font-semibold text-gray-900">📅 Scheduled Cron Jobs:</h3>
-                {diagnostics.cronJobs.map((job: any, index: number) => (
-                  <div 
-                    key={index} 
-                    className={`p-4 rounded-lg border-l-4 ${
-                      job.active 
-                        ? 'bg-green-50 border-green-400' 
-                        : 'bg-red-50 border-red-400'
-                    }`}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-medium text-gray-900">{job.jobname}</h4>
-                        <div className="text-sm text-gray-600 mt-1">
-                          <div><strong>Schedule:</strong> {job.schedule}</div>
-                          <div><strong>Created:</strong> {job.created_at}</div>
-                          <div className="mt-2"><strong>Command:</strong></div>
-                          <pre className="text-xs bg-gray-100 p-2 rounded mt-1 overflow-auto">
-                            {job.command}
-                          </pre>
-                        </div>
-                      </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        job.active 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {job.active ? '✅ ACTIVE' : '❌ INACTIVE'}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+            {/* Setup Result */}
+            {diagnostics.setupResult && (
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <h3 className="font-semibold mb-2 text-green-900">✅ Setup Function Result:</h3>
+                <div className="text-sm text-green-800">
+                  {diagnostics.setupResult}
+                </div>
               </div>
             )}
 
-            {/* Cron History */}
-            {diagnostics.cronHistory && diagnostics.cronHistory.length > 0 && (
-              <div className="space-y-3">
-                <h3 className="font-semibold text-gray-900">📜 Recent Cron Executions:</h3>
-                {diagnostics.cronHistory.slice(0, 5).map((run: any, index: number) => (
-                  <div 
-                    key={index} 
-                    className={`p-3 rounded-lg border-l-4 ${
-                      run.status === 'succeeded' 
-                        ? 'bg-green-50 border-green-400' 
-                        : 'bg-red-50 border-red-400'
-                    }`}
-                  >
-                    <div className="text-sm">
-                      <div className="flex justify-between">
-                        <span><strong>Started:</strong> {run.start_time}</span>
-                        <span className={`px-2 py-1 rounded text-xs ${
-                          run.status === 'succeeded' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {run.status}
-                        </span>
-                      </div>
-                      {run.return_message && (
-                        <div className="mt-2">
-                          <strong>Result:</strong> {run.return_message}
-                        </div>
-                      )}
+            {/* Function Test Results */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-gray-900">🧪 Function Test Results:</h3>
+              
+              <div className={`p-4 rounded-lg border-l-4 ${
+                diagnostics.birthdayFunctionWorking 
+                  ? 'bg-green-50 border-green-400' 
+                  : 'bg-red-50 border-red-400'
+              }`}>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-medium text-gray-900">Birthday Reminders Function</h4>
+                    <div className="text-sm text-gray-600 mt-1">
+                      <pre className="text-xs bg-gray-100 p-2 rounded mt-1 overflow-auto">
+                        {JSON.stringify(diagnostics.birthdayTestData, null, 2)}
+                      </pre>
                     </div>
                   </div>
-                ))}
+                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    diagnostics.birthdayFunctionWorking 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {diagnostics.birthdayFunctionWorking ? '✅ WORKING' : '❌ ERROR'}
+                  </div>
+                </div>
               </div>
-            )}
+
+              <div className={`p-4 rounded-lg border-l-4 ${
+                diagnostics.dateIdeasFunctionWorking 
+                  ? 'bg-green-50 border-green-400' 
+                  : 'bg-red-50 border-red-400'
+              }`}>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-medium text-gray-900">Date Ideas Function</h4>
+                    <div className="text-sm text-gray-600 mt-1">
+                      <pre className="text-xs bg-gray-100 p-2 rounded mt-1 overflow-auto">
+                        {JSON.stringify(diagnostics.dateIdeasTestData, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    diagnostics.dateIdeasFunctionWorking 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {diagnostics.dateIdeasFunctionWorking ? '✅ WORKING' : '❌ ERROR'}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Error Display */}
             {diagnostics.error && (
@@ -282,16 +224,27 @@ export const CronJobDiagnostics = () => {
               </div>
             )}
 
-            {/* Recommendations */}
+            {/* Troubleshooting Steps */}
             <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-              <h3 className="font-semibold mb-2 text-yellow-900">💡 Troubleshooting Steps:</h3>
+              <h3 className="font-semibold mb-2 text-yellow-900">💡 Why Cron Jobs May Not Be Running:</h3>
               <ol className="list-decimal list-inside text-sm text-yellow-800 space-y-1">
-                <li>Check if pg_cron and net extensions are enabled</li>
-                <li>Verify cron jobs are active and have correct schedules</li>
-                <li>Ensure your Supabase project tier supports cron jobs</li>
-                <li>Check if there are any execution errors in the history</li>
-                <li>Try recreating the cron jobs if they appear inactive</li>
-                <li>Contact Supabase support if cron jobs are not available in your tier</li>
+                <li><strong>Supabase Tier Limitation:</strong> Free tier may not support pg_cron extension</li>
+                <li><strong>Extension Not Enabled:</strong> pg_cron and net extensions need to be enabled</li>
+                <li><strong>Job Not Scheduled:</strong> The setup function may not have created the scheduled jobs</li>
+                <li><strong>Authentication Issues:</strong> Service role key may be incorrect in cron job</li>
+                <li><strong>URL Issues:</strong> The function URLs in the cron job may be wrong</li>
+                <li><strong>Manual Testing Works:</strong> If manual tests work but cron doesn't, it's likely a scheduling issue</li>
+              </ol>
+            </div>
+
+            {/* Next Steps */}
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h3 className="font-semibold mb-2 text-blue-900">🚀 Next Steps:</h3>
+              <ol className="list-decimal list-inside text-sm text-blue-800 space-y-1">
+                <li>Check your Supabase project settings to see if pg_cron is available</li>
+                <li>Consider upgrading to a paid Supabase tier if you're on the free tier</li>
+                <li>Contact Supabase support to confirm cron job availability</li>
+                <li>For now, you can manually trigger emails using the test page</li>
               </ol>
             </div>
 
