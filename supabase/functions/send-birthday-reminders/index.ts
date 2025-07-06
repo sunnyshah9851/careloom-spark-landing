@@ -27,6 +27,7 @@ interface Relationship {
   birthday_notification_frequency: string;
   anniversary_notification_frequency: string;
   profile_id: string;
+  email: string | null;
   profiles: {
     email: string;
     full_name: string;
@@ -139,6 +140,7 @@ const handler = async (req: Request): Promise<Response> => {
         birthday_notification_frequency,
         anniversary_notification_frequency,
         profile_id,
+        email,
         profiles!inner(email, full_name)
       `)
       .not('profiles.email', 'is', null);
@@ -159,6 +161,11 @@ const handler = async (req: Request): Promise<Response> => {
       
       console.log(`\n--- Checking relationship: ${rel.name} ---`);
       console.log(`Profile: ${rel.profiles.full_name} (${rel.profiles.email})`);
+      console.log(`Relationship email: ${rel.email}`);
+      
+      // Determine the recipient email - use relationship email if available, otherwise profile email
+      const recipientEmail = rel.email || rel.profiles.email;
+      console.log(`Will send to: ${recipientEmail}`);
       
       // Check for birthday reminder
       if (rel.birthday) {
@@ -174,7 +181,8 @@ const handler = async (req: Request): Promise<Response> => {
             date: rel.birthday,
             frequency: rel.birthday_notification_frequency,
             shouldSend,
-            email: rel.profiles.email
+            email: recipientEmail,
+            profileOwner: rel.profiles.email
           });
         }
 
@@ -183,20 +191,20 @@ const handler = async (req: Request): Promise<Response> => {
           const birthdayThisYear = `${currentYear}-${rel.birthday.slice(5)}`;
           const daysUntil = getFrequencyDays(rel.birthday_notification_frequency);
           
-          console.log(`Sending birthday reminder for ${rel.name}...`);
+          console.log(`Sending birthday reminder for ${rel.name} to ${recipientEmail}...`);
           
-          // Send birthday reminder
+          // Send birthday reminder to the correct email
           const emailResult = await sendReminderEmail(
-            rel.profiles.email,
-            rel.profiles.full_name,
-            rel.name,
+            recipientEmail,
+            rel.profiles.full_name, // Profile owner's name (who set up the reminder)
+            rel.name, // The person whose birthday it is
             'birthday',
             daysUntil,
             new Date(birthdayThisYear)
           );
 
           if (emailResult.success) {
-            console.log(`Birthday email sent successfully for ${rel.name}`);
+            console.log(`Birthday email sent successfully for ${rel.name} to ${recipientEmail}`);
             
             // Log the sent reminder (only if not force send)
             if (!isForceSend) {
@@ -216,7 +224,7 @@ const handler = async (req: Request): Promise<Response> => {
 
             emailsSent.push({
               type: 'birthday',
-              recipient: rel.profiles.email,
+              recipient: recipientEmail,
               partner: rel.name,
               daysUntil,
               forceSent: isForceSend
@@ -225,7 +233,7 @@ const handler = async (req: Request): Promise<Response> => {
             console.error(`Failed to send birthday email for ${rel.name}:`, emailResult.error);
             emailErrors.push({
               type: 'birthday',
-              recipient: rel.profiles.email,
+              recipient: recipientEmail,
               partner: rel.name,
               error: emailResult.error
             });
@@ -247,7 +255,8 @@ const handler = async (req: Request): Promise<Response> => {
             date: rel.anniversary,
             frequency: rel.anniversary_notification_frequency,
             shouldSend,
-            email: rel.profiles.email
+            email: recipientEmail,
+            profileOwner: rel.profiles.email
           });
         }
 
@@ -256,10 +265,10 @@ const handler = async (req: Request): Promise<Response> => {
           const anniversaryThisYear = `${currentYear}-${rel.anniversary.slice(5)}`;
           const daysUntil = getFrequencyDays(rel.anniversary_notification_frequency);
           
-          console.log(`Sending anniversary reminder for ${rel.name}...`);
+          console.log(`Sending anniversary reminder for ${rel.name} to ${recipientEmail}...`);
           
           const emailResult = await sendReminderEmail(
-            rel.profiles.email,
+            recipientEmail,
             rel.profiles.full_name,
             rel.name,
             'anniversary',
@@ -268,7 +277,7 @@ const handler = async (req: Request): Promise<Response> => {
           );
 
           if (emailResult.success) {
-            console.log(`Anniversary email sent successfully for ${rel.name}`);
+            console.log(`Anniversary email sent successfully for ${rel.name} to ${recipientEmail}`);
             
             if (!isForceSend) {
               const { error: logError } = await supabase
@@ -287,7 +296,7 @@ const handler = async (req: Request): Promise<Response> => {
 
             emailsSent.push({
               type: 'anniversary',
-              recipient: rel.profiles.email,
+              recipient: recipientEmail,
               partner: rel.name,
               daysUntil,
               forceSent: isForceSend
@@ -296,7 +305,7 @@ const handler = async (req: Request): Promise<Response> => {
             console.error(`Failed to send anniversary email for ${rel.name}:`, emailResult.error);
             emailErrors.push({
               type: 'anniversary',
-              recipient: rel.profiles.email,
+              recipient: recipientEmail,
               partner: rel.name,
               error: emailResult.error
             });
@@ -357,7 +366,7 @@ const handler = async (req: Request): Promise<Response> => {
 
 async function sendReminderEmail(
   recipientEmail: string,
-  recipientName: string,
+  profileOwnerName: string,
   partnerName: string,
   eventType: 'birthday' | 'anniversary',
   daysUntil: number,
@@ -383,7 +392,7 @@ async function sendReminderEmail(
       subject: `${partnerName}'s ${eventTypeDisplay} is ${daysText}`,
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #2563eb;">Hi ${recipientName}!</h2>
+          <h2 style="color: #2563eb;">Hi there!</h2>
           
           <p style="font-size: 16px; line-height: 1.5; color: #374151;">
             This is a friendly reminder that <strong>${partnerName}'s ${eventType}</strong> is ${daysText} on <strong>${dateString}</strong>.
@@ -405,7 +414,7 @@ async function sendReminderEmail(
           </div>
 
           <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-            Sent with care from Careloom
+            Sent with care from Careloom (set up by ${profileOwnerName})
           </p>
         </div>
       `,
