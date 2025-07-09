@@ -27,7 +27,7 @@ const PeopleHeader = ({ onAddClick }: PeopleHeaderProps) => {
         className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
       >
         <Plus className="h-5 w-5 mr-2" />
-        Add Someone
+        Add Relationship
       </Button>
     </div>
   );

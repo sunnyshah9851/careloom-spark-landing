@@ -51,7 +51,7 @@ export default function DashboardOverview({ relationships, profile, onRefresh }:
             </div>
             <Button 
               onClick={() => setShowAddForm(true)}
-              className="bg-black hover:bg-gray-800 text-white px-6 py-3 rounded-lg shadow-sm transition-all duration-200"
+              className="bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
             >
               <Plus className="h-5 w-5 mr-2" />
               Add Relationship
