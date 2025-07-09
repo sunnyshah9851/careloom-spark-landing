@@ -1,7 +1,6 @@
 
 import { useState } from 'react';
 import DashboardStats from './DashboardStats';
-import UpcomingEvents from './UpcomingEvents';
 import RecentActivity from './RecentActivity';
 import ThoughtfulnessScore from './ThoughtfulnessScore';
 import RelationshipHealthCard from './RelationshipHealthCard';
@@ -78,16 +77,6 @@ export default function DashboardOverview({ relationships, profile, onRefresh }:
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - 2/3 width */}
             <div className="lg:col-span-2 space-y-8">
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                <div className="p-6 border-b border-gray-100">
-                  <h2 className="text-xl font-semibold text-gray-900">Upcoming Events</h2>
-                  <p className="text-gray-600 text-sm mt-1">Important dates coming up</p>
-                </div>
-                <div className="p-6">
-                  <UpcomingEvents relationships={relationships} />
-                </div>
-              </div>
-
               <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
                 <div className="p-6 border-b border-gray-100">
                   <h2 className="text-xl font-semibold text-gray-900">Recent Activity</h2>
