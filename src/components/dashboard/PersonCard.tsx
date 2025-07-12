@@ -281,27 +281,29 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                 </Select>
               </div>
               
-              <div>
-                <label className="text-xs text-blue-700 mb-1 block">Date Ideas Frequency</label>
-                <Select
-                  value={frequencies.date_ideas_frequency}
-                  onValueChange={(value) => {
-                    console.log('Date ideas frequency changed to:', value);
-                    setFrequencies(prev => ({ ...prev, date_ideas_frequency: value }));
-                  }}
-                >
-                  <SelectTrigger className="h-8 text-xs border-blue-200">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="biweekly">Every 2 weeks</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="none">Disabled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              {(relationship.relationship_type?.toLowerCase() === 'partner' || relationship.relationship_type?.toLowerCase() === 'spouse') && (
+                <div>
+                  <label className="text-xs text-blue-700 mb-1 block">Date Ideas Frequency</label>
+                  <Select
+                    value={frequencies.date_ideas_frequency}
+                    onValueChange={(value) => {
+                      console.log('Date ideas frequency changed to:', value);
+                      setFrequencies(prev => ({ ...prev, date_ideas_frequency: value }));
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs border-blue-200">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="biweekly">Every 2 weeks</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="none">Disabled</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="flex gap-2 pt-2">
                 <Button
@@ -326,7 +328,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-3 text-xs">
+            <div className={`grid gap-3 text-xs ${(relationship.relationship_type?.toLowerCase() === 'partner' || relationship.relationship_type?.toLowerCase() === 'spouse') ? 'grid-cols-3' : 'grid-cols-2'}`}>
               <div>
                 <span className="text-blue-600 font-medium">Birthday:</span>
                 <p className="text-blue-700">{getFrequencyLabel(relationship.birthday_notification_frequency)}</p>
@@ -335,10 +337,12 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                 <span className="text-blue-600 font-medium">Anniversary:</span>
                 <p className="text-blue-700">{getFrequencyLabel(relationship.anniversary_notification_frequency)}</p>
               </div>
-              <div>
-                <span className="text-blue-600 font-medium">Date Ideas:</span>
-                <p className="text-blue-700">{getDateIdeasFrequencyLabel(relationship.date_ideas_frequency)}</p>
-              </div>
+              {(relationship.relationship_type?.toLowerCase() === 'partner' || relationship.relationship_type?.toLowerCase() === 'spouse') && (
+                <div>
+                  <span className="text-blue-600 font-medium">Date Ideas:</span>
+                  <p className="text-blue-700">{getDateIdeasFrequencyLabel(relationship.date_ideas_frequency)}</p>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -171,24 +171,26 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
         </div>
       </div>
 
-      <div>
-        <Label className="text-sm text-gray-600">Date Ideas Frequency</Label>
-        <Select
-          value={editForm.date_ideas_frequency || 'weekly'}
-          onValueChange={(value) => setEditForm({ ...editForm, date_ideas_frequency: value })}
-        >
-          <SelectTrigger className="mt-1">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="daily">Daily</SelectItem>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="biweekly">Every 2 weeks</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
-            <SelectItem value="none">Disabled</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+      {(editForm.relationship_type?.toLowerCase() === 'partner' || editForm.relationship_type?.toLowerCase() === 'spouse') && (
+        <div>
+          <Label className="text-sm text-gray-600">Date Ideas Frequency</Label>
+          <Select
+            value={editForm.date_ideas_frequency || 'weekly'}
+            onValueChange={(value) => setEditForm({ ...editForm, date_ideas_frequency: value })}
+          >
+            <SelectTrigger className="mt-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">Daily</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="biweekly">Every 2 weeks</SelectItem>
+              <SelectItem value="monthly">Monthly</SelectItem>
+              <SelectItem value="none">Disabled</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       <div>
         <Label className="text-sm text-gray-600">Notes</Label>
