@@ -395,7 +395,7 @@ async function sendPersonalizedEmail(userEmail: string, userName: string, partne
 
   try {
     const emailResponse = await resend.emails.send({
-      from: "Careloom Ideas <hello@careloom.com>",
+      from: "Careloom Ideas <careloom@resend.dev>",
       to: [userEmail],
       subject: `Date ideas for you and ${partnerName} in ${city}`,
       html: emailHtml,
