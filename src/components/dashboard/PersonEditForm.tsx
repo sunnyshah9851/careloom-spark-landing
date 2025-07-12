@@ -23,6 +23,7 @@ interface Relationship {
   created_at: string;
   birthday_notification_frequency?: string;
   anniversary_notification_frequency?: string;
+  date_ideas_frequency?: string;
   city?: string;
 }
 
@@ -36,7 +37,8 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
   const [editForm, setEditForm] = useState<Partial<Relationship>>({
     ...relationship,
     birthday_notification_frequency: relationship.birthday_notification_frequency || '1_week',
-    anniversary_notification_frequency: relationship.anniversary_notification_frequency || '1_week'
+    anniversary_notification_frequency: relationship.anniversary_notification_frequency || '1_week',
+    date_ideas_frequency: relationship.date_ideas_frequency || 'weekly'
   });
 
   const handleSave = async () => {
@@ -52,7 +54,8 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
           notes: editForm.notes,
           relationship_type: editForm.relationship_type,
           birthday_notification_frequency: editForm.birthday_notification_frequency,
-          anniversary_notification_frequency: editForm.anniversary_notification_frequency
+          anniversary_notification_frequency: editForm.anniversary_notification_frequency,
+          date_ideas_frequency: editForm.date_ideas_frequency
         })
         .eq('id', relationship.id);
 
@@ -166,6 +169,25 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div>
+        <Label className="text-sm text-gray-600">Date Ideas Frequency</Label>
+        <Select
+          value={editForm.date_ideas_frequency || 'weekly'}
+          onValueChange={(value) => setEditForm({ ...editForm, date_ideas_frequency: value })}
+        >
+          <SelectTrigger className="mt-1">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="daily">Daily</SelectItem>
+            <SelectItem value="weekly">Weekly</SelectItem>
+            <SelectItem value="biweekly">Every 2 weeks</SelectItem>
+            <SelectItem value="monthly">Monthly</SelectItem>
+            <SelectItem value="none">Disabled</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div>
