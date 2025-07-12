@@ -386,7 +386,7 @@ async function sendReminderEmail(
     console.log(`Sending ${eventType} email to ${recipientEmail} for ${partnerName}`);
 
     const emailResponse = await resend.emails.send({
-      from: "Careloom <hello@careloom.com>",
+      from: "Careloom <onboarding@resend.dev>",  // Using Resend's default verified domain
       to: [recipientEmail],
       subject: `${partnerName}'s ${eventTypeDisplay} is ${daysText}`,
       html: `

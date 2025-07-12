@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Bell, Mail, Shield, Trash2 } from 'lucide-react';
 import { EmailNotificationTester } from './EmailNotificationTester';
+import { QuickEmailTest } from './QuickEmailTest';
 
 const DashboardSettings = () => {
   return (
@@ -17,6 +18,9 @@ const DashboardSettings = () => {
       </div>
 
       <div className="space-y-6">
+        <div className="flex gap-4">
+          <QuickEmailTest />
+        </div>
         <EmailNotificationTester />
         <Card>
           <CardHeader>
