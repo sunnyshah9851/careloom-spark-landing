@@ -1,6 +1,9 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, Calendar, Clock, TrendingUp } from 'lucide-react';
+import { Heart, Calendar, Clock, TrendingUp, Activity, Gift } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Relationship {
   id: string;
@@ -21,22 +24,68 @@ interface DashboardStatsProps {
 }
 
 const DashboardStats = ({ relationships }: DashboardStatsProps) => {
+  const { user } = useAuth();
+  const [recentActivity, setRecentActivity] = useState(0);
+  const [upcomingBirthdays, setUpcomingBirthdays] = useState(0);
+
+  useEffect(() => {
+    const fetchRecentActivity = async () => {
+      if (!user) return;
+
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      // Get events from the last 7 days
+      const { data: events } = await supabase
+        .from('events')
+        .select('id, relationship_id, relationships!inner(profile_id)')
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .eq('relationships.profile_id', user.id);
+
+      setRecentActivity(events?.length || 0);
+    };
+
+    const fetchUpcomingBirthdays = async () => {
+      if (!user) return;
+
+      const today = new Date();
+      const thirtyDaysFromNow = new Date();
+      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+      // Get relationships with birthdays in the next 30 days
+      const { data: relationshipsWithBirthdays } = await supabase
+        .from('relationships')
+        .select('birthday')
+        .eq('profile_id', user.id)
+        .not('birthday', 'is', null);
+
+      if (relationshipsWithBirthdays) {
+        const birthdaysInNext30Days = relationshipsWithBirthdays.filter(rel => {
+          if (!rel.birthday) return false;
+          
+          const birthday = new Date(rel.birthday);
+          const currentYear = today.getFullYear();
+          const thisYearBirthday = new Date(currentYear, birthday.getMonth(), birthday.getDate());
+          const nextYearBirthday = new Date(currentYear + 1, birthday.getMonth(), birthday.getDate());
+          
+          const nextOccurrence = thisYearBirthday >= today ? thisYearBirthday : nextYearBirthday;
+          
+          return nextOccurrence <= thirtyDaysFromNow;
+        });
+
+        setUpcomingBirthdays(birthdaysInNext30Days.length);
+      }
+    };
+
+    fetchRecentActivity();
+    fetchUpcomingBirthdays();
+  }, [user, relationships]);
+
   const calculateStats = () => {
     const today = new Date();
-    let daysTogether = 0;
     let daysToNextEvent = Infinity;
 
     relationships.forEach(relationship => {
-      // Calculate days together from anniversary
-      if (relationship.anniversary) {
-        const anniversaryDate = new Date(relationship.anniversary);
-        const diffTime = today.getTime() - anniversaryDate.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-        if (diffDays > daysTogether) {
-          daysTogether = diffDays;
-        }
-      }
-
       // Find next upcoming event
       [relationship.birthday, relationship.anniversary].forEach(dateStr => {
         if (dateStr) {
@@ -56,35 +105,11 @@ const DashboardStats = ({ relationships }: DashboardStatsProps) => {
     });
 
     return {
-      daysTogether: Math.max(0, daysTogether),
-      thoughtfulActions: relationships.filter(r => r.last_nudge_sent).length,
       daysToNextEvent: daysToNextEvent === Infinity ? 0 : daysToNextEvent
     };
   };
 
   const stats = calculateStats();
-
-  const calculateConnectionStreak = () => {
-    const sortedNudges = relationships
-      .filter(r => r.last_nudge_sent)
-      .map(r => new Date(r.last_nudge_sent!))
-      .sort((a, b) => b.getTime() - a.getTime());
-    
-    if (sortedNudges.length === 0) return 0;
-    
-    let streak = 0;
-    const today = new Date();
-    
-    for (const nudgeDate of sortedNudges) {
-      const daysDiff = Math.floor((today.getTime() - nudgeDate.getTime()) / (24 * 60 * 60 * 1000));
-      if (daysDiff <= 7) streak++;
-      else break;
-    }
-    
-    return streak;
-  };
-
-  const connectionStreak = calculateConnectionStreak();
 
   const statCards = [
     {
@@ -95,17 +120,17 @@ const DashboardStats = ({ relationships }: DashboardStatsProps) => {
       color: 'text-gray-900'
     },
     {
-      title: 'Connection Streak',
-      value: connectionStreak,
-      subtitle: connectionStreak === 0 ? 'Start your streak' : 'Week streak active',
-      icon: TrendingUp,
+      title: 'Recent Activity',
+      value: recentActivity,
+      subtitle: recentActivity === 0 ? 'No activity this week' : 'Actions in last 7 days',
+      icon: Activity,
       color: 'text-gray-900'
     },
     {
-      title: 'Days Together',
-      value: stats.daysTogether,
-      subtitle: stats.daysTogether === 0 ? 'Add anniversary dates' : 'Beautiful moments shared',
-      icon: Clock,
+      title: 'Upcoming Birthdays',
+      value: upcomingBirthdays,
+      subtitle: upcomingBirthdays === 0 ? 'None in next 30 days' : 'In next 30 days',
+      icon: Gift,
       color: 'text-gray-900'
     },
     {
