@@ -51,7 +51,8 @@ const DashboardStats = ({ relationships }: DashboardStatsProps) => {
       console.log('Fetching upcoming birthdays...');
       
       const today = new Date();
-      const thirtyDaysFromNow = new Date();
+      today.setHours(0, 0, 0, 0); // Reset to start of day
+      const thirtyDaysFromNow = new Date(today);
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
       console.log('Today:', today.toDateString());
@@ -72,14 +73,26 @@ const DashboardStats = ({ relationships }: DashboardStatsProps) => {
           
           const birthday = new Date(rel.birthday);
           const currentYear = today.getFullYear();
-          const thisYearBirthday = new Date(currentYear, birthday.getMonth(), birthday.getDate());
-          const nextYearBirthday = new Date(currentYear + 1, birthday.getMonth(), birthday.getDate());
           
+          // Create this year's birthday
+          const thisYearBirthday = new Date(currentYear, birthday.getMonth(), birthday.getDate());
+          thisYearBirthday.setHours(0, 0, 0, 0);
+          
+          // Create next year's birthday
+          const nextYearBirthday = new Date(currentYear + 1, birthday.getMonth(), birthday.getDate());
+          nextYearBirthday.setHours(0, 0, 0, 0);
+          
+          // Determine which occurrence to use
           const nextOccurrence = thisYearBirthday >= today ? thisYearBirthday : nextYearBirthday;
           
-          console.log(`${rel.name}'s birthday: ${rel.birthday}, next occurrence: ${nextOccurrence.toDateString()}, within 30 days: ${nextOccurrence <= thirtyDaysFromNow}`);
+          const isWithin30Days = nextOccurrence <= thirtyDaysFromNow;
           
-          return nextOccurrence <= thirtyDaysFromNow;
+          console.log(`${rel.name}'s birthday: ${rel.birthday}`);
+          console.log(`  This year: ${thisYearBirthday.toDateString()}`);
+          console.log(`  Next occurrence: ${nextOccurrence.toDateString()}`);
+          console.log(`  Within 30 days: ${isWithin30Days}`);
+          
+          return isWithin30Days;
         });
 
         console.log('Birthdays in next 30 days:', birthdaysInNext30Days.length);
