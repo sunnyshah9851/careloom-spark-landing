@@ -58,15 +58,6 @@ const HeroSection = () => {
           </Button>
         </div>
 
-        {/* Secondary CTA */}
-        <div className="mb-8 animate-fade-in [animation-delay:500ms]">
-          <button 
-            className="text-rose-700 hover:text-rose-900 underline text-lg font-medium"
-            onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            See How Others Are Reconnecting →
-          </button>
-        </div>
 
         {/* Social Proof */}
         <div className="animate-fade-in [animation-delay:600ms]">

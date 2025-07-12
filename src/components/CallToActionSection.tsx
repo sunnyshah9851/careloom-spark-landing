@@ -47,15 +47,6 @@ const CallToActionSection = () => {
           </Button>
         </div>
 
-        {/* Secondary CTA */}
-        <div className="mb-12 animate-fade-in [animation-delay:200ms]">
-          <button 
-            className="text-rose-700 hover:text-rose-900 underline text-lg font-medium"
-            onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            See How Others Are Connecting
-          </button>
-        </div>
 
         {/* Benefits */}
         <div className="grid md:grid-cols-3 gap-6 text-center animate-fade-in [animation-delay:300ms]">
