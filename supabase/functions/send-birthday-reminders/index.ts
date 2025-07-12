@@ -75,8 +75,14 @@ const shouldSendReminder = (eventDate: string, frequency: string): boolean => {
   }
   
   // Create the event date for this year
-  const eventThisYear = new Date(currentYear, eventMonth - 1, eventDay);
+  let eventThisYear = new Date(currentYear, eventMonth - 1, eventDay);
   eventThisYear.setUTCHours(0, 0, 0, 0);
+  
+  // If the event already passed this year, use next year's date
+  if (eventThisYear < today) {
+    eventThisYear = new Date(currentYear + 1, eventMonth - 1, eventDay);
+    eventThisYear.setUTCHours(0, 0, 0, 0);
+  }
   
   // Calculate the reminder date (X days before the event)
   const reminderDate = new Date(eventThisYear);
