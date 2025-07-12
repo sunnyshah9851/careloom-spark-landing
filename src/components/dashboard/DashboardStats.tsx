@@ -48,18 +48,25 @@ const DashboardStats = ({ relationships }: DashboardStatsProps) => {
     const fetchUpcomingBirthdays = async () => {
       if (!user) return;
 
+      console.log('Fetching upcoming birthdays...');
+      
       const today = new Date();
       const thirtyDaysFromNow = new Date();
       thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
+      console.log('Today:', today.toDateString());
+      console.log('30 days from now:', thirtyDaysFromNow.toDateString());
+
       // Get relationships with birthdays in the next 30 days
-      const { data: relationshipsWithBirthdays } = await supabase
+      const { data: relationshipsWithBirthdays, error } = await supabase
         .from('relationships')
-        .select('birthday')
+        .select('name, birthday')
         .eq('profile_id', user.id)
         .not('birthday', 'is', null);
 
-      if (relationshipsWithBirthdays) {
+      console.log('Relationships with birthdays:', relationshipsWithBirthdays);
+
+      if (relationshipsWithBirthdays && !error) {
         const birthdaysInNext30Days = relationshipsWithBirthdays.filter(rel => {
           if (!rel.birthday) return false;
           
@@ -70,10 +77,15 @@ const DashboardStats = ({ relationships }: DashboardStatsProps) => {
           
           const nextOccurrence = thisYearBirthday >= today ? thisYearBirthday : nextYearBirthday;
           
+          console.log(`${rel.name}'s birthday: ${rel.birthday}, next occurrence: ${nextOccurrence.toDateString()}, within 30 days: ${nextOccurrence <= thirtyDaysFromNow}`);
+          
           return nextOccurrence <= thirtyDaysFromNow;
         });
 
+        console.log('Birthdays in next 30 days:', birthdaysInNext30Days.length);
         setUpcomingBirthdays(birthdaysInNext30Days.length);
+      } else if (error) {
+        console.error('Error fetching birthdays:', error);
       }
     };
 
