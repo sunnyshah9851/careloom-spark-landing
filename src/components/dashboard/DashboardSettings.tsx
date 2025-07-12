@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Bell, Mail, Shield, Trash2 } from 'lucide-react';
+import { EmailNotificationTester } from './EmailNotificationTester';
 
 const DashboardSettings = () => {
   return (
@@ -16,6 +17,7 @@ const DashboardSettings = () => {
       </div>
 
       <div className="space-y-6">
+        <EmailNotificationTester />
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-rose-800">
