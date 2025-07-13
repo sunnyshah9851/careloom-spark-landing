@@ -1,8 +1,10 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Mail, Shield, Trash2 } from 'lucide-react';
+import { Shield, Trash2 } from 'lucide-react';
 import NotificationSettings from './NotificationSettings';
+import DataExport from './DataExport';
+import ChangePasswordModal from './ChangePasswordModal';
 
 const DashboardSettings = () => {
   return (
@@ -32,24 +34,8 @@ const DashboardSettings = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-rose-800">Data Export</h4>
-                  <p className="text-sm text-rose-600">Download a copy of your data</p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Export
-                </Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-rose-800">Change Password</h4>
-                  <p className="text-sm text-rose-600">Update your account password</p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Change
-                </Button>
-              </div>
+              <DataExport />
+              <ChangePasswordModal />
             </div>
           </CardContent>
         </Card>
