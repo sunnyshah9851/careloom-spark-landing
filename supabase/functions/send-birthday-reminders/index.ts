@@ -112,6 +112,7 @@ const handler = async (req: Request): Promise<Response> => {
     console.log(`=== Birthday Reminder Function Started ===`);
     console.log(`Execution time: ${new Date().toISOString()}`);
     console.log(`Function called from: ${req.headers.get('user-agent') || 'unknown'}`);
+    console.log(`Request headers:`, Object.fromEntries(req.headers.entries()));
     
     // Parse request
     let requestBody: any = {};
@@ -129,6 +130,15 @@ const handler = async (req: Request): Promise<Response> => {
     const isScheduled = requestBody.scheduled === true;
     
     console.log(`Mode: debug=${isDebug}, forceSend=${isForceSend}, scheduled=${isScheduled}`);
+    
+    if (isScheduled) {
+      console.log(`🕘 CRON JOB EXECUTION DETECTED - Function called by scheduled cron job`);
+      console.log(`Environment check:`, {
+        hasSupabaseUrl: !!supabaseUrl,
+        hasServiceKey: !!supabaseServiceKey,
+        hasResendKey: !!resendApiKey
+      });
+    }
     
     const today = new Date();
     console.log(`Today: ${today.toISOString().split('T')[0]} (UTC)`);
