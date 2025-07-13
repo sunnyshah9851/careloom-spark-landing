@@ -79,6 +79,48 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          anniversary_reminders_enabled: boolean
+          birthday_reminders_enabled: boolean
+          created_at: string
+          date_ideas_enabled: boolean
+          email_reminders_enabled: boolean
+          id: string
+          nudge_reminders_enabled: boolean
+          push_notifications_enabled: boolean
+          reminder_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anniversary_reminders_enabled?: boolean
+          birthday_reminders_enabled?: boolean
+          created_at?: string
+          date_ideas_enabled?: boolean
+          email_reminders_enabled?: boolean
+          id?: string
+          nudge_reminders_enabled?: boolean
+          push_notifications_enabled?: boolean
+          reminder_time?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anniversary_reminders_enabled?: boolean
+          birthday_reminders_enabled?: boolean
+          created_at?: string
+          date_ideas_enabled?: boolean
+          email_reminders_enabled?: boolean
+          id?: string
+          nudge_reminders_enabled?: boolean
+          push_notifications_enabled?: boolean
+          reminder_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           city: string | null

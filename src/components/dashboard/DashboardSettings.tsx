@@ -1,7 +1,8 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Bell, Mail, Shield, Trash2 } from 'lucide-react';
+import { Mail, Shield, Trash2 } from 'lucide-react';
+import NotificationSettings from './NotificationSettings';
 
 const DashboardSettings = () => {
   return (
@@ -16,39 +17,7 @@ const DashboardSettings = () => {
       </div>
 
       <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-rose-800">
-              <Bell className="h-5 w-5 text-rose-500" />
-              Notifications
-            </CardTitle>
-            <CardDescription>
-              Control when and how you receive reminders
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-rose-800">Email Reminders</h4>
-                  <p className="text-sm text-rose-600">Get reminded about upcoming events via email</p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Configure
-                </Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium text-rose-800">Push Notifications</h4>
-                  <p className="text-sm text-rose-600">Receive browser notifications</p>
-                </div>
-                <Button variant="outline" size="sm">
-                  Enable
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <NotificationSettings />
 
         <Card>
           <CardHeader>
