@@ -12,16 +12,6 @@ interface Photo {
   relationshipId?: string;
 }
 
-interface GiftIdea {
-  id: string;
-  title: string;
-  description: string;
-  price: string;
-  priority: 'low' | 'medium' | 'high';
-  category: string;
-  relationshipId?: string;
-  dateAdded: string;
-}
 
 interface VoiceMemo {
   id: string;
@@ -35,7 +25,6 @@ interface VoiceMemo {
 const DashboardMemories = () => {
   // Local state for demo purposes - in a real app, this would come from Supabase
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [giftIdeas, setGiftIdeas] = useState<GiftIdea[]>([]);
   const [voiceMemos, setVoiceMemos] = useState<VoiceMemo[]>([]);
 
   const handleAddPhoto = (photoData: Omit<Photo, 'id'>) => {
@@ -48,18 +37,6 @@ const DashboardMemories = () => {
 
   const handleDeletePhoto = (photoId: string) => {
     setPhotos(prev => prev.filter(photo => photo.id !== photoId));
-  };
-
-  const handleAddGift = (giftData: Omit<GiftIdea, 'id'>) => {
-    const newGift: GiftIdea = {
-      ...giftData,
-      id: Date.now().toString()
-    };
-    setGiftIdeas(prev => [newGift, ...prev]);
-  };
-
-  const handleDeleteGift = (giftId: string) => {
-    setGiftIdeas(prev => prev.filter(gift => gift.id !== giftId));
   };
 
   const handleAddMemo = (memoData: Omit<VoiceMemo, 'id'>) => {
@@ -98,11 +75,7 @@ const DashboardMemories = () => {
           onDeleteMemo={handleDeleteMemo}
         />
         
-        <GiftTracker
-          giftIdeas={giftIdeas}
-          onAddGift={handleAddGift}
-          onDeleteGift={handleDeleteGift}
-        />
+        <GiftTracker />
       </div>
     </div>
   );

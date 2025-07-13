@@ -7,26 +7,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Gift, Plus, Star, Trash2 } from 'lucide-react';
+import { Gift, Plus, Star, Trash2, Loader2 } from 'lucide-react';
+import { useGiftIdeas } from '@/hooks/useGiftIdeas';
 
-interface GiftIdea {
-  id: string;
-  title: string;
-  description: string;
-  price: string;
-  priority: 'low' | 'medium' | 'high';
-  category: string;
-  relationshipId?: string;
-  dateAdded: string;
-}
-
-interface GiftTrackerProps {
-  giftIdeas: GiftIdea[];
-  onAddGift: (gift: Omit<GiftIdea, 'id'>) => void;
-  onDeleteGift: (giftId: string) => void;
-}
-
-const GiftTracker = ({ giftIdeas, onAddGift, onDeleteGift }: GiftTrackerProps) => {
+const GiftTracker = () => {
+  const { giftIdeas, loading, addGiftIdea, deleteGiftIdea } = useGiftIdeas();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newGift, setNewGift] = useState<{
     title: string;
@@ -42,9 +27,9 @@ const GiftTracker = ({ giftIdeas, onAddGift, onDeleteGift }: GiftTrackerProps) =
     category: ''
   });
 
-  const handleAddGift = () => {
+  const handleAddGift = async () => {
     if (newGift.title) {
-      onAddGift({
+      await addGiftIdea({
         ...newGift,
         dateAdded: new Date().toISOString()
       });
@@ -148,7 +133,12 @@ const GiftTracker = ({ giftIdeas, onAddGift, onDeleteGift }: GiftTrackerProps) =
         </div>
       </CardHeader>
       <CardContent>
-        {giftIdeas.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-8">
+            <Loader2 className="h-8 w-8 text-rose-500 mx-auto mb-4 animate-spin" />
+            <p className="text-rose-600">Loading gift ideas...</p>
+          </div>
+        ) : giftIdeas.length === 0 ? (
           <div className="text-center py-8">
             <Gift className="h-12 w-12 text-rose-300 mx-auto mb-4" />
             <p className="text-rose-600">No gift ideas yet. Start tracking thoughtful presents!</p>
@@ -180,7 +170,7 @@ const GiftTracker = ({ giftIdeas, onAddGift, onDeleteGift }: GiftTrackerProps) =
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => onDeleteGift(gift.id)}
+                    onClick={() => deleteGiftIdea(gift.id)}
                     className="text-gray-400 hover:text-red-500"
                   >
                     <Trash2 className="h-4 w-4" />

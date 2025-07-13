@@ -79,6 +79,48 @@ export type Database = {
         }
         Relationships: []
       }
+      gift_ideas: {
+        Row: {
+          category: string
+          created_at: string
+          date_added: string
+          description: string | null
+          id: string
+          price: string | null
+          priority: string
+          relationship_id: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          date_added?: string
+          description?: string | null
+          id?: string
+          price?: string | null
+          priority?: string
+          relationship_id?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          date_added?: string
+          description?: string | null
+          id?: string
+          price?: string | null
+          priority?: string
+          relationship_id?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           anniversary_reminders_enabled: boolean
