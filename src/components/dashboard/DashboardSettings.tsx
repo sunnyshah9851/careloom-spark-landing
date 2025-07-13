@@ -5,6 +5,7 @@ import { Shield, Trash2 } from 'lucide-react';
 import NotificationSettings from './NotificationSettings';
 import DataExport from './DataExport';
 import ChangePasswordModal from './ChangePasswordModal';
+import DeleteAccountModal from './DeleteAccountModal';
 
 const DashboardSettings = () => {
   return (
@@ -51,15 +52,7 @@ const DashboardSettings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium text-red-800">Delete Account</h4>
-                <p className="text-sm text-red-600">Permanently delete your account and all data</p>
-              </div>
-              <Button variant="destructive" size="sm">
-                Delete Account
-              </Button>
-            </div>
+            <DeleteAccountModal />
           </CardContent>
         </Card>
       </div>
