@@ -50,22 +50,25 @@ const getFrequencyDays = (frequency: string): number => {
 const shouldSendReminder = (eventDate: string, frequency: string): boolean => {
   const daysOffset = getFrequencyDays(frequency);
   if (daysOffset === -1) return false;
-  
-  const today = new Date();
-  today.setUTCHours(0, 0, 0, 0);
-  
+
+  // Always use UTC for today
+  const now = new Date();
+  const today = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate()
+  ));
+
   const currentYear = today.getUTCFullYear();
-  
+
   // Parse the event date (format: YYYY-MM-DD or MM-DD)
   let eventMonth: number, eventDay: number;
   if (eventDate.includes('-')) {
     const parts = eventDate.split('-');
     if (parts.length === 3) {
-      // Full date format YYYY-MM-DD
       eventMonth = parseInt(parts[1]);
       eventDay = parseInt(parts[2]);
     } else {
-      // MM-DD format
       eventMonth = parseInt(parts[0]);
       eventDay = parseInt(parts[1]);
     }
@@ -73,23 +76,21 @@ const shouldSendReminder = (eventDate: string, frequency: string): boolean => {
     console.error('Invalid date format:', eventDate);
     return false;
   }
-  
-  // Create the event date for this year
-  let eventThisYear = new Date(currentYear, eventMonth - 1, eventDay);
-  eventThisYear.setUTCHours(0, 0, 0, 0);
-  
+
+  // Create the event date for this year in UTC
+  let eventThisYear = new Date(Date.UTC(currentYear, eventMonth - 1, eventDay));
+
   // If the event already passed this year, use next year's date
   if (eventThisYear < today) {
-    eventThisYear = new Date(currentYear + 1, eventMonth - 1, eventDay);
-    eventThisYear.setUTCHours(0, 0, 0, 0);
+    eventThisYear = new Date(Date.UTC(currentYear + 1, eventMonth - 1, eventDay));
   }
-  
-  // Calculate the reminder date (X days before the event)
+
+  // Calculate the reminder date (X days before the event) in UTC
   const reminderDate = new Date(eventThisYear);
-  reminderDate.setDate(eventThisYear.getDate() - daysOffset);
-  
+  reminderDate.setUTCDate(eventThisYear.getUTCDate() - daysOffset);
+
   const shouldSend = today.getTime() === reminderDate.getTime();
-  
+
   console.log(`Debug shouldSendReminder:`, {
     eventDate,
     frequency,
