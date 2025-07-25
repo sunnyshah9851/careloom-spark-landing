@@ -121,6 +121,45 @@ export type Database = {
         }
         Relationships: []
       }
+      math_tutoring_leads: {
+        Row: {
+          created_at: string
+          current_score: string | null
+          email: string
+          exam_type: string | null
+          first_name: string
+          id: string
+          last_name: string
+          message: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_score?: string | null
+          email: string
+          exam_type?: string | null
+          first_name: string
+          id?: string
+          last_name: string
+          message?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_score?: string | null
+          email?: string
+          exam_type?: string | null
+          first_name?: string
+          id?: string
+          last_name?: string
+          message?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           anniversary_reminders_enabled: boolean
@@ -289,6 +328,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      vibe_fix_requests: {
+        Row: {
+          assigned_developer_id: string | null
+          created_at: string
+          email: string
+          id: string
+          problem: string
+          status: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          assigned_developer_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          problem: string
+          status?: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          assigned_developer_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          problem?: string
+          status?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: []
+      }
+      vibe_fixers: {
+        Row: {
+          available: boolean
+          bio: string
+          created_at: string
+          email: string
+          expertise: string[]
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          available?: boolean
+          bio: string
+          created_at?: string
+          email: string
+          expertise: string[]
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          available?: boolean
+          bio?: string
+          created_at?: string
+          email?: string
+          expertise?: string[]
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
     }
     Views: {
