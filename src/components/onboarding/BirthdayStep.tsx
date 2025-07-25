@@ -29,7 +29,7 @@ export const BirthdayStep = ({ data, setData }: OnboardingStepProps) => {
           >
             {data.birthday ? (
               <span className="font-medium">
-                {format(data.birthday, "MMMM do, yyyy")}
+                {format(new Date(data.birthday + 'T00:00:00'), "MMMM do, yyyy")}
               </span>
             ) : (
               <span>Pick their birthday ✨</span>
@@ -40,8 +40,10 @@ export const BirthdayStep = ({ data, setData }: OnboardingStepProps) => {
         <PopoverContent className="w-auto p-0 border-2 border-rose-200 rounded-2xl shadow-2xl" align="center">
           <Calendar
             mode="single"
-            selected={data.birthday || undefined}
-            onSelect={(date) => setData({ ...data, birthday: date || null })}
+            selected={data.birthday ? new Date(data.birthday + 'T00:00:00') : undefined}
+            onSelect={(date) => {
+              setData({ ...data, birthday: date ? format(date, 'yyyy-MM-dd') : null });
+            }}
             className="pointer-events-auto rounded-2xl"
             initialFocus
             defaultMonth={new Date(1990, 0)}
