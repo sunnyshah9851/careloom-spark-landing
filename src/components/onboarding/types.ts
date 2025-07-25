@@ -3,10 +3,10 @@ export interface OnboardingData {
   name: string;
   relationshipType: string;
   relationshipCity: string;
-  birthday: Date | null;
+  birthday: string | null;
   birthdayNudgeEnabled: boolean;
   birthdayNudgeFrequency: string;
-  anniversary: Date | null;
+  anniversary: string | null;
   anniversaryNudgeEnabled: boolean;
   anniversaryNudgeFrequency: string;
   nudgeFrequency: string;
