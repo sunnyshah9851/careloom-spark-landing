@@ -128,48 +128,6 @@ const FeaturesSection = () => {
         </div>
 
 
-        {/* Features Grid */}
-        <div className="mb-20">
-          <h3 className="text-3xl font-playfair font-bold text-rose-800 text-center mb-12">
-            Why people choose real connection
-          </h3>
-          <div className="grid md:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div 
-                key={index}
-                className="group animate-fade-in"
-                style={{ animationDelay: `${index * 200 + 600}ms` }}
-              >
-                <div className={`bg-gradient-to-br ${feature.gradient} p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 h-full`}>
-                  {/* Icon */}
-                  <div className="mb-6">
-                    <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl w-fit shadow-md group-hover:scale-110 transition-transform duration-300">
-                      {feature.icon}
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <h4 className="text-xl font-playfair font-semibold text-rose-800 mb-4">
-                    {feature.title}
-                  </h4>
-                  <p className="text-rose-700/80 leading-relaxed mb-4">
-                    {feature.description}
-                  </p>
-                  
-                  {/* Examples */}
-                  <div className="space-y-2">
-                    {feature.examples.map((example, idx) => (
-                      <div key={idx} className="flex items-center text-sm text-rose-600/70">
-                        <Coffee className="h-4 w-4 mr-2 flex-shrink-0" />
-                        <span>{example}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Social Proof Section */}
         <div className="bg-gradient-to-r from-rose-50 to-cream-50 rounded-3xl p-8 md:p-12 text-center animate-scale-in">
