@@ -127,43 +127,6 @@ const FeaturesSection = () => {
           </div>
         </div>
 
-        {/* How It Works Steps */}
-        <div className="mb-20">
-          <h3 className="text-3xl font-playfair font-bold text-rose-800 text-center mb-12">
-            Your journey to deeper connection
-          </h3>
-          <div className="grid md:grid-cols-3 gap-8">
-            {steps.map((step, index) => (
-              <div 
-                key={index}
-                className="group animate-fade-in relative"
-                style={{ animationDelay: `${index * 200}ms` }}
-              >
-                <div className={`bg-gradient-to-br ${step.gradient} p-8 rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 h-full`}>
-                  {/* Step Number */}
-                  <div className="text-6xl font-playfair font-bold text-rose-300/40 absolute top-4 right-6">
-                    {step.number}
-                  </div>
-                  
-                  {/* Icon */}
-                  <div className="mb-6">
-                    <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl w-fit shadow-md group-hover:scale-110 transition-transform duration-300">
-                      {step.icon}
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <h4 className="text-xl font-playfair font-semibold text-rose-800 mb-4">
-                    {step.title}
-                  </h4>
-                  <p className="text-rose-700/80 leading-relaxed">
-                    {step.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {/* Features Grid */}
         <div className="mb-20">
