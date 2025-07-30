@@ -2,10 +2,17 @@
 import { Button } from '@/components/ui/button';
 import CareloomLogo from './CareloomLogo';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles } from 'lucide-react';
+import { useDemo } from '@/contexts/DemoContext';
+import { Sparkles, Play } from 'lucide-react';
 
 const Header = () => {
   const { signInWithGoogle } = useAuth();
+  const { enterDemoMode } = useDemo();
+
+  const handleTryDemo = () => {
+    enterDemoMode();
+    window.location.href = '/demo';
+  };
 
   return (
     <header className="absolute top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-rose-100/50 safe-area-top">
@@ -19,6 +26,13 @@ const Header = () => {
           {/* Navigation - Hidden on mobile, shown on tablet+ */}
           <nav className="hidden md:flex items-center space-x-8">
             <button 
+              onClick={handleTryDemo}
+              className="text-rose-700 hover:text-rose-900 transition-colors flex items-center gap-1"
+            >
+              <Play className="h-4 w-4" />
+              Try Demo
+            </button>
+            <button 
               onClick={() => document.getElementById('preview')?.scrollIntoView({ behavior: 'smooth' })}
               className="text-rose-700 hover:text-rose-900 transition-colors"
             >
@@ -26,9 +40,6 @@ const Header = () => {
             </button>
             <a href="#how-it-works" className="text-rose-700 hover:text-rose-900 transition-colors">
               How it Works
-            </a>
-            <a href="#pricing" className="text-rose-700 hover:text-rose-900 transition-colors">
-              Pricing
             </a>
           </nav>
           

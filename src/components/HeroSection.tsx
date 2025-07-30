@@ -1,10 +1,17 @@
 
 import { Button } from '@/components/ui/button';
-import { Heart, Sparkles } from 'lucide-react';
+import { Heart, Sparkles, Play } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDemo } from '@/contexts/DemoContext';
 
 const HeroSection = () => {
   const { signInWithGoogle } = useAuth();
+  const { enterDemoMode } = useDemo();
+
+  const handleTryDemo = () => {
+    enterDemoMode();
+    window.location.href = '/demo';
+  };
 
   return (
     <section className="min-h-screen gradient-warm flex items-center justify-center px-4 py-20 pt-32">
@@ -47,7 +54,7 @@ const HeroSection = () => {
         </p>
 
         {/* Primary CTA */}
-        <div className="max-w-md mx-auto mb-6 animate-scale-in [animation-delay:400ms]">
+        <div className="max-w-md mx-auto mb-6 animate-scale-in [animation-delay:400ms] space-y-3">
           <Button 
             onClick={signInWithGoogle}
             size="lg"
@@ -55,6 +62,16 @@ const HeroSection = () => {
           >
             <Sparkles className="h-6 w-6 mr-3 !text-white" />
             Help Me Connect More Deeply
+          </Button>
+          
+          <Button 
+            onClick={handleTryDemo}
+            size="lg"
+            variant="outline"
+            className="h-14 px-8 text-lg rounded-2xl shadow-md transform transition-all duration-200 hover:scale-105 w-full border-rose-300 text-rose-700 hover:bg-rose-50"
+          >
+            <Play className="h-5 w-5 mr-3" />
+            Try Demo First
           </Button>
         </div>
 

@@ -1,10 +1,17 @@
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sparkles, Clock, MapPin } from 'lucide-react';
+import { useDemo } from '@/contexts/DemoContext';
+import { Sparkles, Clock, MapPin, Play } from 'lucide-react';
 
 const CallToActionSection = () => {
   const { signInWithGoogle } = useAuth();
+  const { enterDemoMode } = useDemo();
+
+  const handleTryDemo = () => {
+    enterDemoMode();
+    window.location.href = '/demo';
+  };
 
   return (
     <section className="py-24 gradient-warm">
@@ -36,7 +43,7 @@ const CallToActionSection = () => {
         </div>
 
         {/* Primary CTA */}
-        <div className="max-w-lg mx-auto mb-8 animate-scale-in">
+        <div className="max-w-lg mx-auto mb-8 animate-scale-in space-y-3">
           <Button 
             onClick={signInWithGoogle}
             size="lg"
@@ -44,6 +51,16 @@ const CallToActionSection = () => {
           >
             <Sparkles className="h-6 w-6 mr-3" />
             Start My Connection Journey
+          </Button>
+          
+          <Button 
+            onClick={handleTryDemo}
+            size="lg"
+            variant="outline"
+            className="h-14 px-8 text-lg rounded-2xl shadow-md transform transition-all duration-200 hover:scale-105 w-full border-rose-300 text-rose-700 hover:bg-rose-50"
+          >
+            <Play className="h-5 w-5 mr-3" />
+            Try Demo First
           </Button>
         </div>
 
