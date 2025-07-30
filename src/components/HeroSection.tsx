@@ -10,7 +10,10 @@ const HeroSection = () => {
 
   const handleTryDemo = () => {
     enterDemoMode();
-    window.location.href = '/demo';
+    // Small delay to ensure state is set before navigation
+    setTimeout(() => {
+      window.location.href = '/demo';
+    }, 100);
   };
 
   return (

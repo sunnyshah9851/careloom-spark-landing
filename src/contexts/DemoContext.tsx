@@ -65,17 +65,23 @@ const SAMPLE_RELATIONSHIPS: DemoRelationship[] = [
 ];
 
 export const DemoProvider = ({ children }: { children: ReactNode }) => {
-  const [isDemoMode, setIsDemoMode] = useState(false);
-  const [demoRelationships, setDemoRelationships] = useState<DemoRelationship[]>(SAMPLE_RELATIONSHIPS);
+  const [isDemoMode, setIsDemoMode] = useState(() => {
+    return localStorage.getItem('demoMode') === 'true';
+  });
+  const [demoRelationships, setDemoRelationships] = useState<DemoRelationship[]>(() => {
+    return isDemoMode ? SAMPLE_RELATIONSHIPS : [];
+  });
 
   const enterDemoMode = () => {
     setIsDemoMode(true);
     setDemoRelationships(SAMPLE_RELATIONSHIPS);
+    localStorage.setItem('demoMode', 'true');
   };
 
   const exitDemoMode = () => {
     setIsDemoMode(false);
     setDemoRelationships([]);
+    localStorage.removeItem('demoMode');
   };
 
   const addDemoRelationship = (relationship: Omit<DemoRelationship, 'id' | 'created_at'>) => {
