@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -217,6 +216,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             value={formData.birthday}
             onChange={(e) => handleInputChange('birthday', e.target.value)}
             required
+            max={new Date().toISOString().split('T')[0]} // <-- Add this line
             className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black"
           />
         </div>
@@ -251,6 +251,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
                 type="date"
                 value={formData.anniversary}
                 onChange={(e) => handleInputChange('anniversary', e.target.value)}
+                max={new Date().toISOString().split('T')[0]} // <-- Add this line
                 className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black"
               />
             </div>
