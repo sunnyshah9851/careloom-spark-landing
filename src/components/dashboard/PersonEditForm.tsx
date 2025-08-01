@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CityInput } from '@/components/ui/city-input';
 import { supabase } from '@/integrations/supabase/client';
-import { Save, X } from 'lucide-react';
+import { Save, X, Trash2 } from 'lucide-react';
 
 interface Relationship {
   id: string;
@@ -64,6 +63,20 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
       onSave();
     } catch (error) {
       console.error('Error updating relationship:', error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this relationship?')) return;
+    try {
+      const { error } = await supabase
+        .from('relationships')
+        .delete()
+        .eq('id', relationship.id);
+      if (error) throw error;
+      onSave(); // or you can call a separate onDelete if you have one
+    } catch (error) {
+      console.error('Error deleting relationship:', error);
     }
   };
 
@@ -217,6 +230,17 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
         >
           <X className="h-4 w-4 mr-2" />
           Cancel
+        </Button>
+      </div>
+      <div className="flex justify-center pt-2">
+        <Button
+          type="button"
+          onClick={handleDelete}
+          className="bg-red-600 hover:bg-red-700 text-white"
+          size="sm"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Delete
         </Button>
       </div>
     </div>
