@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Edit, Save, X, Calendar, Mail, Heart, Gift, Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import PersonEditForm from './PersonEditForm';
+import { parse } from 'date-fns'; // Add this import
 
 interface Relationship {
   id: string;
@@ -43,7 +43,16 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    // If ISO string (contains 'T'), use new Date(), else use parse
+    if (dateString.includes('T')) {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+    // For yyyy-MM-dd (birthday/anniversary)
+    return parse(dateString, 'yyyy-MM-dd', new Date()).toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
       year: 'numeric'
@@ -52,7 +61,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
 
   const formatDateShort = (dateString: string | undefined) => {
     if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return parse(dateString, 'yyyy-MM-dd', new Date()).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric'
     });

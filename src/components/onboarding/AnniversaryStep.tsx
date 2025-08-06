@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { OnboardingStepProps } from './types';
 
@@ -29,7 +29,7 @@ export const AnniversaryStep = ({ data, setData, onSkip }: OnboardingStepProps) 
           >
             {data.anniversary ? (
               <span className="font-medium">
-                {format(new Date(data.anniversary), "MMMM do, yyyy")}
+                {format(parse(data.anniversary, 'yyyy-MM-dd', new Date()), "MMMM do, yyyy")}
               </span>
             ) : (
               <span>Pick your anniversary ✨</span>
@@ -40,8 +40,8 @@ export const AnniversaryStep = ({ data, setData, onSkip }: OnboardingStepProps) 
         <PopoverContent className="w-auto p-0 border-2 border-rose-200 rounded-2xl shadow-2xl" align="center">
           <Calendar
             mode="single"
-            selected={data.anniversary ? new Date(data.anniversary) : undefined}
-            onSelect={(date) => setData({ ...data, anniversary: date ? date.toISOString().split('T')[0] : null })}
+            selected={data.anniversary ? parse(data.anniversary, 'yyyy-MM-dd', new Date()) : undefined}
+            onSelect={(date) => setData({ ...data, anniversary: date ? format(date, 'yyyy-MM-dd') : null })}
             className="pointer-events-auto rounded-2xl"
             initialFocus
             defaultMonth={new Date(2020, 0)}
