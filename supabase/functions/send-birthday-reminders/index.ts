@@ -1,3 +1,5 @@
+/// <reference types="https://deno.land/x/types/index.d.ts" />
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { Resend } from "npm:resend@2.0.0";
@@ -6,12 +8,35 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 const resendApiKey = Deno.env.get('RESEND_API_KEY');
 
+console.log('Environment variables check:', {
+  hasSupabaseUrl: !!supabaseUrl,
+  hasServiceKey: !!supabaseServiceKey,
+  hasResendKey: !!resendApiKey,
+  supabaseUrlLength: supabaseUrl?.length || 0,
+  serviceKeyLength: supabaseServiceKey?.length || 0,
+  resendKeyLength: resendApiKey?.length || 0
+});
+
 if (!supabaseUrl || !supabaseServiceKey || !resendApiKey) {
-  console.error('Missing required environment variables');
+  const missing = [];
+  if (!supabaseUrl) missing.push('SUPABASE_URL');
+  if (!supabaseServiceKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+  if (!resendApiKey) missing.push('RESEND_API_KEY');
+  
+  console.error('Missing required environment variables:', missing);
+  throw new Error(`Missing environment variables: ${missing.join(', ')}`);
 }
 
-const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
-const resend = new Resend(resendApiKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+let resend: Resend;
+
+try {
+  resend = new Resend(resendApiKey);
+  console.log('Resend client initialized successfully');
+} catch (error) {
+  console.error('Failed to initialize Resend client:', error);
+  throw error;
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -31,6 +56,31 @@ interface Relationship {
     email: string;
     full_name: string;
   };
+}
+
+interface EmailSent {
+  type: 'birthday' | 'anniversary';
+  recipient: string;
+  partner: string;
+  daysUntil: number;
+  forceSent: boolean;
+}
+
+interface EmailError {
+  type: 'birthday' | 'anniversary';
+  recipient: string;
+  partner: string;
+  error: string;
+}
+
+interface DebugInfo {
+  name: string;
+  type: 'birthday' | 'anniversary';
+  date: string;
+  frequency: string;
+  shouldSend: boolean;
+  email: string;
+  profileOwner: string;
 }
 
 // Helper function to get days offset from frequency
@@ -168,9 +218,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log(`Found ${relationships?.length || 0} relationships to check`);
 
-    const emailsSent = [];
-    const debugInfo = [];
-    const emailErrors = [];
+    const emailsSent: EmailSent[] = [];
+    const debugInfo: DebugInfo[] = [];
+    const emailErrors: EmailError[] = [];
 
     for (const relationship of relationships || []) {
       const rel = relationship as Relationship;
@@ -389,6 +439,21 @@ async function sendReminderEmail(
   eventDate: Date
 ): Promise<{ success: boolean; error?: string }> {
   try {
+    // Validate inputs
+    if (!recipientEmail || !recipientEmail.includes('@')) {
+      throw new Error(`Invalid recipient email: ${recipientEmail}`);
+    }
+
+    if (!resend) {
+      throw new Error('Resend client not initialized');
+    }
+
+    console.log(`🔄 Preparing to send ${eventType} email...`);
+    console.log(`   Recipient: ${recipientEmail}`);
+    console.log(`   Partner: ${partnerName}`);
+    console.log(`   Days until: ${daysUntil}`);
+    console.log(`   Event date: ${eventDate.toISOString()}`);
+
     const eventTypeDisplay = eventType === 'birthday' ? 'Birthday' : 'Anniversary';
     const dateString = eventDate.toLocaleDateString('en-US', { 
       weekday: 'long', 
@@ -398,11 +463,8 @@ async function sendReminderEmail(
     });
     
     const daysText = daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`;
-    const emoji = eventType === 'birthday' ? '🎂' : '💕';
 
-    console.log(`Sending ${eventType} email to ${recipientEmail} for ${partnerName}`);
-
-    const emailResponse = await resend.emails.send({
+    const emailData = {
       from: "Careloom <careloom@resend.dev>",
       to: [recipientEmail],
       subject: `${partnerName}'s ${eventTypeDisplay} is ${daysText}`,
@@ -434,14 +496,44 @@ async function sendReminderEmail(
           </p>
         </div>
       `,
-    });
+    };
 
-    console.log(`${eventTypeDisplay} reminder email sent successfully:`, emailResponse);
-    return { success: true };
+    console.log(`📧 Calling Resend API with email data...`);
+    
+    const emailResponse = await resend.emails.send(emailData);
+
+    console.log(`✅ Resend API response:`, emailResponse);
+
+    // Check if the response indicates success
+    if (emailResponse && (emailResponse.data || emailResponse.id)) {
+      console.log(`🎉 ${eventTypeDisplay} reminder email sent successfully for ${partnerName} to ${recipientEmail}`);
+      return { success: true };
+    } else {
+      console.warn(`⚠️  Unexpected Resend response format:`, emailResponse);
+      return { success: false, error: 'Unexpected response from email service' };
+    }
 
   } catch (error: any) {
-    console.error(`Error sending ${eventType} reminder email:`, error);
-    return { success: false, error: error.message };
+    console.error(`❌ Error sending ${eventType} reminder email:`, {
+      error: error.message,
+      stack: error.stack,
+      recipient: recipientEmail,
+      partner: partnerName,
+      eventType,
+      resendInitialized: !!resend
+    });
+    
+    // Provide more specific error messages
+    let errorMessage = error.message;
+    if (error.message?.includes('Invalid API key')) {
+      errorMessage = 'Invalid Resend API key - check your RESEND_API_KEY secret';
+    } else if (error.message?.includes('domain')) {
+      errorMessage = 'Email domain not verified in Resend - check your domain settings';
+    } else if (error.message?.includes('rate limit')) {
+      errorMessage = 'Rate limit exceeded - too many emails sent';
+    }
+    
+    return { success: false, error: errorMessage };
   }
 }
 
