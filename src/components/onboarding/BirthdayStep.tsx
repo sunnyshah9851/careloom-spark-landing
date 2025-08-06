@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { OnboardingStepProps } from './types';
 
@@ -29,7 +29,7 @@ export const BirthdayStep = ({ data, setData }: OnboardingStepProps) => {
           >
             {data.birthday ? (
               <span className="font-medium">
-                {format(new Date(data.birthday + 'T00:00:00'), "MMMM do, yyyy")}
+                {format(parse(data.birthday, 'yyyy-MM-dd', new Date()), "MMMM do, yyyy")}
               </span>
             ) : (
               <span>Pick their birthday ✨</span>
@@ -40,7 +40,7 @@ export const BirthdayStep = ({ data, setData }: OnboardingStepProps) => {
         <PopoverContent className="w-auto p-0 border-2 border-rose-200 rounded-2xl shadow-2xl" align="center">
           <Calendar
             mode="single"
-            selected={data.birthday ? new Date(data.birthday + 'T00:00:00') : undefined}
+            selected={data.birthday ? parse(data.birthday, 'yyyy-MM-dd', new Date()) : undefined}
             onSelect={(date) => {
               setData({ ...data, birthday: date ? format(date, 'yyyy-MM-dd') : null });
             }}
