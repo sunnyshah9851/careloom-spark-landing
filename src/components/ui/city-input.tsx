@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { useState, useEffect } from "react"
 import { Check, ChevronDown } from "lucide-react"
@@ -135,7 +134,7 @@ export function CityInput({ value, onChange, placeholder = "Search for a city...
       <PopoverContent className="w-full p-0" align="start">
         <Command>
           <CommandInput
-            placeholder="Type to search cities..."
+            placeholder="Type to search US cities or enter any city worldwide..."
             value={searchQuery}
             onValueChange={handleInputChange}
             onBlur={handleInputBlur}
@@ -144,7 +143,7 @@ export function CityInput({ value, onChange, placeholder = "Search for a city...
             {filteredCities.length === 0 && searchQuery.length >= 2 && (
               <CommandEmpty>
                 {searchQuery.match(/^[a-zA-Z\s\-'.,]+$/) 
-                  ? `Use "${searchQuery}" as your city` 
+                  ? `Use "${searchQuery}" as your city (any city worldwide)` 
                   : "Type a valid city name"
                 }
               </CommandEmpty>
