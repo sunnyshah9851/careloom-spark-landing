@@ -4,6 +4,7 @@ import { TestBirthdayReminders } from '@/components/dashboard/TestBirthdayRemind
 import { ManualEmailTest } from '@/components/dashboard/ManualEmailTest';
 import { CronJobTester } from '@/components/dashboard/CronJobTester';
 import { CronJobDiagnostics } from '@/components/dashboard/CronJobDiagnostics';
+import { CronJobTestButton } from '@/components/dashboard/CronJobTestButton';
 
 const TestPage = () => {
   return (
@@ -11,6 +12,7 @@ const TestPage = () => {
       <h1 className="text-3xl font-bold mb-8">Email System Testing & Debugging</h1>
       
       <div className="space-y-6">
+        <CronJobTestButton />
         <CronJobDiagnostics />
         <CronJobTester />
         <TestBirthdayReminders />
