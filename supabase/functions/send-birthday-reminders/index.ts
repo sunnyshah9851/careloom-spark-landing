@@ -8,35 +8,12 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 const resendApiKey = Deno.env.get('RESEND_API_KEY');
 
-console.log('Environment variables check:', {
-  hasSupabaseUrl: !!supabaseUrl,
-  hasServiceKey: !!supabaseServiceKey,
-  hasResendKey: !!resendApiKey,
-  supabaseUrlLength: supabaseUrl?.length || 0,
-  serviceKeyLength: supabaseServiceKey?.length || 0,
-  resendKeyLength: resendApiKey?.length || 0
-});
-
 if (!supabaseUrl || !supabaseServiceKey || !resendApiKey) {
-  const missing = [];
-  if (!supabaseUrl) missing.push('SUPABASE_URL');
-  if (!supabaseServiceKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
-  if (!resendApiKey) missing.push('RESEND_API_KEY');
-  
-  console.error('Missing required environment variables:', missing);
-  throw new Error(`Missing environment variables: ${missing.join(', ')}`);
+  throw new Error('Missing required environment variables');
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
-let resend: Resend;
-
-try {
-  resend = new Resend(resendApiKey);
-  console.log('Resend client initialized successfully');
-} catch (error) {
-  console.error('Failed to initialize Resend client:', error);
-  throw error;
-}
+const resend = new Resend(resendApiKey);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -51,107 +28,112 @@ interface Relationship {
   birthday_notification_frequency: string;
   anniversary_notification_frequency: string;
   profile_id: string;
-  email: string | null;
   profiles: {
     email: string;
     full_name: string;
   };
 }
 
-interface EmailSent {
+interface ReminderResult {
   type: 'birthday' | 'anniversary';
   recipient: string;
   partner: string;
   daysUntil: number;
-  forceSent: boolean;
-}
-
-interface EmailError {
-  type: 'birthday' | 'anniversary';
-  recipient: string;
-  partner: string;
-  error: string;
-}
-
-interface DebugInfo {
-  name: string;
-  type: 'birthday' | 'anniversary';
-  date: string;
-  frequency: string;
-  shouldSend: boolean;
-  email: string;
-  profileOwner: string;
+  success: boolean;
+  error?: string;
 }
 
 // Helper function to get days offset from frequency
 const getFrequencyDays = (frequency: string): number => {
-  switch (frequency) {
-    case '1_day': return 1;
-    case '3_days': return 3;
-    case '1_week': return 7;
-    case '2_weeks': return 14;
-    case '1_month': return 30;
-    case 'none': return -1;
-    default: return 7;
-  }
+  const frequencyMap: Record<string, number> = {
+    '1_day': 1,
+    '3_days': 3,
+    '1_week': 7,
+    '2_weeks': 14,
+    '1_month': 30,
+    'none': -1
+  };
+  return frequencyMap[frequency] || 7;
 };
 
-// Corrected function to check if a date matches the reminder criteria
+// Check if a reminder should be sent today
 const shouldSendReminder = (eventDate: string, frequency: string): boolean => {
   const daysOffset = getFrequencyDays(frequency);
   if (daysOffset === -1) return false;
 
-  // Always use UTC for today
-  const now = new Date();
-  const today = new Date(Date.UTC(
-    now.getUTCFullYear(),
-    now.getUTCMonth(),
-    now.getUTCDate()
-  ));
+  const today = new Date();
+  const todayString = today.toISOString().split('T')[0];
+  
+  // Parse event date
+  const parts = eventDate.split('-');
+  const eventMonth = parts.length === 3 ? parseInt(parts[1]) : parseInt(parts[0]);
+  const eventDay = parts.length === 3 ? parseInt(parts[2]) : parseInt(parts[1]);
+  
+  // Calculate event date for this year
+  let eventThisYear = new Date(today.getFullYear(), eventMonth - 1, eventDay);
+  if (eventThisYear < today) {
+    eventThisYear = new Date(today.getFullYear() + 1, eventMonth - 1, eventDay);
+  }
+  
+  // Calculate reminder date
+  const reminderDate = new Date(eventThisYear);
+  reminderDate.setDate(eventThisYear.getDate() - daysOffset);
+  const reminderDateString = reminderDate.toISOString().split('T')[0];
+  
+  // Send if today is reminder date OR event date
+  return todayString === reminderDateString || todayString === eventThisYear.toISOString().split('T')[0];
+};
 
-  const currentYear = today.getUTCFullYear();
+// Send reminder email
+const sendReminderEmail = async (
+  recipientEmail: string,
+  recipientName: string,
+  partnerName: string,
+  eventType: 'birthday' | 'anniversary',
+  daysUntil: number
+): Promise<boolean> => {
+  try {
+    const subject = daysUntil === 0 
+      ? `🎉 It's ${partnerName}'s ${eventType === 'birthday' ? 'Birthday' : 'Anniversary'} today!`
+      : `📅 ${partnerName}'s ${eventType === 'birthday' ? 'Birthday' : 'Anniversary'} in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
 
-  // Parse the event date (format: YYYY-MM-DD or MM-DD)
-  let eventMonth: number, eventDay: number;
-  if (eventDate.includes('-')) {
-    const parts = eventDate.split('-');
-    if (parts.length === 3) {
-      eventMonth = parseInt(parts[1]);
-      eventDay = parseInt(parts[2]);
-    } else {
-      eventMonth = parseInt(parts[0]);
-      eventDay = parseInt(parts[1]);
-    }
-  } else {
-    console.error('Invalid date format:', eventDate);
+    const emailHtml = `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #fefcfa;">
+        <div style="background: linear-gradient(135deg, #9d4e65 0%, #c08862 100%); padding: 30px; text-align: center; border-radius: 12px; color: white;">
+          <h1 style="margin: 0; font-size: 24px;">${subject}</h1>
+        </div>
+        <div style="background: white; padding: 30px; border-radius: 12px; margin-top: 20px;">
+          <p style="font-size: 16px; color: #333; line-height: 1.6;">
+            Hi ${recipientName},<br><br>
+            ${daysUntil === 0 
+              ? `Today is ${partnerName}'s ${eventType === 'birthday' ? 'birthday' : 'anniversary'}! 🎉`
+              : `${partnerName}'s ${eventType === 'birthday' ? 'birthday' : 'anniversary'} is coming up in ${daysUntil} day${daysUntil === 1 ? '' : 's'}. 📅`
+            }
+          </p>
+          <p style="font-size: 16px; color: #333; line-height: 1.6;">
+            Take a moment to celebrate this special person in your life. 
+            Whether it's a simple message, a call, or planning something special, 
+            your attention and care will mean the world to them.
+          </p>
+        </div>
+        <div style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+          Sent with care from Careloom 💕
+        </div>
+      </div>
+    `;
+
+    await resend.emails.send({
+      from: "Careloom <careloom@resend.dev>",
+      to: [recipientEmail],
+      subject,
+      html: emailHtml,
+    });
+
+    return true;
+  } catch (error) {
+    console.error('Failed to send email:', error);
     return false;
   }
-
-  // Create the event date for this year in UTC
-  let eventThisYear = new Date(Date.UTC(currentYear, eventMonth - 1, eventDay));
-
-  // If the event already passed this year, use next year's date
-  if (eventThisYear < today) {
-    eventThisYear = new Date(Date.UTC(currentYear + 1, eventMonth - 1, eventDay));
-  }
-
-  // Calculate the reminder date (X days before the event) in UTC
-  const reminderDate = new Date(eventThisYear);
-  reminderDate.setUTCDate(eventThisYear.getUTCDate() - daysOffset);
-
-  const shouldSend = today.getTime() === reminderDate.getTime();
-
-  console.log(`Debug shouldSendReminder:`, {
-    eventDate,
-    frequency,
-    daysOffset,
-    today: today.toISOString().split('T')[0],
-    eventThisYear: eventThisYear.toISOString().split('T')[0],
-    reminderDate: reminderDate.toISOString().split('T')[0],
-    shouldSend
-  });
-  
-  return shouldSend;
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -160,381 +142,173 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const requestBody = await req.json().catch(() => ({}));
+    const { debug, forceSend, scheduled, testDateLogic } = requestBody;
+
     console.log(`=== Birthday Reminder Function Started ===`);
-    console.log(`Execution time: ${new Date().toISOString()}`);
-    console.log(`Function called from: ${req.headers.get('user-agent') || 'unknown'}`);
-    console.log(`Request headers:`, Object.fromEntries(req.headers.entries()));
-    
-    // Parse request
-    let requestBody: any = {};
-    try {
-      const bodyText = await req.text();
-      if (bodyText) {
-        requestBody = JSON.parse(bodyText);
-      }
-    } catch (e) {
-      console.log('No request body or invalid JSON');
-    }
-    
-    const isDebug = requestBody.debug === true;
-    const isForceSend = requestBody.forceSend === true;
-    const isScheduled = requestBody.scheduled === true;
-    
-    console.log(`Mode: debug=${isDebug}, forceSend=${isForceSend}, scheduled=${isScheduled}`);
-    
-    if (isScheduled) {
-      console.log(`🕘 CRON JOB EXECUTION DETECTED - Function called by scheduled cron job`);
-      console.log(`Environment check:`, {
-        hasSupabaseUrl: !!supabaseUrl,
-        hasServiceKey: !!supabaseServiceKey,
-        hasResendKey: !!resendApiKey
+    console.log(`Mode: debug=${debug}, forceSend=${forceSend}, scheduled=${scheduled}`);
+
+    // Test date logic if requested
+    if (testDateLogic) {
+      const testDates = [
+        { date: '1990-05-15', frequency: '1_week' },
+        { date: '1990-05-15', frequency: '3_days' },
+        { date: '1990-05-15', frequency: '1_day' }
+      ];
+      
+      const testResults = testDates.map(test => ({
+        ...test,
+        shouldSend: shouldSendReminder(test.date, test.frequency),
+        today: new Date().toISOString().split('T')[0]
+      }));
+      
+      return new Response(JSON.stringify({ success: true, testResults }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
       });
     }
-    
-    const today = new Date();
-    console.log(`Today: ${today.toISOString().split('T')[0]} (UTC)`);
 
-    // Fetch all relationships with their notification preferences
-    console.log('Fetching relationships...');
+    // Fetch relationships
     const { data: relationships, error: fetchError } = await supabase
       .from('relationships')
       .select(`
-        id,
-        name,
-        birthday,
-        anniversary,
-        birthday_notification_frequency,
-        anniversary_notification_frequency,
-        profile_id,
-        email,
-        profiles!inner(email, full_name)
+        id, name, birthday, anniversary,
+        birthday_notification_frequency, anniversary_notification_frequency,
+        profile_id, profiles!inner(email, full_name)
       `)
       .not('profiles.email', 'is', null);
 
-    if (fetchError) {
-      console.error('Error fetching relationships:', fetchError);
-      throw fetchError;
-    }
+    if (fetchError) throw fetchError;
 
-    console.log(`Found ${relationships?.length || 0} relationships to check`);
+    const results: ReminderResult[] = [];
+    const debugInfo: any[] = [];
 
-    const emailsSent: EmailSent[] = [];
-    const debugInfo: DebugInfo[] = [];
-    const emailErrors: EmailError[] = [];
-
-    for (const relationship of relationships || []) {
-      const rel = relationship as Relationship;
-      
-      console.log(`\n--- Checking relationship: ${rel.name} ---`);
-      console.log(`Profile: ${rel.profiles.full_name} (${rel.profiles.email})`);
-      console.log(`Relationship email: ${rel.email}`);
-      
-      // Always send to the profile owner's email
+    // Process each relationship
+    for (const rel of relationships || []) {
       const recipientEmail = rel.profiles.email;
-      console.log(`Will send to profile owner: ${recipientEmail}`);
       
-      // Check for birthday reminder
-      if (rel.birthday) {
-        console.log(`Birthday: ${rel.birthday}, Frequency: ${rel.birthday_notification_frequency}`);
+      // Check birthday reminders
+      if (rel.birthday && rel.birthday_notification_frequency !== 'none') {
+        const shouldSend = forceSend || shouldSendReminder(rel.birthday, rel.birthday_notification_frequency);
         
-        const shouldSend = isForceSend || shouldSendReminder(rel.birthday, rel.birthday_notification_frequency);
-        console.log(`Should send birthday reminder: ${shouldSend} (force: ${isForceSend})`);
-        
-        if (isDebug) {
+        if (debug) {
           debugInfo.push({
             name: rel.name,
             type: 'birthday',
             date: rel.birthday,
             frequency: rel.birthday_notification_frequency,
             shouldSend,
-            email: recipientEmail,
-            profileOwner: rel.profiles.email
+            email: recipientEmail
           });
         }
 
-        if (shouldSend && !isDebug) {
-          const currentYear = today.getFullYear();
-          const birthdayThisYear = `${currentYear}-${rel.birthday.slice(5)}`;
+        if (shouldSend && !debug) {
           const daysUntil = getFrequencyDays(rel.birthday_notification_frequency);
-          
-          console.log(`Sending birthday reminder for ${rel.name} to ${recipientEmail}...`);
-          
-          // Send birthday reminder to the profile owner
-          const emailResult = await sendReminderEmail(
+          const success = await sendReminderEmail(
             recipientEmail,
-            rel.profiles.full_name, // Profile owner's name (who receives the reminder)
-            rel.name, // The person whose birthday it is
+            rel.profiles.full_name,
+            rel.name,
             'birthday',
-            daysUntil,
-            new Date(birthdayThisYear)
+            daysUntil
           );
 
-          if (emailResult.success) {
-            console.log(`Birthday email sent successfully for ${rel.name} to ${recipientEmail}`);
-            
-            // Log the sent reminder (only if not force send)
-            if (!isForceSend) {
-              const { error: logError } = await supabase
-                .from('reminder_logs')
-                .insert({
-                  relationship_id: rel.id,
-                  reminder_type: 'birthday',
-                  reminder_date: today.toISOString().split('T')[0],
-                  event_date: birthdayThisYear
-                });
+          if (success) {
+            // Log the sent reminder
+            await supabase.from('reminder_logs').insert({
+              relationship_id: rel.id,
+              reminder_type: 'birthday',
+              reminder_date: new Date().toISOString().split('T')[0],
+              event_date: rel.birthday
+            });
 
-              if (logError) {
-                console.error(`Error logging birthday reminder for ${rel.name}:`, logError);
-              }
-            }
-
-            emailsSent.push({
+            results.push({
               type: 'birthday',
               recipient: recipientEmail,
               partner: rel.name,
               daysUntil,
-              forceSent: isForceSend
+              success: true
             });
           } else {
-            console.error(`Failed to send birthday email for ${rel.name}:`, emailResult.error);
-            emailErrors.push({
+            results.push({
               type: 'birthday',
               recipient: recipientEmail,
               partner: rel.name,
-              error: emailResult.error
+              daysUntil,
+              success: false,
+              error: 'Failed to send email'
             });
           }
         }
       }
 
-      // Similar logic for anniversary reminders
-      if (rel.anniversary) {
-        console.log(`Anniversary: ${rel.anniversary}, Frequency: ${rel.anniversary_notification_frequency}`);
+      // Check anniversary reminders
+      if (rel.anniversary && rel.anniversary_notification_frequency !== 'none') {
+        const shouldSend = forceSend || shouldSendReminder(rel.anniversary, rel.anniversary_notification_frequency);
         
-        const shouldSend = isForceSend || shouldSendReminder(rel.anniversary, rel.anniversary_notification_frequency);
-        console.log(`Should send anniversary reminder: ${shouldSend} (force: ${isForceSend})`);
-        
-        if (isDebug) {
+        if (debug) {
           debugInfo.push({
             name: rel.name,
             type: 'anniversary',
             date: rel.anniversary,
             frequency: rel.anniversary_notification_frequency,
             shouldSend,
-            email: recipientEmail,
-            profileOwner: rel.profiles.email
+            email: recipientEmail
           });
         }
 
-        if (shouldSend && !isDebug) {
-          const currentYear = today.getFullYear();
-          const anniversaryThisYear = `${currentYear}-${rel.anniversary.slice(5)}`;
+        if (shouldSend && !debug) {
           const daysUntil = getFrequencyDays(rel.anniversary_notification_frequency);
-          
-          console.log(`Sending anniversary reminder for ${rel.name} to ${recipientEmail}...`);
-          
-          const emailResult = await sendReminderEmail(
+          const success = await sendReminderEmail(
             recipientEmail,
             rel.profiles.full_name,
             rel.name,
             'anniversary',
-            daysUntil,
-            new Date(anniversaryThisYear)
+            daysUntil
           );
 
-          if (emailResult.success) {
-            console.log(`Anniversary email sent successfully for ${rel.name} to ${recipientEmail}`);
-            
-            if (!isForceSend) {
-              const { error: logError } = await supabase
-                .from('reminder_logs')
-                .insert({
-                  relationship_id: rel.id,
-                  reminder_type: 'anniversary',
-                  reminder_date: today.toISOString().split('T')[0],
-                  event_date: anniversaryThisYear
-                });
+          if (success) {
+            await supabase.from('reminder_logs').insert({
+              relationship_id: rel.id,
+              reminder_type: 'anniversary',
+              reminder_date: new Date().toISOString().split('T')[0],
+              event_date: rel.anniversary
+            });
 
-              if (logError) {
-                console.error(`Error logging anniversary reminder for ${rel.name}:`, logError);
-              }
-            }
-
-            emailsSent.push({
+            results.push({
               type: 'anniversary',
               recipient: recipientEmail,
               partner: rel.name,
               daysUntil,
-              forceSent: isForceSend
+              success: true
             });
           } else {
-            console.error(`Failed to send anniversary email for ${rel.name}:`, emailResult.error);
-            emailErrors.push({
+            results.push({
               type: 'anniversary',
               recipient: recipientEmail,
               partner: rel.name,
-              error: emailResult.error
+              daysUntil,
+              success: false,
+              error: 'Failed to send email'
             });
           }
         }
       }
     }
 
-    console.log(`\n=== Function Summary ===`);
-    console.log(`Successfully sent ${emailsSent.length} reminder emails`);
-    console.log(`Failed to send ${emailErrors.length} emails`);
-    console.log(`Function execution completed at: ${new Date().toISOString()}`);
+    const response = debug ? { debugInfo } : { results };
+    
+    return new Response(JSON.stringify(response), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
 
-    if (isDebug) {
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          debug: true,
-          today: today.toISOString().split('T')[0],
-          debugInfo,
-          message: 'Debug mode - no emails sent'
-        }),
-        {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        }
-      );
-    }
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        emailsSent: emailsSent.length,
-        emailErrors: emailErrors.length,
-        details: emailsSent,
-        errors: emailErrors.length > 0 ? emailErrors : undefined
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
-
-  } catch (error: any) {
-    console.error('Error in send-birthday-reminders function:', error);
-    return new Response(
-      JSON.stringify({ 
-        error: error.message,
-        stack: error.stack 
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
+  } catch (error) {
+    console.error('Function error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500,
+    });
   }
 };
-
-async function sendReminderEmail(
-  recipientEmail: string,
-  profileOwnerName: string,
-  partnerName: string,
-  eventType: 'birthday' | 'anniversary',
-  daysUntil: number,
-  eventDate: Date
-): Promise<{ success: boolean; error?: string }> {
-  try {
-    // Validate inputs
-    if (!recipientEmail || !recipientEmail.includes('@')) {
-      throw new Error(`Invalid recipient email: ${recipientEmail}`);
-    }
-
-    if (!resend) {
-      throw new Error('Resend client not initialized');
-    }
-
-    console.log(`🔄 Preparing to send ${eventType} email...`);
-    console.log(`   Recipient: ${recipientEmail}`);
-    console.log(`   Partner: ${partnerName}`);
-    console.log(`   Days until: ${daysUntil}`);
-    console.log(`   Event date: ${eventDate.toISOString()}`);
-
-    const eventTypeDisplay = eventType === 'birthday' ? 'Birthday' : 'Anniversary';
-    const dateString = eventDate.toLocaleDateString('en-US', { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-    
-    const daysText = daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`;
-
-    const emailData = {
-      from: "Careloom <careloom@resend.dev>",
-      to: [recipientEmail],
-      subject: `${partnerName}'s ${eventTypeDisplay} is ${daysText}`,
-      html: `
-        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #2563eb;">Hi there!</h2>
-          
-          <p style="font-size: 16px; line-height: 1.5; color: #374151;">
-            This is a friendly reminder that <strong>${partnerName}'s ${eventType}</strong> is ${daysText} on <strong>${dateString}</strong>.
-          </p>
-
-          <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin: 20px 0;">
-            <h3 style="color: #1f2937; margin-top: 0;">Some ideas to make it special:</h3>
-            <ul style="color: #4b5563; line-height: 1.6;">
-              ${eventType === 'birthday' ? `
-                <li>Plan a surprise celebration</li>
-                <li>Choose a thoughtful gift</li>
-                <li>Write a heartfelt card</li>
-              ` : `
-                <li>Plan a romantic dinner</li>
-                <li>Recreate your first date</li>
-                <li>Create a photo album of memories</li>
-              `}
-            </ul>
-          </div>
-
-          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-            Sent with care from Careloom (set up by ${profileOwnerName})
-          </p>
-        </div>
-      `,
-    };
-
-    console.log(`📧 Calling Resend API with email data...`);
-    
-    const emailResponse = await resend.emails.send(emailData);
-
-    console.log(`✅ Resend API response:`, emailResponse);
-
-    // Check if the response indicates success
-    if (emailResponse && (emailResponse.data || emailResponse.id)) {
-      console.log(`🎉 ${eventTypeDisplay} reminder email sent successfully for ${partnerName} to ${recipientEmail}`);
-      return { success: true };
-    } else {
-      console.warn(`⚠️  Unexpected Resend response format:`, emailResponse);
-      return { success: false, error: 'Unexpected response from email service' };
-    }
-
-  } catch (error: any) {
-    console.error(`❌ Error sending ${eventType} reminder email:`, {
-      error: error.message,
-      stack: error.stack,
-      recipient: recipientEmail,
-      partner: partnerName,
-      eventType,
-      resendInitialized: !!resend
-    });
-    
-    // Provide more specific error messages
-    let errorMessage = error.message;
-    if (error.message?.includes('Invalid API key')) {
-      errorMessage = 'Invalid Resend API key - check your RESEND_API_KEY secret';
-    } else if (error.message?.includes('domain')) {
-      errorMessage = 'Email domain not verified in Resend - check your domain settings';
-    } else if (error.message?.includes('rate limit')) {
-      errorMessage = 'Rate limit exceeded - too many emails sent';
-    }
-    
-    return { success: false, error: errorMessage };
-  }
-}
 
 serve(handler);

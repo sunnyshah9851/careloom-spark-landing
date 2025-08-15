@@ -23,11 +23,10 @@ const DataExport = () => {
       }
 
       // Fetch all user data
-      const [profileResponse, relationshipsResponse, eventsResponse, notificationPrefsResponse] = await Promise.all([
+      const [profileResponse, relationshipsResponse, eventsResponse] = await Promise.all([
         supabase.from('profiles').select('*').eq('id', user.id).single(),
-        supabase.from('relationships').select('*').eq('profile_id', user.id),
-        supabase.from('events').select('*, relationships!inner(profile_id)').eq('relationships.profile_id', user.id),
-        supabase.from('notification_preferences').select('*').eq('user_id', user.id).single()
+        supabase.from('relationships').select('*').eq('id', user.id),
+        supabase.from('events').select('*, relationships!inner(profile_id)').eq('relationships.profile_id', user.id)
       ]);
 
       const exportData = {
@@ -39,8 +38,7 @@ const DataExport = () => {
         },
         profile: profileResponse.data,
         relationships: relationshipsResponse.data || [],
-        events: eventsResponse.data || [],
-        notification_preferences: notificationPrefsResponse.data
+        events: eventsResponse.data || []
       };
 
       // Create and download JSON file

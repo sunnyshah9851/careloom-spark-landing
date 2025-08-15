@@ -2,7 +2,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Shield, Trash2 } from 'lucide-react';
-import NotificationSettings from './NotificationSettings';
 import DataExport from './DataExport';
 import ChangePasswordModal from './ChangePasswordModal';
 import DeleteAccountModal from './DeleteAccountModal';
@@ -20,9 +19,6 @@ const DashboardSettings = () => {
       </div>
 
       <div className="space-y-6">
-        <NotificationSettings />
-
-
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-rose-800">

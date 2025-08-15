@@ -10,6 +10,7 @@ import FloatingFeedbackButton from "@/components/FloatingFeedbackButton";
 import Index from "./pages/Index";
 import DemoPage from "./pages/DemoPage";
 import TestPage from "./pages/TestPage";
+import DebugCronPage from "./pages/debug-cron";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/demo" element={<DemoPage />} />
               <Route path="/test" element={<TestPage />} />
+              <Route path="/debug-cron" element={<DebugCronPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
