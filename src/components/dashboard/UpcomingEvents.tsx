@@ -29,76 +29,87 @@ interface UpcomingEventsProps {
 
 const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
   const calculateUpcomingEvents = (): Event[] => {
-    const events: Event[] = [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const oneMonthFromNow = new Date(today);
-    oneMonthFromNow.setDate(oneMonthFromNow.getDate() + 30);
+  const events: Event[] = [];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-    const getDaysUntil = (eventDate: Date) => {
-      const diffTime = eventDate.getTime() - today.getTime();
-      return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    };
+  const oneMonthFromNow = new Date(today);
+  oneMonthFromNow.setDate(oneMonthFromNow.getDate() + 30);
 
-    const getNextOccurrence = (dateString: string) => {
-      const date = new Date(dateString);
-      const currentYear = today.getFullYear();
-      const thisYear = new Date(currentYear, date.getMonth(), date.getDate());
-      thisYear.setHours(0, 0, 0, 0);
-      
-      if (thisYear < today) {
-        const nextYear = new Date(currentYear + 1, date.getMonth(), date.getDate());
-        nextYear.setHours(0, 0, 0, 0);
-        return nextYear;
-      }
-      
-      return thisYear;
-    };
-
-    const isWithinNext30Days = (eventDate: Date) => {
-      return eventDate >= today && eventDate <= oneMonthFromNow;
-    };
-
-    relationships.forEach(relationship => {
-      if (relationship.birthday) {
-        const nextBirthday = getNextOccurrence(relationship.birthday);
-        
-        if (isWithinNext30Days(nextBirthday)) {
-          events.push({
-            type: 'birthday',
-            name: `${relationship.name}'s Birthday`,
-            date: nextBirthday.toISOString(),
-            daysUntil: getDaysUntil(nextBirthday)
-          });
-        }
-      }
-
-      if (relationship.anniversary) {
-        const nextAnniversary = getNextOccurrence(relationship.anniversary);
-        
-        if (isWithinNext30Days(nextAnniversary)) {
-          events.push({
-            type: 'anniversary',
-            name: `${relationship.name} Anniversary`,
-            date: nextAnniversary.toISOString(),
-            daysUntil: getDaysUntil(nextAnniversary)
-          });
-        }
-      }
-    });
-
-    return events.sort((a, b) => a.daysUntil - b.daysUntil);
+  const getDaysUntil = (eventDate: Date) => {
+    const diffTime = eventDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
+
+  const getNextOccurrence = (dateString: string) => {
+  const [year, month, day] = dateString.split('-').map(Number);
+  const currentYear = today.getFullYear();
+  const thisYear = new Date(currentYear, month - 1, day); // month is 0-indexed
+
+  thisYear.setHours(0, 0, 0, 0);
+  
+  if (thisYear < today) {
+    const nextYear = new Date(currentYear + 1, month - 1, day);
+    nextYear.setHours(0, 0, 0, 0);
+    return nextYear;
+  }
+  
+  return thisYear;
+};
+
+
+  const isWithinNext30Days = (eventDate: Date) => {
+    return eventDate >= today && eventDate <= oneMonthFromNow;
+  };
+
+  const formatAsLocalYMD = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+  relationships.forEach((relationship) => {
+    // Birthday
+    if (relationship.birthday) {
+      const nextBirthday = getNextOccurrence(relationship.birthday);
+
+      if (isWithinNext30Days(nextBirthday)) {
+        events.push({
+          type: 'birthday',
+          name: `${relationship.name}'s Birthday`,
+          date: formatAsLocalYMD(nextBirthday),
+          daysUntil: getDaysUntil(nextBirthday),
+        });
+      }
+    }
+
+    // Anniversary
+    if (relationship.anniversary) {
+      const nextAnniversary = getNextOccurrence(relationship.anniversary);
+
+      if (isWithinNext30Days(nextAnniversary)) {
+        events.push({
+          type: 'anniversary',
+          name: `${relationship.name} Anniversary`,
+          date: formatAsLocalYMD(nextAnniversary), // <-- fixed
+          daysUntil: getDaysUntil(nextAnniversary),
+        });
+      }
+    }
+  });
+
+  return events.sort((a, b) => a.daysUntil - b.daysUntil);
+};
+
 
   const events = calculateUpcomingEvents();
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric'
-    });
-  };
+  // Parse YYYY-MM-DD as a local date (not UTC)
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
 
   return (
     <Card className="shadow-lg border-2 border-blue-100 bg-gradient-to-br from-blue-50/50 to-indigo-50/50">

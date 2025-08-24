@@ -27,6 +27,11 @@ interface UpcomingEventsTableProps {
   relationships: Relationship[];
 }
 
+const parseYMDLocal = (ymd: string) => {
+  const [y, m, d] = ymd.split('-').map(Number);
+  return new Date(y, (m ?? 1) - 1, d ?? 1);
+};
+
 const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
 
@@ -43,7 +48,7 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
     relationships.forEach(relationship => {
       // Process birthdays
       if (relationship.birthday) {
-        const birthday = new Date(relationship.birthday);
+        const birthday = relationship.birthday ? parseYMDLocal(relationship.birthday) : null;
         const thisYearBirthday = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate());
         const nextYearBirthday = new Date(today.getFullYear() + 1, birthday.getMonth(), birthday.getDate());
         
@@ -71,7 +76,7 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
 
       // Process anniversaries
       if (relationship.anniversary) {
-        const anniversary = new Date(relationship.anniversary);
+        const anniversary = relationship.anniversary ? parseYMDLocal(relationship.anniversary) : null;
         const thisYearAnniversary = new Date(today.getFullYear(), anniversary.getMonth(), anniversary.getDate());
         const nextYearAnniversary = new Date(today.getFullYear() + 1, anniversary.getMonth(), anniversary.getDate());
         
