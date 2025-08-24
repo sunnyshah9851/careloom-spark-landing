@@ -314,8 +314,6 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
                   <p className="font-bold mb-2 text-lg">Reminder Settings</p>
                   <p className="text-blue-700 leading-relaxed">
                     You can customize when reminders are sent for each relationship in the People tab. 
-                    <span className="font-semibold"> Reminders are currently set to send {upcomingEvents.filter(e => e.notificationFrequency !== 'none').length} 
-                    out of {upcomingEvents.length} events.</span>
                   </p>
                 </div>
               </div>
