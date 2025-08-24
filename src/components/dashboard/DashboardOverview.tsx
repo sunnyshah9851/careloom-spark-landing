@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import DashboardStats from './DashboardStats';
 import RecentActivity from './RecentActivity';
-import ThoughtfulnessScore from './ThoughtfulnessScore';
 import RelationshipHealthCard from './RelationshipHealthCard';
 import AddRelationshipCard from './AddRelationshipCard';
 import AddRelationshipForm from './AddRelationshipForm';
@@ -10,6 +9,7 @@ import UpcomingEventsTable from './UpcomingEventsTable';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Users, Sparkles } from 'lucide-react';
+import DashboardMiniCalendar from './DashboardMiniCalendar';
 
 interface DashboardOverviewProps {
   relationships: any[];
@@ -61,10 +61,10 @@ export default function DashboardOverview({ relationships, profile, onRefresh }:
           <DashboardStats relationships={relationships} />
         </div>
 
-        {/* Upcoming Events Table */}
         <div className="mb-12">
           <UpcomingEventsTable relationships={relationships} />
         </div>
+
 
         {hasRelationships ? (
           /* Content for users with relationships */
@@ -88,7 +88,7 @@ export default function DashboardOverview({ relationships, profile, onRefresh }:
             <div className="space-y-10">
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-white/50 shadow-xl hover:shadow-2xl transition-all duration-300">
                 <div className="p-8">
-                  <ThoughtfulnessScore relationships={relationships} />
+                  <DashboardMiniCalendar relationships={relationships} />
                 </div>
               </div>
 

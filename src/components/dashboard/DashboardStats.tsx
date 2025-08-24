@@ -1,6 +1,5 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Heart, Calendar, Clock, TrendingUp, Activity, Gift } from 'lucide-react';
+import { Heart, Calendar, Gift } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,26 +24,10 @@ interface DashboardStatsProps {
 
 const DashboardStats = ({ relationships }: DashboardStatsProps) => {
   const { user } = useAuth();
-  const [recentActivity, setRecentActivity] = useState(0);
   const [upcomingBirthdays, setUpcomingBirthdays] = useState(0);
+  const [upcomingAnniversaries, setUpcomingAnniversaries] = useState(0);
 
   useEffect(() => {
-    const fetchRecentActivity = async () => {
-      if (!user) return;
-
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      // Get events from the last 7 days
-      const { data: events } = await supabase
-        .from('events')
-        .select('id, relationship_id, relationships!inner(profile_id)')
-        .gte('created_at', sevenDaysAgo.toISOString())
-        .eq('relationships.profile_id', user.id);
-
-      setRecentActivity(events?.length || 0);
-    };
-
     const fetchUpcomingBirthdays = async () => {
       if (!user) return;
 
@@ -102,7 +85,26 @@ const DashboardStats = ({ relationships }: DashboardStatsProps) => {
       }
     };
 
-    fetchRecentActivity();
+    // Add upcoming anniversaries count
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const thirtyDaysFromNow = new Date(today);
+    thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+    const anniversariesInNext30Days = relationships.filter(rel => {
+      if (!rel.anniversary) return false;
+      const anniversary = new Date(rel.anniversary);
+      const currentYear = today.getFullYear();
+      const thisYearAnniversary = new Date(currentYear, anniversary.getMonth(), anniversary.getDate());
+      thisYearAnniversary.setHours(0, 0, 0, 0);
+      const nextYearAnniversary = new Date(currentYear + 1, anniversary.getMonth(), anniversary.getDate());
+      nextYearAnniversary.setHours(0, 0, 0, 0);
+      const nextOccurrence = thisYearAnniversary >= today ? thisYearAnniversary : nextYearAnniversary;
+      return nextOccurrence <= thirtyDaysFromNow;
+    });
+
+    setUpcomingAnniversaries(anniversariesInNext30Days.length);
+
     fetchUpcomingBirthdays();
   }, [user, relationships]);
 
@@ -145,17 +147,17 @@ const DashboardStats = ({ relationships }: DashboardStatsProps) => {
       color: 'text-gray-900'
     },
     {
-      title: 'Recent Activity',
-      value: recentActivity,
-      subtitle: recentActivity === 0 ? 'No activity this week' : 'Actions in last 7 days',
-      icon: Activity,
-      color: 'text-gray-900'
-    },
-    {
       title: 'Upcoming Birthdays',
       value: upcomingBirthdays,
       subtitle: upcomingBirthdays === 0 ? 'None in next 30 days' : 'In next 30 days',
       icon: Gift,
+      color: 'text-gray-900'
+    },
+    {
+      title: 'Upcoming Anniversaries',
+      value: upcomingAnniversaries,
+      subtitle: upcomingAnniversaries === 0 ? 'None in next 30 days' : 'In next 30 days',
+      icon: Calendar,
       color: 'text-gray-900'
     },
     {
