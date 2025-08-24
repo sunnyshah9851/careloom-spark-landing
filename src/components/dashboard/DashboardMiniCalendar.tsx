@@ -177,15 +177,15 @@ export default function DashboardMiniCalendar({ relationships }: Props) {
         </TooltipProvider>
 
         {/* Legend */}
-        <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-3 w-3 rounded bg-amber-200 border border-amber-300" />
-            <span className="text-gray-700">Birthday</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-3 w-3 rounded bg-rose-200 border border-rose-300" />
-            <span className="text-gray-700">Anniversary</span>
-          </div>
+        <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+            <div className="flex items-center gap-2">
+                <span className="shrink-0 h-3 w-3 rounded-full bg-amber-200 border border-amber-300" />
+                <span className="text-gray-700">Birthday</span>
+            </div>
+            <div className="flex items-center gap-2">
+                <span className="shrink-0 h-3 w-3 rounded-full bg-rose-200 border border-rose-300" />
+                <span className="text-gray-700">Anniversary</span>
+            </div>
         </div>
       </CardContent>
     </Card>
