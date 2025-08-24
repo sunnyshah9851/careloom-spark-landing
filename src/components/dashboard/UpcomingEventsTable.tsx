@@ -60,8 +60,8 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
 
         const daysUntil = Math.ceil((nextBirthday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         
-        // Only show events within the next 90 days
-        if (daysUntil >= 0 && daysUntil <= 90) {
+        // Only show events within the next 30 days
+        if (daysUntil >= 0 && daysUntil <= 30) {
           events.push({
             id: `${relationship.id}-birthday`,
             name: relationship.name,
@@ -89,7 +89,7 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
         const daysUntil = Math.ceil((nextAnniversary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         
         // Only show events within the next 90 days
-        if (daysUntil >= 0 && daysUntil <= 90) {
+        if (daysUntil >= 0 && daysUntil <= 30) {
           events.push({
             id: `${relationship.id}-anniversary`,
             name: relationship.name,
@@ -200,9 +200,9 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center pb-8">
-          <p className="text-gray-500 font-medium mb-2">No events in the next 90 days</p>
+          <p className="text-gray-500 font-medium mb-2">No events in the next 30 days</p>
           <p className="text-sm text-gray-400">
-            Events will appear here when they're within 90 days
+            Events will appear here when they're within 30 days
           </p>
         </CardContent>
       </Card>
@@ -219,7 +219,7 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
           Upcoming Events
         </CardTitle>
         <CardDescription className="text-blue-100 text-lg">
-          Your upcoming birthdays and anniversaries for the next 90 days
+          Your upcoming birthdays and anniversaries for the next 30 days
         </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
@@ -313,9 +313,7 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
                 <div className="text-sm text-blue-800">
                   <p className="font-bold mb-2 text-lg">Reminder Settings</p>
                   <p className="text-blue-700 leading-relaxed">
-                    You can customize when reminders are sent for each relationship in the People tab. 
-                    <span className="font-semibold"> Reminders are currently set to send {upcomingEvents.filter(e => e.notificationFrequency !== 'none').length} 
-                    out of {upcomingEvents.length} events.</span>
+                    You can customize when reminders are sent for each relationship in the People tab.
                   </p>
                 </div>
               </div>
