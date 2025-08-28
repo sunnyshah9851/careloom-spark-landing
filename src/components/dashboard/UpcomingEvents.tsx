@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar, Heart, Gift } from 'lucide-react';
+import { parse } from 'date-fns';
 
 interface Relationship {
   id: string;
@@ -42,21 +43,23 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
   };
 
   const getNextOccurrence = (dateString: string) => {
-  const [year, month, day] = dateString.split('-').map(Number);
+  // Use date-fns parse to create a proper local date from YYYY-MM-DD format
+  const originalDate = parse(dateString, 'yyyy-MM-dd', new Date());
   const currentYear = today.getFullYear();
-  const thisYear = new Date(currentYear, month - 1, day); // month is 0-indexed
-
+  
+  // Create this year's occurrence
+  const thisYear = new Date(currentYear, originalDate.getMonth(), originalDate.getDate());
   thisYear.setHours(0, 0, 0, 0);
   
   if (thisYear < today) {
-    const nextYear = new Date(currentYear + 1, month - 1, day);
+    // Event already passed this year, get next year's occurrence
+    const nextYear = new Date(currentYear + 1, originalDate.getMonth(), originalDate.getDate());
     nextYear.setHours(0, 0, 0, 0);
     return nextYear;
   }
   
   return thisYear;
 };
-
 
   const isWithinNext30Days = (eventDate: Date) => {
     return eventDate >= today && eventDate <= oneMonthFromNow;
@@ -102,9 +105,8 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
   const events = calculateUpcomingEvents();
 
   const formatDate = (dateString: string) => {
-  // Parse YYYY-MM-DD as a local date (not UTC)
-  const [year, month, day] = dateString.split('-').map(Number);
-  return new Date(year, month - 1, day).toLocaleDateString('en-US', {
+  // Use date-fns parse to ensure consistent date handling
+  return parse(dateString, 'yyyy-MM-dd', new Date()).toLocaleDateString('en-US', {
     month: 'long',
     day: 'numeric'
   });
