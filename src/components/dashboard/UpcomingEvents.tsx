@@ -112,41 +112,41 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
 
 
   return (
-    <Card className="shadow-lg border-2 border-blue-100 bg-gradient-to-br from-blue-50/50 to-indigo-50/50">
+    <Card className="shadow-lg border-2 border-border bg-gradient-rose card-hover">
       <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-3 text-xl font-semibold text-gray-800">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Calendar className="h-5 w-5 text-blue-600" />
+        <CardTitle className="flex items-center gap-3 text-xl font-semibold text-foreground">
+          <div className="p-2 bg-accent rounded-lg">
+            <Calendar className="h-5 w-5 text-primary" />
           </div>
           Upcoming Events
         </CardTitle>
-        <CardDescription className="text-gray-600">
+        <CardDescription className="text-muted-foreground">
           Important dates in the next 30 days
         </CardDescription>
       </CardHeader>
       <CardContent>
         {events.length === 0 ? (
           <div className="text-center py-8">
-            <div className="p-4 bg-gray-100 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <Calendar className="h-8 w-8 text-gray-400" />
+            <div className="p-4 bg-muted rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <Calendar className="h-8 w-8 text-muted-foreground" />
             </div>
-            <p className="text-gray-500 font-medium mb-2">
+            <p className="text-muted-foreground font-medium mb-2">
               No upcoming events
             </p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-muted-foreground/70">
               Add birthdays and anniversaries to see them here
             </p>
           </div>
         ) : (
           <div className="space-y-3">
             {events.map((event, index) => (
-              <div key={index} className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-white/50 shadow-sm hover:shadow-md transition-all duration-200 hover:bg-white/90">
+              <div key={index} className="bg-card/80 backdrop-blur-sm rounded-xl p-4 border border-border/50 shadow-sm hover:shadow-md transition-all duration-200 hover:bg-card/90">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`p-3 rounded-full ${
                       event.type === 'anniversary' 
-                        ? 'bg-rose-100 text-rose-600' 
-                        : 'bg-amber-100 text-amber-600'
+                        ? 'bg-rose-200 text-rose-700' 
+                        : 'bg-cream-200 text-cream-800'
                     }`}>
                       {event.type === 'anniversary' ? (
                         <Heart className="h-5 w-5" />
@@ -155,16 +155,16 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
                       )}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-800">{event.name}</p>
-                      <p className="text-sm text-gray-500">{formatDate(event.date)}</p>
+                      <p className="font-semibold text-foreground">{event.name}</p>
+                      <p className="text-sm text-muted-foreground">{formatDate(event.date)}</p>
                     </div>
                   </div>
                   <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                     event.daysUntil === 0 
-                      ? 'bg-red-100 text-red-700 border border-red-200' 
+                      ? 'bg-destructive/10 text-destructive border border-destructive/20' 
                       : event.daysUntil <= 3 
-                      ? 'bg-orange-100 text-orange-700 border border-orange-200'
-                      : 'bg-blue-100 text-blue-700 border border-blue-200'
+                      ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                      : 'bg-primary/10 text-primary border border-primary/20'
                   }`}>
                     {event.daysUntil === 0 ? 'Today! 🎉' : 
                      event.daysUntil === 1 ? 'Tomorrow' : 
