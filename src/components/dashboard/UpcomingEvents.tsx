@@ -114,15 +114,15 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
 
 
   return (
-    <Card className="shadow-lg border-2 border-border bg-gradient-rose card-hover">
+    <Card className="shadow-lg border border-border/20 bg-gradient-to-br from-background via-background to-accent/5 card-hover backdrop-blur-sm">
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-3 text-xl font-semibold text-foreground">
-          <div className="p-2 bg-accent rounded-lg">
+          <div className="p-2 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl border border-primary/10">
             <Calendar className="h-5 w-5 text-primary" />
           </div>
           Upcoming Events
         </CardTitle>
-        <CardDescription className="text-muted-foreground">
+        <CardDescription className="text-muted-foreground/80">
           Important dates in the next 30 days
         </CardDescription>
       </CardHeader>
@@ -147,8 +147,8 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
                   <div className="flex items-center gap-4">
                     <div className={`p-3 rounded-full ${
                       event.type === 'anniversary' 
-                        ? 'bg-rose-200 text-rose-700' 
-                        : 'bg-cream-200 text-cream-800'
+                        ? 'bg-gradient-to-br from-rose-100 to-rose-50 text-rose-600 border border-rose-200/50' 
+                        : 'bg-gradient-to-br from-amber-100 to-amber-50 text-amber-600 border border-amber-200/50'
                     }`}>
                       {event.type === 'anniversary' ? (
                         <Heart className="h-5 w-5" />
