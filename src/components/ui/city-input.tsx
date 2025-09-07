@@ -152,23 +152,20 @@ export function CityInput({
               <CommandGroup>
                 {suggestions.map((city) => (
                   <CommandItem
-                    key={city.id}
-                    value={city.displayName}
-                    onSelect={() => handleSelect(city)}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        value === city.displayName ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    <div className="flex flex-col">
-                      <span>{city.displayName}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {city.latitude.toFixed(2)}, {city.longitude.toFixed(2)}
-                      </span>
-                    </div>
-                  </CommandItem>
+  key={city.id}
+  value={city.displayName}
+  onSelect={() => handleSelect(city)}
+>
+  <Check
+    className={cn(
+      "mr-2 h-4 w-4",
+      value === city.displayName ? "opacity-100" : "opacity-0"
+    )}
+  />
+  {/* Only show the city name */}
+  <span>{city.displayName}</span>
+</CommandItem>
+
                 ))}
 
                 {/* Free-text option if the exact string isn’t in results */}
