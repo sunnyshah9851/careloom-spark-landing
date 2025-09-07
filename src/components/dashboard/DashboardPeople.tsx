@@ -14,6 +14,7 @@ interface Relationship {
   relationship_type: string;
   name: string;
   email?: string;
+  phone_number?: string;
   birthday?: string;
   anniversary?: string;
   notes?: string;

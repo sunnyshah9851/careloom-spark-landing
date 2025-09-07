@@ -11,6 +11,7 @@ export interface OnboardingData {
   anniversaryNudgeFrequency: string;
   nudgeFrequency: string;
   city: string;
+  phoneNumber: string;
 }
 
 export interface OnboardingStepProps {

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CityInput } from '@/components/ui/city-input';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, X, Trash2 } from 'lucide-react';
+import { normalizePhoneForDB } from '@/lib/phone';
 
 interface Relationship {
   id: string;
@@ -14,6 +15,7 @@ interface Relationship {
   relationship_type: string;
   name: string;
   email?: string;
+  phone_number?: string;
   birthday?: string;
   anniversary?: string;
   notes?: string;
@@ -54,7 +56,8 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
           relationship_type: editForm.relationship_type,
           birthday_notification_frequency: editForm.birthday_notification_frequency,
           anniversary_notification_frequency: editForm.anniversary_notification_frequency,
-          date_ideas_frequency: editForm.date_ideas_frequency
+          date_ideas_frequency: editForm.date_ideas_frequency,
+          phone_number: normalizePhoneForDB(editForm.phone_number as string) || null
         })
         .eq('id', relationship.id);
 
@@ -142,6 +145,23 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
           />
         </div>
       </div>
+
+      <div className="grid grid-cols-2 gap-4">
+  <div>
+    <Label className="text-sm text-gray-600">WhatsApp Number</Label>
+    <Input
+      type="tel"
+      value={editForm.phone_number || ''}
+      onChange={(e) => setEditForm({ ...editForm, phone_number: e.target.value })}
+      placeholder="+14155551234 or +91..."
+      className="mt-1"
+    />
+    <p className="text-[11px] text-gray-500 mt-1">
+      Use international format including country code (e.g., +1, +91).
+    </p>
+  </div>
+</div>
+
 
       <div className="grid grid-cols-2 gap-4">
         <div>

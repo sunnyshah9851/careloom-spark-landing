@@ -6,6 +6,7 @@ import { format, addYears, isAfter, isBefore, startOfDay } from 'date-fns';
 interface Relationship {
   id: string;
   name: string;
+  phone_number?: string;
   birthday?: string;
   anniversary?: string;
   birthday_notification_frequency?: string;

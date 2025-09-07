@@ -12,6 +12,7 @@ import { useEvents } from '@/hooks/useEvents';
 import { toast } from 'sonner';
 import { Heart, Sparkles, Calendar, Coffee } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { normalizePhoneForDB } from '@/lib/phone';
 
 interface AddRelationshipFormProps {
   onSuccess: () => void;
@@ -25,6 +26,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    phone_number: '',
     relationship_type: '',
     city: '',
     birthday: '',
@@ -94,7 +96,8 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           notes: formData.notes || null,
           birthday_notification_frequency: formData.birthday_notification_frequency,
           anniversary_notification_frequency: formData.anniversary_notification_frequency,
-          date_ideas_frequency: isPartnerRelationship ? formData.date_ideas_frequency : null
+          date_ideas_frequency: isPartnerRelationship ? formData.date_ideas_frequency : null,
+          phone_number: normalizePhoneForDB(formData.phone_number)
         })
         .select()
         .single();
@@ -140,7 +143,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
     <div className="w-full max-w-lg mx-auto bg-white p-6 rounded-lg">
       <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
         <p className="text-sm text-blue-800">
-          📧 All communication is currently via email. Text messaging will be available in the future.
+          📧 Add a WhatsApp number to chat directly from the app. Email is still supported.
         </p>
       </div>
 
@@ -205,6 +208,24 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
             className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black placeholder:text-gray-500"
           />
         </div>
+
+        <div className="space-y-2">
+  <Label htmlFor="phone_number" className="text-sm font-medium text-black">
+    WhatsApp number (with country code)
+  </Label>
+  <Input
+    id="phone_number"
+    type="tel"
+    value={formData.phone_number}
+    onChange={(e) => handleInputChange('phone_number', e.target.value)}
+    placeholder="+14155551234 or +91..."
+    className="w-full border-gray-300 focus:border-rose-500 focus:ring-rose-500 text-black placeholder:text-gray-500"
+  />
+  <p className="text-xs text-gray-500">
+    Use international format including the country code (e.g., +1, +91).
+  </p>
+</div>
+
 
         <div className="space-y-2">
           <Label htmlFor="birthday" className="text-sm font-medium text-black">

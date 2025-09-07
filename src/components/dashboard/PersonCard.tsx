@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Edit, Save, X, Calendar, Mail, Heart, Gift, Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import PersonEditForm from './PersonEditForm';
 import { parse } from 'date-fns'; // Add this import
+import { Edit, Save, X, Calendar, Mail, Heart, Gift, Bell, MessageCircle } from 'lucide-react';
+import { whatsAppLink } from '@/lib/phone';
 
 interface Relationship {
   id: string;
@@ -15,6 +16,7 @@ interface Relationship {
   relationship_type: string;
   name: string;
   email?: string;
+  phone_number?: string;
   birthday?: string;
   anniversary?: string;
   notes?: string;
@@ -147,13 +149,29 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                 Editing {relationship.name}
               </CardTitle>
             </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setIsEditing(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+  {relationship.phone_number && (
+    <a
+      href={whatsAppLink(relationship.phone_number, `Hi ${relationship.name}!`)}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`WhatsApp ${relationship.name}`}
+      className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-emerald-100 hover:bg-emerald-200 border border-emerald-200 transition-colors"
+      title={`WhatsApp ${relationship.name}`}
+    >
+      <MessageCircle className="h-4 w-4 text-emerald-700" />
+    </a>
+  )}
+  <Button
+    size="sm"
+    variant="outline"
+    onClick={() => setIsEditing(true)}
+    className="text-rose-600 border-rose-200 hover:bg-rose-50"
+  >
+    <Edit className="h-4 w-4" />
+  </Button>
+</div>
+
           </div>
         </CardHeader>
         <CardContent>

@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import AddRelationshipModal from './AddRelationshipModal';
+import { MessageCircle } from 'lucide-react';
+import { whatsAppLink } from '@/lib/phone';
 
 interface Relationship {
   id: string;
@@ -18,6 +20,7 @@ interface Relationship {
   relationship_type: string;
   name: string;
   email?: string;
+  phone_number?: string;
   birthday?: string;
   anniversary?: string;
   notes?: string;
@@ -302,14 +305,29 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
                             </p>
                           )}
                         </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteRelationship(relationship.id, relationship.name)}
-                          className="ml-4"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex items-center gap-2 ml-4">
+  {relationship.phone_number && (
+    <a
+      href={whatsAppLink(relationship.phone_number, `Hi ${relationship.name}!`)}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={`WhatsApp ${relationship.name}`}
+      className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-emerald-100 hover:bg-emerald-200 border border-emerald-200 transition-colors"
+      title={`WhatsApp ${relationship.name}`}
+    >
+      <MessageCircle className="h-4 w-4 text-emerald-700" />
+    </a>
+  )}
+
+  <Button
+    variant="destructive"
+    size="sm"
+    onClick={() => handleDeleteRelationship(relationship.id, relationship.name)}
+  >
+    <Trash2 className="h-4 w-4" />
+  </Button>
+</div>
+
                       </div>
                     ))}
                   </div>

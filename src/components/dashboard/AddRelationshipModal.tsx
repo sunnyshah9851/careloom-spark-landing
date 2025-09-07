@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { normalizePhoneForDB } from '@/lib/phone';
 
 interface AddRelationshipModalProps {
   open: boolean;
@@ -23,6 +24,7 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
     name: '',
     relationship_type: 'partner',
     email: '',
+    phone_number: '',
     birthday: '',
     anniversary: '',
     notes: '',
@@ -60,6 +62,7 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
         name: formData.name.trim(),
         relationship_type: formData.relationship_type,
         email: formData.email.trim() || null,
+        phone_number: normalizePhoneForDB(formData.phone_number),
         birthday: formData.birthday || null,
         anniversary: formData.anniversary || null,
         notes: formData.notes.trim() || null,
@@ -94,6 +97,7 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
           name: '',
           relationship_type: 'partner',
           email: '',
+          phone_number: '',
           birthday: '',
           anniversary: '',
           notes: '',
@@ -230,6 +234,21 @@ const AddRelationshipModal = ({ open, onOpenChange, onRelationshipAdded }: AddRe
               placeholder="their.email@example.com"
             />
           </div>
+
+          <div>
+  <Label htmlFor="modal-phone">WhatsApp number (with country code)</Label>
+  <Input
+    id="modal-phone"
+    type="tel"
+    value={formData.phone_number}
+    onChange={(e) => handleInputChange('phone_number', e.target.value)}
+    placeholder="+14155551234 or +91..."
+  />
+  <p className="text-xs text-muted-foreground mt-1">
+    Use international format including the country code (e.g., +1, +91).
+  </p>
+</div>
+
 
           <div>
             <Label htmlFor="modal-notes">Notes (Optional)</Label>

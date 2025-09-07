@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { OnboardingData } from './types';
+import { normalizePhoneForDB } from '@/lib/phone';
 
 export const useOnboarding = () => {
   const { user } = useAuth();
@@ -20,10 +21,11 @@ export const useOnboarding = () => {
     anniversaryNudgeEnabled: true,
     anniversaryNudgeFrequency: '1_week',
     nudgeFrequency: 'weekly',
-    city: ''
+    city: '',
+    phoneNumber: ''
   });
 
-  const totalSteps = 7;
+  const totalSteps = 8;
   const progress = (currentStep / totalSteps) * 100;
 
   const handleNext = () => {
@@ -72,6 +74,7 @@ export const useOnboarding = () => {
           birthday_notification_frequency: data.birthdayNudgeEnabled ? data.birthdayNudgeFrequency : 'none',
           anniversary_notification_frequency: data.anniversaryNudgeEnabled ? data.anniversaryNudgeFrequency : 'none',
           notes: `General nudge frequency: ${data.nudgeFrequency}`,
+          phone_number: normalizePhoneForDB(data.phoneNumber)
         });
 
       if (relationshipError) throw relationshipError;
@@ -98,15 +101,17 @@ export const useOnboarding = () => {
         return data.name.trim().length > 0;
       case 2: // Relationship Type
         return true; // Has default
-      case 3: // Relationship City
+      case 3:
+        return true;
+      case 4: // Relationship City
         return data.relationshipCity.trim().length > 0;
-      case 4: // Birthday + Birthday Nudge
+      case 5: // Birthday + Birthday Nudge
         return data.birthday !== null;
-      case 5: // Anniversary + Anniversary Nudge
+      case 6: // Anniversary + Anniversary Nudge
         return true; // Anniversary is optional
-      case 6: // General Relationship Nudges
+      case 7: // General Relationship Nudges
         return true; // Has default
-      case 7: // Your City
+      case 8: // Your City
         return data.city.trim().length > 0;
       default:
         return false;

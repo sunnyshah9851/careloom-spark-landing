@@ -13,6 +13,8 @@ import { RelationshipCityStep } from './RelationshipCityStep';
 import { CityStep } from './CityStep';
 import { useOnboarding } from './useOnboarding';
 import { OnboardingProps } from './types';
+import { PhoneStep } from './PhoneStep';
+
 
 const Onboarding = ({ onComplete }: OnboardingProps) => {
   const {
@@ -44,8 +46,10 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
       case 2:
         return <RelationshipTypeStep {...stepProps} />;
       case 3:
-        return <RelationshipCityStep {...stepProps} />;
+        return <PhoneStep {...stepProps} />;
       case 4:
+        return <RelationshipCityStep {...stepProps} />;
+      case 5:
         return (
           <div className="space-y-8">
             <BirthdayStep {...stepProps} />
@@ -56,7 +60,7 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
             )}
           </div>
         );
-      case 5:
+      case 6:
         return (
           <div className="space-y-8">
             <AnniversaryStep {...stepProps} />
@@ -67,9 +71,9 @@ const Onboarding = ({ onComplete }: OnboardingProps) => {
             )}
           </div>
         );
-      case 6:
-        return <NudgeFrequencyStep {...stepProps} />;
       case 7:
+        return <NudgeFrequencyStep {...stepProps} />;
+      case 8:
         return <CityStep {...stepProps} />;
       default:
         return <NameStep {...stepProps} />;
