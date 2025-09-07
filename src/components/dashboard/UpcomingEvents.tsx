@@ -136,9 +136,6 @@ const UpcomingEvents = ({ relationships }: UpcomingEventsProps) => {
             <p className="text-muted-foreground font-medium mb-2">
               No upcoming events
             </p>
-            <p className="text-sm text-muted-foreground/70">
-              Add birthdays and anniversaries to see them here
-            </p>
           </div>
         ) : (
           <div className="space-y-3">

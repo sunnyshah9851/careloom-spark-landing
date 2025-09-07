@@ -23,119 +23,113 @@ interface DashboardStatsProps {
   relationships: Relationship[];
 }
 
+// Parse 'YYYY-MM-DD' as a local date (no UTC shift)
+const parseYMDLocal = (ymd: string) => {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(y, (m || 1) - 1, d || 1);
+};
+
 const DashboardStats = ({ relationships }: DashboardStatsProps) => {
   const { user } = useAuth();
   const [upcomingBirthdays, setUpcomingBirthdays] = useState(0);
   const [upcomingAnniversaries, setUpcomingAnniversaries] = useState(0);
 
   useEffect(() => {
-    const fetchUpcomingBirthdays = async () => {
-      if (!user) return;
+  const fetchUpcomingBirthdays = async () => {
+    if (!user) return;
 
-      console.log('Fetching upcoming birthdays...');
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Reset to start of day
-      const thirtyDaysFromNow = new Date(today);
-      thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
-
-      console.log('Today:', today.toDateString());
-      console.log('30 days from now:', thirtyDaysFromNow.toDateString());
-
-      // Get relationships with birthdays in the next 30 days
-      const { data: relationshipsWithBirthdays, error } = await supabase
-        .from('relationships')
-        .select('name, birthday')
-        .eq('profile_id', user.id)
-        .not('birthday', 'is', null);
-
-      console.log('Relationships with birthdays:', relationshipsWithBirthdays);
-
-      if (relationshipsWithBirthdays && !error) {
-        const birthdaysInNext30Days = relationshipsWithBirthdays.filter(rel => {
-          if (!rel.birthday) return false;
-          
-          const birthday = new Date(rel.birthday);
-          const currentYear = today.getFullYear();
-          
-          // Create this year's birthday
-          const thisYearBirthday = new Date(currentYear, birthday.getMonth(), birthday.getDate());
-          thisYearBirthday.setHours(0, 0, 0, 0);
-          
-          // Create next year's birthday
-          const nextYearBirthday = new Date(currentYear + 1, birthday.getMonth(), birthday.getDate());
-          nextYearBirthday.setHours(0, 0, 0, 0);
-          
-          // Determine which occurrence to use
-          const nextOccurrence = thisYearBirthday >= today ? thisYearBirthday : nextYearBirthday;
-          
-          const isWithin30Days = nextOccurrence <= thirtyDaysFromNow;
-          
-          console.log(`${rel.name}'s birthday: ${rel.birthday}`);
-          console.log(`  This year: ${thisYearBirthday.toDateString()}`);
-          console.log(`  Next occurrence: ${nextOccurrence.toDateString()}`);
-          console.log(`  Within 30 days: ${isWithin30Days}`);
-          
-          return isWithin30Days;
-        });
-
-        console.log('Birthdays in next 30 days:', birthdaysInNext30Days.length);
-        setUpcomingBirthdays(birthdaysInNext30Days.length);
-      } else if (error) {
-        console.error('Error fetching birthdays:', error);
-      }
-    };
-
-    // Add upcoming anniversaries count
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const thirtyDaysFromNow = new Date(today);
     thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
-    const anniversariesInNext30Days = relationships.filter(rel => {
-      if (!rel.anniversary) return false;
-      const anniversary = new Date(rel.anniversary);
-      const currentYear = today.getFullYear();
-      const thisYearAnniversary = new Date(currentYear, anniversary.getMonth(), anniversary.getDate());
-      thisYearAnniversary.setHours(0, 0, 0, 0);
-      const nextYearAnniversary = new Date(currentYear + 1, anniversary.getMonth(), anniversary.getDate());
-      nextYearAnniversary.setHours(0, 0, 0, 0);
-      const nextOccurrence = thisYearAnniversary >= today ? thisYearAnniversary : nextYearAnniversary;
-      return nextOccurrence <= thirtyDaysFromNow;
-    });
+    const { data: relationshipsWithBirthdays, error } = await supabase
+      .from('relationships')
+      .select('name, birthday')
+      .eq('profile_id', user.id)
+      .not('birthday', 'is', null);
 
-    setUpcomingAnniversaries(anniversariesInNext30Days.length);
+    if (relationshipsWithBirthdays && !error) {
+      const birthdaysInNext30Days = relationshipsWithBirthdays.filter(rel => {
+        if (!rel.birthday) return false;
 
-    fetchUpcomingBirthdays();
-  }, [user, relationships]);
+        // ✅ parse as local date
+        const birth = parseYMDLocal(rel.birthday);
+        const currentYear = today.getFullYear();
+
+        const thisYearBirthday = new Date(currentYear, birth.getMonth(), birth.getDate());
+        thisYearBirthday.setHours(0, 0, 0, 0);
+
+        const nextYearBirthday = new Date(currentYear + 1, birth.getMonth(), birth.getDate());
+        nextYearBirthday.setHours(0, 0, 0, 0);
+
+        const nextOccurrence = thisYearBirthday >= today ? thisYearBirthday : nextYearBirthday;
+        return nextOccurrence <= thirtyDaysFromNow;
+      });
+
+      setUpcomingBirthdays(birthdaysInNext30Days.length);
+    } else if (error) {
+      console.error('Error fetching birthdays:', error);
+    }
+  };
+
+  // ✅ anniversaries using local parse too
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const thirtyDaysFromNow = new Date(today);
+  thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+  const anniversariesInNext30Days = relationships.filter(rel => {
+    if (!rel.anniversary) return false;
+
+    const ann = parseYMDLocal(rel.anniversary); // ✅ local parse
+    const currentYear = today.getFullYear();
+
+    const thisYearAnniversary = new Date(currentYear, ann.getMonth(), ann.getDate());
+    thisYearAnniversary.setHours(0, 0, 0, 0);
+
+    const nextYearAnniversary = new Date(currentYear + 1, ann.getMonth(), ann.getDate());
+    nextYearAnniversary.setHours(0, 0, 0, 0);
+
+    const nextOccurrence = thisYearAnniversary >= today ? thisYearAnniversary : nextYearAnniversary;
+    return nextOccurrence <= thirtyDaysFromNow;
+  });
+
+  setUpcomingAnniversaries(anniversariesInNext30Days.length);
+
+  fetchUpcomingBirthdays();
+}, [user, relationships]);
+
 
   const calculateStats = () => {
-    const today = new Date();
-    let daysToNextEvent = Infinity;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // start of day
+  let daysToNextEvent = Infinity;
 
-    relationships.forEach(relationship => {
-      // Find next upcoming event
-      [relationship.birthday, relationship.anniversary].forEach(dateStr => {
-        if (dateStr) {
-          const eventDate = new Date(dateStr);
-          const currentYear = today.getFullYear();
-          const thisYearEvent = new Date(currentYear, eventDate.getMonth(), eventDate.getDate());
-          const nextYearEvent = new Date(currentYear + 1, eventDate.getMonth(), eventDate.getDate());
-          
-          const nextOccurrence = thisYearEvent >= today ? thisYearEvent : nextYearEvent;
-          const daysUntil = Math.ceil((nextOccurrence.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-          
-          if (daysUntil < daysToNextEvent) {
-            daysToNextEvent = daysUntil;
-          }
-        }
-      });
+  relationships.forEach((relationship) => {
+    [relationship.birthday, relationship.anniversary].forEach((dateStr) => {
+      if (!dateStr) return;
+
+      // IMPORTANT: parse as local Y-M-D
+      const base = parseYMDLocal(dateStr);
+
+      const currentYear = today.getFullYear();
+      const thisYearEvent = new Date(currentYear, base.getMonth(), base.getDate());
+      const nextYearEvent = new Date(currentYear + 1, base.getMonth(), base.getDate());
+
+      const nextOccurrence = thisYearEvent >= today ? thisYearEvent : nextYearEvent;
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const daysUntil = Math.ceil((nextOccurrence.getTime() - today.getTime()) / msPerDay);
+
+      if (daysUntil < daysToNextEvent) {
+        daysToNextEvent = daysUntil;
+      }
     });
+  });
 
-    return {
-      daysToNextEvent: daysToNextEvent === Infinity ? 0 : daysToNextEvent
-    };
-  };
+  return { daysToNextEvent };
+};
+
 
   const stats = calculateStats();
 

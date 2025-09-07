@@ -57,13 +57,19 @@ export default function DashboardOverview({ relationships, profile, onRefresh }:
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Stats Grid */}
+        
+        {hasRelationships && (
         <div className="mb-12">
           <DashboardStats relationships={relationships} />
         </div>
+      )}
 
+        {hasRelationships && (
         <div className="mb-12">
           <UpcomingEventsTable relationships={relationships} />
         </div>
+      )}
+
 
 
         {hasRelationships ? (
