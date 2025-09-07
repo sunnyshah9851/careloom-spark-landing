@@ -4,14 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { CityInput } from '@/components/ui/city-input';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useEvents } from '@/hooks/useEvents';
 import { toast } from 'sonner';
-import { Heart, Sparkles, Calendar, Coffee } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { normalizePhoneForDB } from '@/lib/phone';
 
 interface AddRelationshipFormProps {
@@ -33,8 +30,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
     anniversary: '',
     notes: '',
     birthday_notification_frequency: '1_week',
-    anniversary_notification_frequency: '1_week',
-    date_ideas_frequency: 'weekly'
+    anniversary_notification_frequency: '1_week'
   });
 
   const nudgeOptions = [
@@ -96,7 +92,6 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           notes: formData.notes || null,
           birthday_notification_frequency: formData.birthday_notification_frequency,
           anniversary_notification_frequency: formData.anniversary_notification_frequency,
-          date_ideas_frequency: isPartnerRelationship ? formData.date_ideas_frequency : null,
           phone_number: normalizePhoneForDB(formData.phone_number)
         })
         .select()
@@ -115,8 +110,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           relationship_name: formData.name,
           relationship_type: formData.relationship_type,
           birthday_notification_frequency: formData.birthday_notification_frequency,
-          anniversary_notification_frequency: formData.anniversary_notification_frequency,
-          ...(isPartnerRelationship && { date_ideas_frequency: formData.date_ideas_frequency })
+          anniversary_notification_frequency: formData.anniversary_notification_frequency
         }
       );
 
