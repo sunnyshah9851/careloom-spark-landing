@@ -57,7 +57,7 @@ const AddRelationshipCard = ({ onRelationshipAdded }: AddRelationshipCardProps) 
     <Button 
       onClick={() => setShowForm(true)}
       variant="outline"
-      className="border-dashed border-primary/30 hover:border-primary/50 hover:bg-primary/5"
+      className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 hover:from-rose-600 hover:via-pink-600 hover:to-purple-600 text-white px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
     >
       <Plus className="h-4 w-4 mr-2" />
       Add Relationship
