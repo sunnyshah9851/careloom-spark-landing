@@ -6,12 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import PersonEditForm from './PersonEditForm';
-import { parse } from 'date-fns'; // Add this import
+import { parse } from 'date-fns';
 import { Edit, Save, X, Mail, Heart, Gift, Bell, MessageCircle } from 'lucide-react';
-import { whatsAppLink } from '@/lib/phone';
+import { buildWhatsAppLink } from '@/lib/phone';
 import { Switch } from '@/components/ui/switch';
-import { Sparkles } from 'lucide-react'; // optional, for UI flair
-
+import { Sparkles } from 'lucide-react';
 
 interface Relationship {
   id: string;
@@ -47,13 +46,11 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
   });
 
   const isPartnerRelationship =
-  (relationship.relationship_type || '').toLowerCase() === 'partner' ||
-  (relationship.relationship_type || '').toLowerCase() === 'spouse';
-
+    (relationship.relationship_type || '').toLowerCase() === 'partner' ||
+    (relationship.relationship_type || '').toLowerCase() === 'spouse';
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return '';
-    // If ISO string (contains 'T'), use new Date(), else use parse
     if (dateString.includes('T')) {
       return new Date(dateString).toLocaleDateString('en-US', {
         month: 'long',
@@ -61,7 +58,6 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
         year: 'numeric'
       });
     }
-    // For yyyy-MM-dd (birthday/anniversary)
     return parse(dateString, 'yyyy-MM-dd', new Date()).toLocaleDateString('en-US', {
       month: 'long',
       day: 'numeric',
@@ -90,40 +86,29 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
     }
   };
 
-
   const handleFrequencyUpdate = async () => {
     if (isSaving) return;
-    
+
     setIsSaving(true);
     try {
-      console.log('Updating frequencies for relationship:', relationship.id);
-      console.log('New frequencies:', frequencies);
-      
       const { data, error } = await supabase
         .from('relationships')
         .update({
           birthday_notification_frequency: frequencies.birthday_notification_frequency,
           anniversary_notification_frequency: frequencies.anniversary_notification_frequency,
           date_ideas_frequency: isPartnerRelationship
-      ? (frequencies.wants_date_ideas ? 'weekly' : 'none')
-      : null,
+            ? (frequencies.wants_date_ideas ? 'weekly' : 'none')
+            : null,
         })
         .eq('id', relationship.id)
         .select();
 
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Update successful:', data);
       toast.success('Notification frequencies updated successfully');
       setIsEditingFrequencies(false);
-      
-      // Force refresh the parent data
       await onUpdate();
     } catch (error: any) {
-      console.error('Error updating frequencies:', error);
       toast.error(`Failed to update notification frequencies: ${error.message}`);
     } finally {
       setIsSaving(false);
@@ -144,39 +129,21 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
       <Card className="shadow-lg border-2 border-gray-100 hover:border-rose-200 transition-all duration-200">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-lg font-semibold text-gray-800">
-                Editing {relationship.name}
-              </CardTitle>
-            </div>
-            <div className="flex items-center gap-2">
-  {relationship.phone_number && (
-    <a
-      href={whatsAppLink(relationship.phone_number, `Hi ${relationship.name}!`)}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={`WhatsApp ${relationship.name}`}
-      className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-emerald-100 hover:bg-emerald-200 border border-emerald-200 transition-colors"
-      title={`WhatsApp ${relationship.name}`}
-    >
-      <MessageCircle className="h-4 w-4 text-emerald-700" />
-    </a>
-  )}
-  <Button
-    size="sm"
-    variant="outline"
-    onClick={() => setIsEditing(true)}
-    className="text-rose-600 border-rose-200 hover:bg-rose-50"
-  >
-    <Edit className="h-4 w-4" />
-  </Button>
-</div>
-
-
+            <CardTitle className="text-lg font-semibold text-gray-800">
+              Editing {relationship.name}
+            </CardTitle>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIsEditing(false)}
+              className="text-gray-600 border-gray-200 hover:bg-gray-50"
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <PersonEditForm 
+          <PersonEditForm
             relationship={relationship}
             onSave={() => {
               setIsEditing(false);
@@ -206,20 +173,36 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
               </Badge>
             </div>
           </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setIsEditing(true)}
-            className="text-rose-600 border-rose-200 hover:bg-rose-50"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
+
+          {/* WhatsApp + Edit buttons */}
+          <div className="flex items-center gap-2">
+            {relationship.phone_number && (
+              <a
+                href={buildWhatsAppLink(relationship.phone_number, `Hi ${relationship.name}!`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`WhatsApp ${relationship.name}`}
+                className="inline-flex items-center justify-center h-9 w-9 rounded-full bg-emerald-100 hover:bg-emerald-200 border border-emerald-200 transition-colors"
+                title={`WhatsApp ${relationship.name}`}
+              >
+                <MessageCircle className="h-4 w-4 text-emerald-700" />
+              </a>
+            )}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIsEditing(true)}
+              className="text-rose-600 border-rose-200 hover:bg-rose-50"
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
+
       <CardContent className="space-y-4">
-        {/* Important Dates Section */}
+        {/* Important Dates */}
         <div className="grid grid-cols-2 gap-3">
-          {/* Birthday */}
           <div className="bg-amber-50 rounded-lg p-3 border border-amber-200">
             <div className="flex items-center gap-2 mb-2">
               <Gift className="h-4 w-4 text-amber-600" />
@@ -230,7 +213,6 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
             </p>
           </div>
 
-          {/* Anniversary */}
           <div className="bg-rose-50 rounded-lg p-3 border border-rose-200">
             <div className="flex items-center gap-2 mb-2">
               <Heart className="h-4 w-4 text-rose-600" />
@@ -242,7 +224,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
           </div>
         </div>
 
-        {/* Notification Frequencies Section */}
+        {/* Notification Frequencies */}
         <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -263,14 +245,14 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
 
           {isEditingFrequencies ? (
             <div className="space-y-3">
+              {/* Birthday Frequency */}
               <div>
                 <label className="text-xs text-blue-700 mb-1 block">Birthday Reminders</label>
                 <Select
                   value={frequencies.birthday_notification_frequency}
-                  onValueChange={(value) => {
-                    console.log('Birthday frequency changed to:', value);
-                    setFrequencies(prev => ({ ...prev, birthday_notification_frequency: value }));
-                  }}
+                  onValueChange={(value) =>
+                    setFrequencies(prev => ({ ...prev, birthday_notification_frequency: value }))
+                  }
                 >
                   <SelectTrigger className="h-8 text-xs border-blue-200">
                     <SelectValue />
@@ -285,15 +267,15 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
+              {/* Anniversary Frequency */}
               <div>
                 <label className="text-xs text-blue-700 mb-1 block">Anniversary Reminders</label>
                 <Select
                   value={frequencies.anniversary_notification_frequency}
-                  onValueChange={(value) => {
-                    console.log('Anniversary frequency changed to:', value);
-                    setFrequencies(prev => ({ ...prev, anniversary_notification_frequency: value }));
-                  }}
+                  onValueChange={(value) =>
+                    setFrequencies(prev => ({ ...prev, anniversary_notification_frequency: value }))
+                  }
                 >
                   <SelectTrigger className="h-8 text-xs border-blue-200">
                     <SelectValue />
@@ -308,30 +290,30 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
+              {/* Weekly Date Ideas */}
               {isPartnerRelationship && (
-  <div className="flex items-center justify-between bg-rose-50 border border-rose-200 rounded-lg p-3">
-    <div>
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-rose-600" />
-        <span className="text-sm font-medium text-rose-800">Weekly date ideas (email)</span>
-      </div>
-      <p className="text-xs text-rose-700 mt-1">
-        Turn on to receive one email per week with date ideas.
-      </p>
-    </div>
-    <Switch
-      checked={frequencies.wants_date_ideas}
-      onCheckedChange={(checked) =>
-        setFrequencies(prev => ({ ...prev, wants_date_ideas: checked }))
-      }
-      className="data-[state=checked]:bg-rose-500"
-    />
-  </div>
-)}
+                <div className="flex items-center justify-between bg-rose-50 border border-rose-200 rounded-lg p-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-rose-600" />
+                      <span className="text-sm font-medium text-rose-800">Weekly date ideas (email)</span>
+                    </div>
+                    <p className="text-xs text-rose-700 mt-1">
+                      Turn on to receive one email per week with date ideas.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={frequencies.wants_date_ideas}
+                    onCheckedChange={(checked) =>
+                      setFrequencies(prev => ({ ...prev, wants_date_ideas: checked }))
+                    }
+                    className="data-[state=checked]:bg-rose-500"
+                  />
+                </div>
+              )}
 
-              
-
+              {/* Save & Cancel */}
               <div className="flex gap-2 pt-2">
                 <Button
                   size="sm"
@@ -356,25 +338,23 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
             </div>
           ) : (
             <div className={`grid gap-3 text-xs ${isPartnerRelationship ? 'grid-cols-3' : 'grid-cols-2'}`}>
-  <div>
-    <span className="text-blue-600 font-medium">Birthday:</span>
-    <p className="text-blue-700">{getFrequencyLabel(relationship.birthday_notification_frequency)}</p>
-  </div>
-  <div>
-    <span className="text-blue-600 font-medium">Anniversary:</span>
-    <p className="text-blue-700">{getFrequencyLabel(relationship.anniversary_notification_frequency)}</p>
-  </div>
-
-  {isPartnerRelationship && (
-    <div>
-      <span className="text-blue-600 font-medium">Date ideas:</span>
-      <p className="text-blue-700">
-        {relationship.date_ideas_frequency === 'weekly' ? 'On' : 'Disabled'}
-      </p>
-    </div>
-  )}
-</div>
-
+              <div>
+                <span className="text-blue-600 font-medium">Birthday:</span>
+                <p className="text-blue-700">{getFrequencyLabel(relationship.birthday_notification_frequency)}</p>
+              </div>
+              <div>
+                <span className="text-blue-600 font-medium">Anniversary:</span>
+                <p className="text-blue-700">{getFrequencyLabel(relationship.anniversary_notification_frequency)}</p>
+              </div>
+              {isPartnerRelationship && (
+                <div>
+                  <span className="text-blue-600 font-medium">Date ideas:</span>
+                  <p className="text-blue-700">
+                    {relationship.date_ideas_frequency === 'weekly' ? 'On' : 'Disabled'}
+                  </p>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
