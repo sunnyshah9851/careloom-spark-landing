@@ -39,8 +39,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [frequencies, setFrequencies] = useState({
     birthday_notification_frequency: relationship.birthday_notification_frequency || '1_week',
-    anniversary_notification_frequency: relationship.anniversary_notification_frequency || '1_week',
-    date_ideas_frequency: relationship.date_ideas_frequency || 'weekly'
+    anniversary_notification_frequency: relationship.anniversary_notification_frequency || '1_week'
   });
 
   const formatDate = (dateString: string | undefined) => {
@@ -82,16 +81,6 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
     }
   };
 
-  const getDateIdeasFrequencyLabel = (frequency: string | undefined) => {
-    switch (frequency) {
-      case 'daily': return 'Daily';
-      case 'weekly': return 'Weekly';
-      case 'biweekly': return 'Every 2 weeks';
-      case 'monthly': return 'Monthly';
-      case 'none': return 'Disabled';
-      default: return 'Weekly';
-    }
-  };
 
   const handleFrequencyUpdate = async () => {
     if (isSaving) return;
@@ -105,8 +94,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
         .from('relationships')
         .update({
           birthday_notification_frequency: frequencies.birthday_notification_frequency,
-          anniversary_notification_frequency: frequencies.anniversary_notification_frequency,
-          date_ideas_frequency: frequencies.date_ideas_frequency
+          anniversary_notification_frequency: frequencies.anniversary_notification_frequency
         })
         .eq('id', relationship.id)
         .select();
@@ -133,8 +121,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
   const handleCancelFrequencyEdit = () => {
     setFrequencies({
       birthday_notification_frequency: relationship.birthday_notification_frequency === 'weekly' ? '1_week' : relationship.birthday_notification_frequency || '1_week',
-      anniversary_notification_frequency: relationship.anniversary_notification_frequency === 'weekly' ? '1_week' : relationship.anniversary_notification_frequency || '1_week',
-      date_ideas_frequency: relationship.date_ideas_frequency || 'weekly'
+      anniversary_notification_frequency: relationship.anniversary_notification_frequency === 'weekly' ? '1_week' : relationship.anniversary_notification_frequency || '1_week'
     });
     setIsEditingFrequencies(false);
   };
@@ -308,29 +295,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                 </Select>
               </div>
               
-              {(relationship.relationship_type?.toLowerCase() === 'partner' || relationship.relationship_type?.toLowerCase() === 'spouse') && (
-                <div>
-                  <label className="text-xs text-blue-700 mb-1 block">Date Ideas Frequency</label>
-                  <Select
-                    value={frequencies.date_ideas_frequency}
-                    onValueChange={(value) => {
-                      console.log('Date ideas frequency changed to:', value);
-                      setFrequencies(prev => ({ ...prev, date_ideas_frequency: value }));
-                    }}
-                  >
-                    <SelectTrigger className="h-8 text-xs border-blue-200">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="biweekly">Every 2 weeks</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="none">Disabled</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              
 
               <div className="flex gap-2 pt-2">
                 <Button
@@ -355,7 +320,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
               </div>
             </div>
           ) : (
-            <div className={`grid gap-3 text-xs ${(relationship.relationship_type?.toLowerCase() === 'partner' || relationship.relationship_type?.toLowerCase() === 'spouse') ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            <div className="grid gap-3 text-xs grid-cols-2">
               <div>
                 <span className="text-blue-600 font-medium">Birthday:</span>
                 <p className="text-blue-700">{getFrequencyLabel(relationship.birthday_notification_frequency)}</p>
@@ -364,12 +329,6 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                 <span className="text-blue-600 font-medium">Anniversary:</span>
                 <p className="text-blue-700">{getFrequencyLabel(relationship.anniversary_notification_frequency)}</p>
               </div>
-              {(relationship.relationship_type?.toLowerCase() === 'partner' || relationship.relationship_type?.toLowerCase() === 'spouse') && (
-                <div>
-                  <span className="text-blue-600 font-medium">Date Ideas:</span>
-                  <p className="text-blue-700">{getDateIdeasFrequencyLabel(relationship.date_ideas_frequency)}</p>
-                </div>
-              )}
             </div>
           )}
         </div>
