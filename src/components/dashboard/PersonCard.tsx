@@ -126,7 +126,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
 
   if (isEditing) {
     return (
-      <Card className="shadow-lg border-2 border-gray-100 hover:border-rose-200 transition-all duration-200">
+      <Card className="shadow-lg border-2 border-gray-100 hover:border-rose-200 transition-all duration-200 overflow-hidden">
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-gray-800">
