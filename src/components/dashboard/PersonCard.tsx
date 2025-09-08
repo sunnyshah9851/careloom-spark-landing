@@ -7,8 +7,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import PersonEditForm from './PersonEditForm';
 import { parse } from 'date-fns'; // Add this import
-import { Edit, Save, X, Calendar, Mail, Heart, Gift, Bell, MessageCircle } from 'lucide-react';
+import { Edit, Save, X, Mail, Heart, Gift, Bell, MessageCircle } from 'lucide-react';
 import { whatsAppLink } from '@/lib/phone';
+import { Switch } from '@/components/ui/switch';
+import { Sparkles } from 'lucide-react'; // optional, for UI flair
+
 
 interface Relationship {
   id: string;
@@ -39,8 +42,14 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [frequencies, setFrequencies] = useState({
     birthday_notification_frequency: relationship.birthday_notification_frequency || '1_week',
-    anniversary_notification_frequency: relationship.anniversary_notification_frequency || '1_week'
+    anniversary_notification_frequency: relationship.anniversary_notification_frequency || '1_week',
+    wants_date_ideas: relationship.date_ideas_frequency === 'weekly',
   });
+
+  const isPartnerRelationship =
+  (relationship.relationship_type || '').toLowerCase() === 'partner' ||
+  (relationship.relationship_type || '').toLowerCase() === 'spouse';
+
 
   const formatDate = (dateString: string | undefined) => {
     if (!dateString) return '';
@@ -94,7 +103,10 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
         .from('relationships')
         .update({
           birthday_notification_frequency: frequencies.birthday_notification_frequency,
-          anniversary_notification_frequency: frequencies.anniversary_notification_frequency
+          anniversary_notification_frequency: frequencies.anniversary_notification_frequency,
+          date_ideas_frequency: isPartnerRelationship
+      ? (frequencies.wants_date_ideas ? 'weekly' : 'none')
+      : null,
         })
         .eq('id', relationship.id)
         .select();
@@ -121,7 +133,8 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
   const handleCancelFrequencyEdit = () => {
     setFrequencies({
       birthday_notification_frequency: relationship.birthday_notification_frequency === 'weekly' ? '1_week' : relationship.birthday_notification_frequency || '1_week',
-      anniversary_notification_frequency: relationship.anniversary_notification_frequency === 'weekly' ? '1_week' : relationship.anniversary_notification_frequency || '1_week'
+      anniversary_notification_frequency: relationship.anniversary_notification_frequency === 'weekly' ? '1_week' : relationship.anniversary_notification_frequency || '1_week',
+      wants_date_ideas: relationship.date_ideas_frequency === 'weekly',
     });
     setIsEditingFrequencies(false);
   };
@@ -158,6 +171,7 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
     <Edit className="h-4 w-4" />
   </Button>
 </div>
+
 
           </div>
         </CardHeader>
@@ -295,6 +309,27 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
                 </Select>
               </div>
               
+              {isPartnerRelationship && (
+  <div className="flex items-center justify-between bg-rose-50 border border-rose-200 rounded-lg p-3">
+    <div>
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-rose-600" />
+        <span className="text-sm font-medium text-rose-800">Weekly date ideas (email)</span>
+      </div>
+      <p className="text-xs text-rose-700 mt-1">
+        Turn on to receive one email per week with date ideas.
+      </p>
+    </div>
+    <Switch
+      checked={frequencies.wants_date_ideas}
+      onCheckedChange={(checked) =>
+        setFrequencies(prev => ({ ...prev, wants_date_ideas: checked }))
+      }
+      className="data-[state=checked]:bg-rose-500"
+    />
+  </div>
+)}
+
               
 
               <div className="flex gap-2 pt-2">
@@ -320,16 +355,26 @@ const PersonCard = ({ relationship, onUpdate }: PersonCardProps) => {
               </div>
             </div>
           ) : (
-            <div className="grid gap-3 text-xs grid-cols-2">
-              <div>
-                <span className="text-blue-600 font-medium">Birthday:</span>
-                <p className="text-blue-700">{getFrequencyLabel(relationship.birthday_notification_frequency)}</p>
-              </div>
-              <div>
-                <span className="text-blue-600 font-medium">Anniversary:</span>
-                <p className="text-blue-700">{getFrequencyLabel(relationship.anniversary_notification_frequency)}</p>
-              </div>
-            </div>
+            <div className={`grid gap-3 text-xs ${isPartnerRelationship ? 'grid-cols-3' : 'grid-cols-2'}`}>
+  <div>
+    <span className="text-blue-600 font-medium">Birthday:</span>
+    <p className="text-blue-700">{getFrequencyLabel(relationship.birthday_notification_frequency)}</p>
+  </div>
+  <div>
+    <span className="text-blue-600 font-medium">Anniversary:</span>
+    <p className="text-blue-700">{getFrequencyLabel(relationship.anniversary_notification_frequency)}</p>
+  </div>
+
+  {isPartnerRelationship && (
+    <div>
+      <span className="text-blue-600 font-medium">Date ideas:</span>
+      <p className="text-blue-700">
+        {relationship.date_ideas_frequency === 'weekly' ? 'On' : 'Disabled'}
+      </p>
+    </div>
+  )}
+</div>
+
           )}
         </div>
 

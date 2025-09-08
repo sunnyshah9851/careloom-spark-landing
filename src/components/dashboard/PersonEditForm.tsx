@@ -8,6 +8,9 @@ import { CityInput } from '@/components/ui/city-input';
 import { supabase } from '@/integrations/supabase/client';
 import { Save, X, Trash2 } from 'lucide-react';
 import { normalizePhoneForDB } from '@/lib/phone';
+import { Switch } from '@/components/ui/switch';
+import { Sparkles } from 'lucide-react';
+
 
 interface Relationship {
   id: string;
@@ -39,8 +42,14 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
     ...relationship,
     birthday_notification_frequency: relationship.birthday_notification_frequency || '1_week',
     anniversary_notification_frequency: relationship.anniversary_notification_frequency || '1_week',
-    date_ideas_frequency: relationship.date_ideas_frequency || 'weekly'
+    date_ideas_frequency: relationship.date_ideas_frequency || 'none'
   });
+
+  const isPartnerOrSpouse = (
+  (editForm.relationship_type || relationship.relationship_type || '').toLowerCase() === 'partner' ||
+  (editForm.relationship_type || relationship.relationship_type || '').toLowerCase() === 'spouse'
+);
+
 
   const handleSave = async () => {
     try {
@@ -56,7 +65,7 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
           relationship_type: editForm.relationship_type,
           birthday_notification_frequency: editForm.birthday_notification_frequency,
           anniversary_notification_frequency: editForm.anniversary_notification_frequency,
-          date_ideas_frequency: editForm.date_ideas_frequency,
+          date_ideas_frequency: isPartnerOrSpouse ? (editForm.date_ideas_frequency || 'none') : null,
           phone_number: normalizePhoneForDB(editForm.phone_number as string) || null
         })
         .eq('id', relationship.id);
@@ -204,26 +213,32 @@ const PersonEditForm = ({ relationship, onSave, onCancel }: PersonEditFormProps)
         </div>
       </div>
 
-      {(editForm.relationship_type?.toLowerCase() === 'partner' || editForm.relationship_type?.toLowerCase() === 'spouse') && (
-        <div>
-          <Label className="text-sm text-gray-600">Date Ideas Frequency</Label>
-          <Select
-            value={editForm.date_ideas_frequency || 'weekly'}
-            onValueChange={(value) => setEditForm({ ...editForm, date_ideas_frequency: value })}
-          >
-            <SelectTrigger className="mt-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
-              <SelectItem value="biweekly">Every 2 weeks</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
-              <SelectItem value="none">Disabled</SelectItem>
-            </SelectContent>
-          </Select>
+      {isPartnerOrSpouse && (
+  <div className="bg-rose-50 border border-rose-200 rounded-xl p-3">
+    <div className="flex items-center justify-between">
+      <div>
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-rose-600" />
+          <Label className="text-sm text-gray-800">Weekly date ideas (email)</Label>
         </div>
-      )}
+        <p className="text-xs text-rose-700 mt-1">
+          Receive one email per week with fresh ideas.
+        </p>
+      </div>
+      <Switch
+        checked={(editForm.date_ideas_frequency || 'none') === 'weekly'}
+        onCheckedChange={(checked) =>
+          setEditForm((prev) => ({
+            ...prev,
+            date_ideas_frequency: checked ? 'weekly' : 'none',
+          }))
+        }
+        className="data-[state=checked]:bg-rose-500"
+      />
+    </div>
+  </div>
+)}
+
 
       <div>
         <Label className="text-sm text-gray-600">Notes</Label>

@@ -10,6 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useEvents } from '@/hooks/useEvents';
 import { toast } from 'sonner';
 import { normalizePhoneForDB } from '@/lib/phone';
+import { Switch } from '@/components/ui/switch';
+
 
 interface AddRelationshipFormProps {
   onSuccess: () => void;
@@ -30,30 +32,9 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
     anniversary: '',
     notes: '',
     birthday_notification_frequency: '1_week',
-    anniversary_notification_frequency: '1_week'
+    anniversary_notification_frequency: '1_week',
+    wants_date_ideas: false,
   });
-
-  const nudgeOptions = [
-    {
-      value: 'weekly',
-      label: 'Weekly Magic ✨',
-      description: 'Fresh date ideas every Friday',
-      emoji: '🔥',
-      highlight: 'Most Popular!'
-    },
-    {
-      value: 'biweekly',
-      label: 'Bi-Weekly Boost 💫',
-      description: 'Curated experiences every 2 weeks',
-      emoji: '⭐'
-    },
-    {
-      value: 'monthly',
-      label: 'Monthly Moments 🌟',
-      description: 'Special date ideas once a month',
-      emoji: '💎'
-    }
-  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -92,7 +73,11 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           notes: formData.notes || null,
           birthday_notification_frequency: formData.birthday_notification_frequency,
           anniversary_notification_frequency: formData.anniversary_notification_frequency,
-          phone_number: normalizePhoneForDB(formData.phone_number)
+          phone_number: normalizePhoneForDB(formData.phone_number),
+          date_ideas_frequency:
+  (isPartnerRelationship)
+    ? (formData.wants_date_ideas ? 'weekly' : 'none')
+    : null,
         })
         .select()
         .single();
@@ -110,7 +95,10 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           relationship_name: formData.name,
           relationship_type: formData.relationship_type,
           birthday_notification_frequency: formData.birthday_notification_frequency,
-          anniversary_notification_frequency: formData.anniversary_notification_frequency
+          anniversary_notification_frequency: formData.anniversary_notification_frequency,
+          ...(isPartnerRelationship && {
+      date_ideas_frequency: formData.wants_date_ideas ? 'weekly' : 'none'
+          }),
         }
       );
 
@@ -124,7 +112,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -288,7 +276,19 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
                   <SelectItem value="none" className="text-black hover:bg-gray-100 hover:text-black focus:bg-gray-100 focus:text-black">No reminders</SelectItem>
                 </SelectContent>
               </Select>
-            </div>         
+            </div>
+            <div className="mt-4 p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between">
+  <div>
+    <p className="text-rose-800 font-medium">Get weekly date ideas by email</p>
+    <p className="text-rose-600 text-xs">You can change this later.</p>
+  </div>
+  <Switch
+    checked={formData.wants_date_ideas}
+    onCheckedChange={(checked) => handleInputChange('wants_date_ideas', checked)}
+    className="data-[state=checked]:bg-rose-500"
+  />
+</div>
+         
           </>
         )}
 
