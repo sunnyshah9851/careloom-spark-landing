@@ -27,11 +27,23 @@ interface Relationship {
   anniversary: string | null;
   birthday_notification_frequency: string;
   anniversary_notification_frequency: string;
+  relationship_type: string;
+  city: string | null;
   profile_id: string;
   profiles: {
     email: string;
     full_name: string;
+    city: string | null;
   };
+}
+
+interface GiftIdea {
+  id: string;
+  title: string;
+  description: string | null;
+  price: string | null;
+  category: string;
+  priority: string;
 }
 
 interface ReminderResult {
@@ -84,18 +96,107 @@ const shouldSendReminder = (eventDate: string, frequency: string): boolean => {
   return todayString === reminderDateString || todayString === eventThisYear.toISOString().split('T')[0];
 };
 
+// Get relevant gift ideas for the occasion
+const getGiftRecommendations = async (
+  relationshipType: string,
+  city: string | null,
+  eventType: 'birthday' | 'anniversary',
+  profileId: string
+): Promise<GiftIdea[]> => {
+  try {
+    const { data: giftIdeas, error } = await supabase
+      .from('gift_ideas')
+      .select('id, title, description, price, category, priority')
+      .eq('user_id', profileId)
+      .order('priority', { ascending: false })
+      .limit(3);
+
+    if (error) {
+      console.error('Error fetching gift ideas:', error);
+      return [];
+    }
+
+    return giftIdeas || [];
+  } catch (error) {
+    console.error('Error in getGiftRecommendations:', error);
+    return [];
+  }
+};
+
+// Generate gift recommendation HTML
+const generateGiftRecommendationsHTML = (giftIdeas: GiftIdea[], eventType: 'birthday' | 'anniversary'): string => {
+  if (giftIdeas.length === 0) {
+    return `
+      <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="color: #9d4e65; margin: 0 0 10px 0; font-size: 18px;">💡 Gift Ideas</h3>
+        <p style="color: #666; margin: 0; font-size: 14px;">
+          Consider adding some gift ideas to your Careloom dashboard for personalized recommendations!
+        </p>
+      </div>
+    `;
+  }
+
+  const giftHTML = giftIdeas.map(gift => `
+    <div style="background: white; border: 1px solid #e1e5e9; border-radius: 6px; padding: 15px; margin: 10px 0;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div style="flex: 1;">
+          <h4 style="margin: 0 0 5px 0; color: #333; font-size: 16px;">${gift.title}</h4>
+          ${gift.description ? `<p style="margin: 0 0 5px 0; color: #666; font-size: 14px;">${gift.description}</p>` : ''}
+          <span style="background: #9d4e65; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; text-transform: uppercase;">
+            ${gift.category}
+          </span>
+        </div>
+        ${gift.price ? `<div style="color: #9d4e65; font-weight: bold; font-size: 16px;">${gift.price}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+      <h3 style="color: #9d4e65; margin: 0 0 15px 0; font-size: 18px;">
+        🎁 Perfect ${eventType === 'birthday' ? 'Birthday' : 'Anniversary'} Gifts
+      </h3>
+      ${giftHTML}
+      <p style="color: #666; margin: 15px 0 0 0; font-size: 12px; text-align: center;">
+        Manage your gift ideas in your <a href="${supabaseUrl?.replace('/auth', '')}" style="color: #9d4e65;">Careloom dashboard</a>
+      </p>
+    </div>
+  `;
+};
+
 // Send reminder email
 const sendReminderEmail = async (
   recipientEmail: string,
   recipientName: string,
   partnerName: string,
   eventType: 'birthday' | 'anniversary',
-  daysUntil: number
+  daysUntil: number,
+  relationship: Relationship
 ): Promise<boolean> => {
   try {
+    // Get personalized gift recommendations
+    const giftIdeas = await getGiftRecommendations(
+      relationship.relationship_type,
+      relationship.city || relationship.profiles.city,
+      eventType,
+      relationship.profile_id
+    );
+
     const subject = daysUntil === 0 
       ? `🎉 It's ${partnerName}'s ${eventType === 'birthday' ? 'Birthday' : 'Anniversary'} today!`
       : `📅 ${partnerName}'s ${eventType === 'birthday' ? 'Birthday' : 'Anniversary'} in ${daysUntil} day${daysUntil === 1 ? '' : 's'}`;
+
+    const giftRecommendationsHTML = generateGiftRecommendationsHTML(giftIdeas, eventType);
+
+    const relationshipContext = relationship.relationship_type === 'spouse' || relationship.relationship_type === 'partner' 
+      ? 'your special someone' 
+      : relationship.relationship_type === 'family' 
+        ? 'your family member'
+        : `your ${relationship.relationship_type}`;
+
+    const cityContext = relationship.city || relationship.profiles.city 
+      ? ` in ${relationship.city || relationship.profiles.city}`
+      : '';
 
     const emailHtml = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #fefcfa;">
@@ -111,10 +212,11 @@ const sendReminderEmail = async (
             }
           </p>
           <p style="font-size: 16px; color: #333; line-height: 1.6;">
-            Take a moment to celebrate this special person in your life. 
+            Take a moment to celebrate ${relationshipContext}${cityContext}. 
             Whether it's a simple message, a call, or planning something special, 
             your attention and care will mean the world to them.
           </p>
+          ${giftRecommendationsHTML}
         </div>
         <div style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
           Sent with care from Careloom 💕
@@ -172,9 +274,9 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: relationships, error: fetchError } = await supabase
       .from('relationships')
       .select(`
-        id, name, birthday, anniversary,
+        id, name, birthday, anniversary, relationship_type, city,
         birthday_notification_frequency, anniversary_notification_frequency,
-        profile_id, profiles!inner(email, full_name)
+        profile_id, profiles!inner(email, full_name, city)
       `)
       .not('profiles.email', 'is', null);
 
@@ -209,7 +311,8 @@ const handler = async (req: Request): Promise<Response> => {
             rel.profiles.full_name,
             rel.name,
             'birthday',
-            daysUntil
+            daysUntil,
+            rel
           );
 
           if (success) {
@@ -263,7 +366,8 @@ const handler = async (req: Request): Promise<Response> => {
             rel.profiles.full_name,
             rel.name,
             'anniversary',
-            daysUntil
+            daysUntil,
+            rel
           );
 
           if (success) {
