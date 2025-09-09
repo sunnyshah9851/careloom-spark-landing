@@ -25,7 +25,7 @@ const AddRelationshipCard = ({ onRelationshipAdded }: AddRelationshipCardProps) 
 
   if (showForm) {
     return (
-      <Card className="border-rose-200">
+      <Card className="border-rose-200 sm:max-w-[500px] max-h-[90vh] overflow-y-auto mx-auto">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Button
@@ -46,7 +46,7 @@ const AddRelationshipCard = ({ onRelationshipAdded }: AddRelationshipCardProps) 
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-6">
           <AddRelationshipForm onSuccess={handleSuccess} onCancel={handleCancel} />
         </CardContent>
       </Card>
