@@ -259,7 +259,8 @@ const DashboardProfile = ({ profile, relationships, onProfileUpdate, onRelations
                   </div>
                   <Button 
                     onClick={handleAddRelationshipClick}
-                    className="bg-rose-500 hover:bg-rose-600 text-white"
+                    variant="outline"
+                    className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 hover:from-rose-600 hover:via-pink-600 hover:to-purple-600 text-white px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Relationship
