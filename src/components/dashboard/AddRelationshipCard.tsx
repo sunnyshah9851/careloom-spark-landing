@@ -37,8 +37,8 @@ const AddRelationshipCard = ({ onRelationshipAdded }: AddRelationshipCardProps) 
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <CardTitle className="text-lg font-playfair text-rose-800">
-                Add Someone Special
+              <CardTitle className="text-2xl font-playfair text-rose-800">
+                Add New Relationship
               </CardTitle>
               <CardDescription className="text-rose-600">
                 Tell us about someone important in your life

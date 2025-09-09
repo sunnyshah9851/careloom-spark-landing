@@ -122,7 +122,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
   const isPartnerRelationship = formData.relationship_type === 'partner' || formData.relationship_type === 'spouse';
 
   return (
-    <div className="w-full max-w-lg mx-auto bg-white p-6 rounded-lg">
+    <div className="w-full">
       <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
         <p className="text-sm text-blue-800">
           📧 Add a WhatsApp number to chat directly from the app. Email is still supported.
