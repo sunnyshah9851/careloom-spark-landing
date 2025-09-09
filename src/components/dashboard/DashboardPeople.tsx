@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import AddRelationshipForm from './AddRelationshipForm';
+import AddRelationshipModal from './AddRelationshipModal';
 import PersonCard from './PersonCard';
 import PeopleHeader from './PeopleHeader';
 import PeopleSearch from './PeopleSearch';
@@ -37,7 +37,7 @@ interface DashboardPeopleProps {
 }
 
 const DashboardPeople = ({ relationships, profile, onRelationshipsUpdate }: DashboardPeopleProps) => {
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredRelationships = relationships.filter(relationship =>
@@ -45,49 +45,15 @@ const DashboardPeople = ({ relationships, profile, onRelationshipsUpdate }: Dash
     relationship.relationship_type.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleRelationshipAdded = () => {
-    setShowAddForm(false);
+  const handleRelationshipAdded = async () => {
+    setShowAddModal(false);
     onRelationshipsUpdate();
   };
-
-  if (showAddForm) {
-    return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <Card className="shadow-lg border-2 border-rose-100">
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-2xl font-playfair text-rose-800">
-                  Add New Relationship
-                </CardTitle>
-                <CardDescription className="text-rose-600 mt-1">
-                  Tell us about someone important in your life
-                </CardDescription>
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => setShowAddForm(false)}
-                className="text-rose-600 border-rose-200 hover:bg-rose-50"
-              >
-                Cancel
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <AddRelationshipForm 
-              onSuccess={handleRelationshipAdded} 
-              onCancel={() => setShowAddForm(false)} 
-            />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <PeopleHeader onAddClick={() => setShowAddForm(true)} />
+      <PeopleHeader onAddClick={() => setShowAddModal(true)} />
 
       {/* Search */}
       <PeopleSearch 
@@ -109,6 +75,13 @@ const DashboardPeople = ({ relationships, profile, onRelationshipsUpdate }: Dash
           ))}
         </div>
       )}
+
+      {/* Add Relationship Modal */}
+      <AddRelationshipModal
+        open={showAddModal}
+        onOpenChange={setShowAddModal}
+        onRelationshipAdded={handleRelationshipAdded}
+      />
     </div>
   );
 };
