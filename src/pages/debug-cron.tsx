@@ -166,6 +166,64 @@ export default function DebugCronPage() {
     }
   };
 
+  const testCatchupFunction = async () => {
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('send-catchup-reminders', {
+        body: { scheduled: true }
+      });
+
+      if (error) {
+        throw new Error(`Function error: ${error.message}`);
+      }
+
+      setResults({ catchupTest: data });
+      toast({
+        title: "Catch-up Function Test Complete!",
+        description: `Sent ${data?.emailsSent || 0} catch-up reminder emails.`,
+      });
+
+    } catch (err: any) {
+      console.error('Test error:', err);
+      setResults({ error: err.message });
+      toast({
+        title: "Test Failed",
+        description: `Error: ${err.message}`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const setupCatchupCron = async () => {
+    setIsLoading(true);
+    
+    try {
+      const { data, error } = await supabase.rpc('setup_catchup_cron');
+      
+      if (error) {
+        throw new Error(`Setup failed: ${error.message}`);
+      }
+
+      toast({
+        title: "Catch-up Cron Job Setup Complete!",
+        description: data,
+      });
+
+    } catch (err: any) {
+      console.error('Setup error:', err);
+      toast({
+        title: "Setup Failed",
+        description: `Error: ${err.message}`,
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const sendTestEmail = async () => {
     if (!testEmail) {
       toast({
@@ -265,6 +323,24 @@ export default function DebugCronPage() {
               className="w-full border-blue-500 text-blue-700 hover:bg-blue-50"
             >
               📅 Test Date Logic
+            </Button>
+
+            <Button 
+              onClick={testCatchupFunction} 
+              disabled={isLoading}
+              variant="outline"
+              className="w-full border-amber-500 text-amber-700 hover:bg-amber-50"
+            >
+              🧪 Test Catch-up Function
+            </Button>
+
+            <Button 
+              onClick={setupCatchupCron} 
+              disabled={isLoading}
+              variant="outline"
+              className="w-full border-indigo-500 text-indigo-700 hover:bg-indigo-50"
+            >
+              ⚙️ Setup Catch-up Cron Job
             </Button>
 
             <div className="pt-4 border-t">
@@ -407,6 +483,26 @@ export default function DebugCronPage() {
                           </div>
                         ))}
                       </div>
+                    </details>
+                  </div>
+                )}
+
+                {results.catchupTest && (
+                  <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                    <h4 className="font-medium text-amber-900 mb-2">🧪 Catch-up Function Test</h4>
+                    <div className="text-sm text-amber-800">
+                      Sent {results.catchupTest.emailsSent || 0} catch-up reminder emails
+                    </div>
+                    {results.catchupTest.friendsEligible && (
+                      <div className="text-sm text-amber-700 mt-1">
+                        Found {results.catchupTest.friendsEligible} friends eligible for catch-up reminders
+                      </div>
+                    )}
+                    <details className="mt-2">
+                      <summary className="cursor-pointer text-xs text-amber-700">View Details</summary>
+                      <pre className="text-xs mt-2 bg-white p-2 rounded overflow-auto max-h-32">
+                        {JSON.stringify(results.catchupTest, null, 2)}
+                      </pre>
                     </details>
                   </div>
                 )}
