@@ -1,67 +1,39 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, ArrowLeft } from 'lucide-react';
-import AddRelationshipForm from './AddRelationshipForm';
+import { Plus } from 'lucide-react';
+import AddRelationshipModal from './AddRelationshipModal';
 
 interface AddRelationshipCardProps {
   onRelationshipAdded?: () => void;
 }
 
 const AddRelationshipCard = ({ onRelationshipAdded }: AddRelationshipCardProps) => {
-  const [showForm, setShowForm] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
-  const handleSuccess = () => {
-    setShowForm(false);
+  const handleRelationshipAdded = async () => {
     if (onRelationshipAdded) {
       onRelationshipAdded();
     }
   };
 
-  const handleCancel = () => {
-    setShowForm(false);
-  };
-
-  if (showForm) {
-    return (
-      <Card className="border-rose-200 sm:max-w-[500px] max-h-[90vh] overflow-y-auto mx-auto">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleCancel}
-              className="p-1 h-8 w-8"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <div>
-              <CardTitle className="text-2xl font-playfair text-rose-800">
-                Add New Relationship
-              </CardTitle>
-              <CardDescription className="text-rose-600">
-                Tell us about someone important in your life
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="px-6">
-          <AddRelationshipForm onSuccess={handleSuccess} onCancel={handleCancel} />
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Button 
-      onClick={() => setShowForm(true)}
-      variant="outline"
-      className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 hover:from-rose-600 hover:via-pink-600 hover:to-purple-600 text-white px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-    >
-      <Plus className="h-4 w-4 mr-2" />
-      Add Relationship
-    </Button>
+    <>
+      <Button 
+        onClick={() => setShowModal(true)}
+        variant="outline"
+        className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 hover:from-rose-600 hover:via-pink-600 hover:to-purple-600 text-white px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+      >
+        <Plus className="h-4 w-4 mr-2" />
+        Add Relationship
+      </Button>
+      
+      <AddRelationshipModal
+        open={showModal}
+        onOpenChange={setShowModal}
+        onRelationshipAdded={handleRelationshipAdded}
+      />
+    </>
   );
 };
 
