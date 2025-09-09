@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      catchup_reminder_logs: {
+        Row: {
+          created_at: string
+          id: string
+          relationship_id: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          relationship_id: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          relationship_id?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string
@@ -160,7 +184,48 @@ export type Database = {
         }
         Relationships: []
       }
-
+      notification_preferences: {
+        Row: {
+          anniversary_reminders_enabled: boolean
+          birthday_reminders_enabled: boolean
+          created_at: string
+          date_ideas_enabled: boolean
+          email_reminders_enabled: boolean
+          id: string
+          nudge_reminders_enabled: boolean
+          push_notifications_enabled: boolean
+          reminder_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          anniversary_reminders_enabled?: boolean
+          birthday_reminders_enabled?: boolean
+          created_at?: string
+          date_ideas_enabled?: boolean
+          email_reminders_enabled?: boolean
+          id?: string
+          nudge_reminders_enabled?: boolean
+          push_notifications_enabled?: boolean
+          reminder_time?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          anniversary_reminders_enabled?: boolean
+          birthday_reminders_enabled?: boolean
+          created_at?: string
+          date_ideas_enabled?: boolean
+          email_reminders_enabled?: boolean
+          id?: string
+          nudge_reminders_enabled?: boolean
+          push_notifications_enabled?: boolean
+          reminder_time?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           city: string | null
@@ -202,6 +267,7 @@ export type Database = {
           last_nudge_sent: string | null
           name: string
           notes: string | null
+          phone_number: string | null
           profile_id: string
           relationship_type: string
           tags: string[] | null
@@ -219,6 +285,7 @@ export type Database = {
           last_nudge_sent?: string | null
           name: string
           notes?: string | null
+          phone_number?: string | null
           profile_id: string
           relationship_type: string
           tags?: string[] | null
@@ -236,6 +303,7 @@ export type Database = {
           last_nudge_sent?: string | null
           name?: string
           notes?: string | null
+          phone_number?: string | null
           profile_id?: string
           relationship_type?: string
           tags?: string[] | null
@@ -410,6 +478,10 @@ export type Database = {
       http_set_curlopt: {
         Args: { curlopt: string; value: string }
         Returns: boolean
+      }
+      setup_catchup_cron: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       setup_reminder_cron: {
         Args: Record<PropertyKey, never>

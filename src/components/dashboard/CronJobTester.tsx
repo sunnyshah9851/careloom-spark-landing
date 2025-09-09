@@ -98,6 +98,54 @@ export const CronJobTester = () => {
     }
   };
 
+  const testCatchupFunction = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('send-catchup-reminders', {
+        body: { scheduled: true }
+      });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Catch-up Function Test",
+        description: `Sent ${data.emailsSent || 0} catch-up reminder emails`,
+      });
+      
+      console.log('Catch-up function test result:', data);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: `Catch-up function test failed: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const setupCatchupCron = async () => {
+    try {
+      const { data, error } = await supabase.rpc('setup_catchup_cron');
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast({
+        title: "Success",
+        description: "Catch-up cron job scheduled successfully!",
+      });
+      
+      console.log('Catch-up cron setup result:', data);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: `Failed to setup catch-up cron: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  };
+
   return (
     <Card className="w-full max-w-4xl">
       <CardHeader>
@@ -107,7 +155,7 @@ export const CronJobTester = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Button 
             onClick={setupCronJobs} 
             disabled={isLoading}
@@ -131,6 +179,24 @@ export const CronJobTester = () => {
           >
             Test Date Ideas Function
           </Button>
+          
+          <Button 
+            onClick={testCatchupFunction}
+            variant="outline"
+            className="w-full"
+          >
+            Test Catch-up Function
+          </Button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Button 
+            onClick={setupCatchupCron}
+            variant="secondary"
+            className="w-full"
+          >
+            Setup Catch-up Cron Job
+          </Button>
         </div>
         
         {results && (
@@ -147,7 +213,8 @@ export const CronJobTester = () => {
           <ul className="list-disc list-inside space-y-1">
             <li>Sets up daily cron jobs for birthday reminders (9 AM UTC)</li>
             <li>Sets up daily cron jobs for date ideas (10 AM UTC)</li>
-            <li>Tests both functions to ensure they're working</li>
+            <li>Sets up quarterly cron jobs for catch-up reminders (10 AM UTC on 1st of month)</li>
+            <li>Tests all functions to ensure they're working</li>
             <li>Shows detailed logs and test results</li>
           </ul>
         </div>
