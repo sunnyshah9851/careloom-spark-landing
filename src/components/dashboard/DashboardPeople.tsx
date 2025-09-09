@@ -58,7 +58,7 @@ const DashboardPeople = ({ relationships, profile, onRelationshipsUpdate }: Dash
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-2xl font-playfair text-rose-800">
-                  Add Someone Special
+                  Add New Relationship
                 </CardTitle>
                 <CardDescription className="text-rose-600 mt-1">
                   Tell us about someone important in your life
