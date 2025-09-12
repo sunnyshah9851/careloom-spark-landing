@@ -22,6 +22,7 @@ interface UpcomingEvent {
   daysUntil: number;
   relationshipType: string;
   notificationFrequency: string;
+  occurrenceNumber?: number;
 }
 
 interface UpcomingEventsTableProps {
@@ -59,6 +60,8 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
           nextBirthday = nextYearBirthday;
         }
 
+        const ageTurning = nextBirthday.getFullYear() - birthday.getFullYear();
+
         const daysUntil = Math.ceil((nextBirthday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         
         // Only show events within the next 30 days
@@ -70,7 +73,8 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
             date: nextBirthday,
             daysUntil,
             relationshipType: relationship.relationship_type || 'unknown',
-            notificationFrequency: relationship.birthday_notification_frequency || 'none'
+            notificationFrequency: relationship.birthday_notification_frequency || 'none',
+            occurrenceNumber: Number.isFinite(ageTurning) ? ageTurning : undefined,
           });
         }
       }
@@ -87,6 +91,8 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
           nextAnniversary = nextYearAnniversary;
         }
 
+        const years = nextAnniversary.getFullYear() - anniversary.getFullYear();
+
         const daysUntil = Math.ceil((nextAnniversary.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         
         // Only show events within the next 90 days
@@ -98,7 +104,8 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
             date: nextAnniversary,
             daysUntil,
             relationshipType: relationship.relationship_type || 'unknown',
-            notificationFrequency: relationship.anniversary_notification_frequency || 'none'
+            notificationFrequency: relationship.anniversary_notification_frequency || 'none',
+            occurrenceNumber: Number.isFinite(years) ? years : undefined,
           });
         }
       }
@@ -186,6 +193,11 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
     );
   }
 
+  const ordinal = (n: number) => {
+  const s = ["th","st","nd","rd"], v = n % 100
+  return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`
+}
+
   if (upcomingEvents.length === 0) {
     return (
       <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -229,11 +241,11 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
             <table className="w-full">
               <thead>
                 <tr className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
-                  <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide">Event</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide">Name</th>
                   <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide">Date</th>
                   <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide">Time Until</th>
                   <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide">Reminders</th>
-                  <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide">Type</th>
+                  <th className="text-left py-4 px-6 font-semibold text-gray-700 text-sm uppercase tracking-wide">Event</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -254,7 +266,6 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
                           <div>
                             <p className="font-bold text-gray-900 text-lg">{event.name}</p>
                             <p className="text-sm text-gray-500 capitalize font-medium">
-                              {event.relationshipType} • {event.type}
                             </p>
                           </div>
                         </div>
@@ -283,21 +294,27 @@ const UpcomingEventsTable = ({ relationships }: UpcomingEventsTableProps) => {
                         </span>
                       </td>
                       <td className="py-5 px-6">
-                        <div className="flex items-center gap-3">
-                          {event.type === 'birthday' ? (
-                            <div className="p-2 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full border border-amber-200">
-                              <Gift className="h-5 w-5 text-amber-600" />
-                            </div>
-                          ) : (
-                            <div className="p-2 bg-gradient-to-br from-rose-100 to-pink-100 rounded-full border border-rose-200">
-                              <Heart className="h-5 w-5 text-rose-600" />
-                            </div>
-                          )}
-                          <span className="text-sm text-gray-600 capitalize font-medium">
-                            {event.type}
-                          </span>
-                        </div>
-                      </td>
+  <div className="flex items-center gap-3">
+    {event.type === 'birthday' ? (
+      <div className="p-2 bg-gradient-to-br from-amber-100 to-yellow-100 rounded-full border border-amber-200">
+        <Gift className="h-5 w-5 text-amber-600" />
+      </div>
+    ) : (
+      <div className="p-2 bg-gradient-to-br from-rose-100 to-pink-100 rounded-full border border-rose-200">
+        <Heart className="h-5 w-5 text-rose-600" />
+      </div>
+    )}
+    <span className="text-sm text-gray-600 font-medium">
+      {(() => {
+        const label = event.type === 'birthday' ? 'Birthday' : 'Anniversary';
+        return event.occurrenceNumber
+          ? `${ordinal(event.occurrenceNumber)} ${label}`
+          : label;
+      })()}
+    </span>
+  </div>
+</td>
+
                     </tr>
                   );
                 })}
