@@ -55,13 +55,30 @@ const shouldSendDateIdeas = (frequency: string, today: Date): boolean => {
 // Generate date ideas using OpenAI
 const generateDateIdeas = async (city: string, partnerName: string) => {
   try {
-    const prompt = `Generate 3 creative date ideas for a couple in ${city}. 
-    Make them specific to the location and include:
-    1. A romantic dinner option
-    2. An outdoor/activity option  
-    3. A cultural/entertainment option
-    
-    Format as JSON: {"ideas": ["idea1", "idea2", "idea3"], "restaurants": ["restaurant1", "restaurant2"]}`;
+    const prompt = `Generate creative and affordable date ideas and restaurant recommendations for a couple in ${city}.
+
+    Please provide:
+    1. 3 creative and affordable date ideas with detailed descriptions
+    2. 3 romantic restaurants with descriptions and what they're known for
+
+    Format as JSON:
+    {
+      "dateIdeas": [
+        {
+          "title": "Date Idea Title",
+          "description": "Detailed description of what to do"
+        }
+      ],
+      "restaurants": [
+        {
+          "name": "Restaurant Name",
+          "description": "What they're known for and atmosphere",
+          "location": "Neighborhood/area in ${city}"
+        }
+      ]
+    }
+
+    Make the date ideas specific to ${city} and include actual local landmarks, parks, or activities when possible.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -70,9 +87,10 @@ const generateDateIdeas = async (city: string, partnerName: string) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: 'gpt-4o-mini',
         messages: [{ role: 'user', content: prompt }],
-        max_tokens: 300,
+        max_tokens: 600,
+        temperature: 0.7,
       }),
     });
 
@@ -85,12 +103,27 @@ const generateDateIdeas = async (city: string, partnerName: string) => {
       } catch {
         // Fallback if JSON parsing fails
         return {
-          ideas: [
-            `Enjoy a romantic dinner at a local restaurant in ${city}`,
-            `Take a scenic walk or hike near ${city}`,
-            `Visit a local museum or cultural site in ${city}`
+          dateIdeas: [
+            {
+              title: "Romantic Dinner",
+              description: `Enjoy a cozy dinner at a local restaurant in ${city}`
+            },
+            {
+              title: "Scenic Walk",
+              description: `Take a leisurely stroll through a beautiful area in ${city}`
+            },
+            {
+              title: "Cultural Experience",
+              description: `Visit a local museum or cultural attraction in ${city}`
+            }
           ],
-          restaurants: [`Local restaurant in ${city}`]
+          restaurants: [
+            {
+              name: "Local Favorite",
+              description: "A charming restaurant perfect for date night",
+              location: `${city}`
+            }
+          ]
         };
       }
     }
@@ -100,12 +133,27 @@ const generateDateIdeas = async (city: string, partnerName: string) => {
     console.error('OpenAI API error:', error);
     // Return fallback content
     return {
-      ideas: [
-        `Plan a romantic dinner at a local restaurant in ${city}`,
-        `Explore outdoor activities near ${city}`,
-        `Discover local cultural attractions in ${city}`
+      dateIdeas: [
+        {
+          title: "Romantic Evening",
+          description: `Plan a romantic dinner at a local restaurant in ${city}`
+        },
+        {
+          title: "Outdoor Adventure",
+          description: `Explore beautiful outdoor activities near ${city}`
+        },
+        {
+          title: "Cultural Discovery",
+          description: `Discover local cultural attractions in ${city}`
+        }
       ],
-      restaurants: [`Local restaurant in ${city}`]
+      restaurants: [
+        {
+          name: "Local Restaurant",
+          description: "A wonderful spot for a romantic meal",
+          location: `${city}`
+        }
+      ]
     };
   }
 };
@@ -116,42 +164,57 @@ const sendDateIdeasEmail = async (
   recipientName: string,
   partnerName: string,
   city: string,
-  dateIdeas: string[],
-  restaurants: string[]
+  dateIdeas: any[],
+  restaurants: any[]
 ): Promise<boolean> => {
   try {
     const emailHtml = `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #fefcfa;">
-        <div style="background: linear-gradient(135deg, #9d4e65 0%, #c08862 100%); padding: 30px; text-align: center; border-radius: 12px; color: white;">
-          <h1 style="margin: 0; font-size: 24px;">💕 Date Ideas for You & ${partnerName}</h1>
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #ffffff;">
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="font-size: 28px; color: #333; margin: 0;">💖 Time for a Date!</h1>
         </div>
         
-        <div style="background: white; padding: 30px; border-radius: 12px; margin-top: 20px;">
-          <p style="font-size: 16px; color: #333; line-height: 1.6;">
-            Hi ${recipientName},<br><br>
-            Here are some fresh date ideas to inspire your time with ${partnerName} in ${city}:
+        <div style="background: white; padding: 0; margin-bottom: 30px;">
+          <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 20px;">
+            Hey lovebirds,
           </p>
           
-          <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
-            <h3 style="color: #9d4e65; margin-top: 0;">🎯 Date Ideas</h3>
-            <ul style="color: #333; line-height: 1.6;">
-              ${dateIdeas.map(idea => `<li>${idea}</li>`).join('')}
-            </ul>
+          <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 20px;">
+            Remember, the best dates are the ones where you laugh together and make new memories.
+          </p>
+          
+          <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 30px;">
+            It's been a little while since your last special outing together. How about planning a cozy, fun date this week?
+          </p>
+          
+          <p style="font-size: 16px; color: #333; line-height: 1.6; margin-bottom: 20px;">
+            Here are some cute ideas and delicious restaurant picks to help you out:
+          </p>
+          
+          <h2 style="color: #333; font-size: 20px; margin: 30px 0 15px 0;">Creative and Affordable Date Ideas in ${city}</h2>
+          <div style="margin-bottom: 30px;">
+            ${dateIdeas.map(idea => `
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #333;">${idea.title}:</strong> ${idea.description}
+              </div>
+            `).join('')}
           </div>
           
-          <div style="background: #f8f9fa; border-radius: 8px; padding: 20px; margin: 20px 0;">
-            <h3 style="color: #9d4e65; margin-top: 0;">🍽️ Restaurant Suggestions</h3>
-            <ul style="color: #333; line-height: 1.6;">
-              ${restaurants.map(restaurant => `<li>${restaurant}</li>`).join('')}
-            </ul>
+          <h2 style="color: #333; font-size: 20px; margin: 30px 0 15px 0;">Affordable Restaurants in ${city} Perfect for a Date</h2>
+          <div style="margin-bottom: 30px;">
+            ${restaurants.map(restaurant => `
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #333;">${restaurant.name}:</strong> ${restaurant.location ? `Located in ${restaurant.location}, this ` : ''}${restaurant.description}
+              </div>
+            `).join('')}
           </div>
           
-          <p style="font-size: 16px; color: #333; line-height: 1.6;">
-            Choose one idea and make it your own! The best dates are the ones that feel authentic to your relationship.
+          <p style="font-size: 16px; color: #333; line-height: 1.6; margin-top: 30px;">
+            Now pick one, put it on the calendar, and go make some memories ✨
           </p>
         </div>
         
-        <div style="text-align: center; margin-top: 20px; color: #666; font-size: 14px;">
+        <div style="text-align: center; margin-top: 30px; color: #666; font-size: 14px;">
           Sent with love from Careloom 💕
         </div>
       </div>
@@ -160,7 +223,7 @@ const sendDateIdeasEmail = async (
     await resend.emails.send({
       from: "Careloom <careloom@resend.dev>",
       to: [recipientEmail],
-      subject: `💕 Fresh Date Ideas for You & ${partnerName}`,
+      subject: "💖 Time for a Date!",
       html: emailHtml,
     });
 
@@ -209,13 +272,13 @@ const handler = async (req: Request): Promise<Response> => {
           const userCity = rel.city || rel.profiles.city || 'your city';
           
           try {
-            const { ideas, restaurants } = await generateDateIdeas(userCity, rel.name);
+            const { dateIdeas, restaurants } = await generateDateIdeas(userCity, rel.name);
             const success = await sendDateIdeasEmail(
               rel.profiles.email,
               rel.profiles.full_name,
               rel.name,
               userCity,
-              ideas,
+              dateIdeas,
               restaurants
             );
 
@@ -254,8 +317,8 @@ const handler = async (req: Request): Promise<Response> => {
         throw new Error('Missing required parameters for manual execution');
       }
 
-      const { ideas, restaurants } = await generateDateIdeas(city, partnerName);
-      const success = await sendDateIdeasEmail(userEmail, userName, partnerName, city, ideas, restaurants);
+      const { dateIdeas, restaurants } = await generateDateIdeas(city, partnerName);
+      const success = await sendDateIdeasEmail(userEmail, userName, partnerName, city, dateIdeas, restaurants);
 
       return new Response(JSON.stringify({
         success,
