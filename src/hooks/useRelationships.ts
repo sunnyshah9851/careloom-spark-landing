@@ -10,7 +10,6 @@ export interface Relationship {
   anniversary: string | null;
   birthday_notification_frequency: string;
   anniversary_notification_frequency: string;
-  date_ideas_frequency: string;
   email: string | null;
   city: string | null;
   notes: string | null;

@@ -32,8 +32,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
     anniversary: '',
     notes: '',
     birthday_notification_frequency: '1_week',
-    anniversary_notification_frequency: '1_week',
-    wants_date_ideas: false,
+    anniversary_notification_frequency: '1_week'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -59,7 +58,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
     setIsLoading(true);
 
     try {
-      // Save the relationship with date_ideas_frequency
+      // Save the relationship
       const { data, error } = await supabase
         .from('relationships')
         .insert({
@@ -73,11 +72,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           notes: formData.notes || null,
           birthday_notification_frequency: formData.birthday_notification_frequency,
           anniversary_notification_frequency: formData.anniversary_notification_frequency,
-          phone_number: normalizePhoneForDB(formData.phone_number),
-          date_ideas_frequency:
-  (isPartnerRelationship)
-    ? (formData.wants_date_ideas ? 'weekly' : 'none')
-    : null,
+          phone_number: normalizePhoneForDB(formData.phone_number)
         })
         .select()
         .single();
@@ -95,10 +90,7 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
           relationship_name: formData.name,
           relationship_type: formData.relationship_type,
           birthday_notification_frequency: formData.birthday_notification_frequency,
-          anniversary_notification_frequency: formData.anniversary_notification_frequency,
-          ...(isPartnerRelationship && {
-      date_ideas_frequency: formData.wants_date_ideas ? 'weekly' : 'none'
-          }),
+          anniversary_notification_frequency: formData.anniversary_notification_frequency
         }
       );
 
@@ -277,17 +269,6 @@ const AddRelationshipForm = ({ onSuccess, onCancel }: AddRelationshipFormProps) 
                 </SelectContent>
               </Select>
             </div>
-            <div className="mt-4 p-4 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-between">
-  <div>
-    <p className="text-rose-800 font-medium">Get weekly date ideas by email</p>
-    <p className="text-rose-600 text-xs">You can change this later.</p>
-  </div>
-  <Switch
-    checked={formData.wants_date_ideas}
-    onCheckedChange={(checked) => handleInputChange('wants_date_ideas', checked)}
-    className="data-[state=checked]:bg-rose-500"
-  />
-</div>
          
           </>
         )}
