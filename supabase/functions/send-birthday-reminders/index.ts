@@ -96,27 +96,146 @@ const shouldSendReminder = (eventDate: string, frequency: string): boolean => {
   return todayString === reminderDateString || todayString === eventThisYear.toISOString().split('T')[0];
 };
 
+// Calculate age from birthday
+const calculateAge = (birthday: string): number => {
+  const today = new Date();
+  const parts = birthday.split('-');
+  let birthYear: number;
+  
+  if (parts.length === 3) {
+    // Format: YYYY-MM-DD
+    birthYear = parseInt(parts[0]);
+  } else {
+    // Format: MM-DD (assume recent birth year for age calculation)
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth() + 1;
+    const currentDay = today.getDate();
+    const eventMonth = parseInt(parts[0]);
+    const eventDay = parseInt(parts[1]);
+    
+    // Estimate birth year (assume most people are between 20-80)
+    birthYear = currentYear - 30; // Default to 30 if no year provided
+  }
+  
+  return Math.max(0, today.getFullYear() - birthYear);
+};
+
+// Generate AI-powered gift suggestions
+const generateGiftSuggestions = async (
+  relationshipType: string,
+  eventType: 'birthday' | 'anniversary',
+  age: number,
+  partnerName: string
+): Promise<GiftIdea[]> => {
+  try {
+    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+    if (!openAIApiKey) {
+      console.error('OpenAI API key not configured');
+      return [];
+    }
+
+    const ageContext = age > 0 ? ` who is ${age} years old` : '';
+    const prompt = `Generate 3 thoughtful ${eventType === 'birthday' ? 'birthday' : 'anniversary'} gift ideas for ${partnerName}${ageContext}, who is my ${relationshipType}. 
+
+Consider:
+- The relationship type: ${relationshipType}
+- The occasion: ${eventType}
+${age > 0 ? `- Their age: ${age}` : ''}
+
+Format as JSON array with objects containing:
+- title: Brief gift name (max 30 chars)
+- description: Why it's perfect (max 60 chars)
+- price: Estimated price range (e.g., "$25-50", "$100+")
+- category: Gift category (e.g., "Experience", "Tech", "Personal")
+
+Make suggestions thoughtful, appropriate for the relationship, and varied in price range.`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'You are a thoughtful gift recommendation assistant. Always respond with valid JSON array format.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 500,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('OpenAI API error:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+    
+    try {
+      const suggestions = JSON.parse(content);
+      return suggestions.map((suggestion: any, index: number) => ({
+        id: `ai-${Date.now()}-${index}`,
+        title: suggestion.title || 'Thoughtful Gift',
+        description: suggestion.description || '',
+        price: suggestion.price || '',
+        category: suggestion.category || 'Gift',
+        priority: 'high'
+      }));
+    } catch (parseError) {
+      console.error('Failed to parse AI response:', parseError);
+      return [];
+    }
+  } catch (error) {
+    console.error('Error generating AI gift suggestions:', error);
+    return [];
+  }
+};
+
 // Get relevant gift ideas for the occasion
 const getGiftRecommendations = async (
   relationshipType: string,
   city: string | null,
   eventType: 'birthday' | 'anniversary',
-  profileId: string
+  profileId: string,
+  birthday?: string,
+  partnerName?: string
 ): Promise<GiftIdea[]> => {
   try {
-    const { data: giftIdeas, error } = await supabase
+    // First, try to get user's saved gift ideas
+    const { data: savedGiftIdeas, error } = await supabase
       .from('gift_ideas')
       .select('id, title, description, price, category, priority')
       .eq('user_id', profileId)
       .order('priority', { ascending: false })
-      .limit(3);
+      .limit(2);
 
     if (error) {
-      console.error('Error fetching gift ideas:', error);
-      return [];
+      console.error('Error fetching saved gift ideas:', error);
     }
 
-    return giftIdeas || [];
+    const savedIdeas = savedGiftIdeas || [];
+    
+    // Generate AI suggestions to complement saved ideas
+    if (partnerName) {
+      const age = birthday ? calculateAge(birthday) : 0;
+      const aiSuggestions = await generateGiftSuggestions(
+        relationshipType,
+        eventType,
+        age,
+        partnerName
+      );
+      
+      // Combine saved ideas with AI suggestions, prioritizing saved ideas
+      const combinedIdeas = [...savedIdeas, ...aiSuggestions];
+      return combinedIdeas.slice(0, 3); // Return max 3 suggestions
+    }
+    
+    // Fallback to saved ideas only if no partner name
+    return savedIdeas.slice(0, 3);
   } catch (error) {
     console.error('Error in getGiftRecommendations:', error);
     return [];
@@ -179,7 +298,9 @@ const sendReminderEmail = async (
       relationship.relationship_type,
       relationship.city || relationship.profiles.city,
       eventType,
-      relationship.profile_id
+      relationship.profile_id,
+      eventType === 'birthday' ? relationship.birthday : undefined,
+      relationship.name
     );
 
     const subject = daysUntil === 0 
