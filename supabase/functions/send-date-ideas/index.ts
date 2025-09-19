@@ -17,53 +17,76 @@ const corsHeaders = {
 interface DateIdea {
   title: string;
   description: string;
-  category: string;
-  estimatedCost: string;
 }
 
-const generateDateIdeas = (city: string, partnerName: string): DateIdea[] => {
-  const ideas = [
-    {
-      title: `Explore ${city}'s Hidden Gems`,
-      description: `Take a walking tour through lesser-known neighborhoods in ${city}. Discover local cafes, street art, and unique shops together.`,
-      category: "Adventure",
-      estimatedCost: "$20-40"
-    },
-    {
-      title: "Cooking Class Date Night",
-      description: `Find a local cooking class in ${city} or cook a new cuisine together at home. Perfect for learning something new with ${partnerName}.`,
-      category: "Culinary",
-      estimatedCost: "$50-100"
-    },
-    {
-      title: "Sunset/Sunrise Experience",
-      description: `Find the best spot in ${city} to watch the sunset or sunrise together. Bring a thermos of coffee or wine to share.`,
-      category: "Romantic",
-      estimatedCost: "$10-25"
-    },
-    {
-      title: "Local Museum or Art Gallery",
-      description: `Visit a museum or art gallery in ${city}. Many have special evening hours or wine tastings that make for perfect date nights.`,
-      category: "Cultural",
-      estimatedCost: "$30-60"
-    },
-    {
-      title: "Farmers Market + Picnic",
-      description: `Visit ${city}'s farmers market, pick out fresh ingredients, then create a picnic in a nearby park.`,
-      category: "Outdoors",
-      estimatedCost: "$25-50"
-    },
-    {
-      title: "Live Music Venue",
-      description: `Check out local venues in ${city} for live music. From jazz clubs to indie concerts, discover new artists together.`,
-      category: "Entertainment",
-      estimatedCost: "$40-80"
-    }
-  ];
+interface Restaurant {
+  name: string;
+  description: string;
+  website?: string;
+}
 
-  // Return 3 random ideas
-  const shuffled = ideas.sort(() => 0.5 - Math.random());
-  return shuffled.slice(0, 3);
+const generateDateIdeas = (city: string): { ideas: DateIdea[], restaurants: Restaurant[] } => {
+  const cityIdeas: Record<string, { ideas: DateIdea[], restaurants: Restaurant[] }> = {
+    "Manhattan": {
+      ideas: [
+        { title: "Stroll in Central Park", description: "Spend a leisurely afternoon exploring the iconic Central Park, rent a rowboat for a romantic paddle around the lake, or simply enjoy a picnic." },
+        { title: "Visit the High Line", description: "Walk along this elevated park built on a former railway line, it offers stunning views of the city and features rotating art installations." },
+        { title: "Comedy Night at Upright Citizens Brigade", description: "Enjoy a night of laughs at this well-known improv comedy club located in Hell's Kitchen." },
+        { title: "Brooklyn Bridge Walk", description: "Take a romantic evening stroll across the iconic Brooklyn Bridge and enjoy the stunning city skyline views." },
+        { title: "Museum Date at MoMA", description: "Explore modern art together at the Museum of Modern Art and discuss your favorite pieces over coffee." }
+      ],
+      restaurants: [
+        { name: "Malatesta Trattoria", description: "Located in West Village, this cozy Italian restaurant is known for its homemade pasta in a rustic setting.", website: "malatestatrattoria.com" },
+        { name: "The Spotted Pig", description: "A gastropub in the heart of Greenwich Village, offering a unique British and Italian influenced menu in a quirky atmosphere.", website: "thespottedpig.com" },
+        { name: "Supper", description: "A romantic spot in East Village serving traditional Italian fare in a candle-lit, brick-walled setting.", website: "supperrestaurant.com" }
+      ]
+    },
+    "Brooklyn": {
+      ideas: [
+        { title: "DUMBO Waterfront Park", description: "Enjoy stunning views of Manhattan skyline while walking along the waterfront or having a picnic." },
+        { title: "Brooklyn Museum & Botanic Garden", description: "Explore art and nature together in this beautiful cultural complex." },
+        { title: "Coney Island Adventure", description: "Take a nostalgic trip to Coney Island for boardwalk fun and classic amusement rides." }
+      ],
+      restaurants: [
+        { name: "Cecconi's DUMBO", description: "Italian dining with spectacular views of the Manhattan skyline." },
+        { name: "Juliana's Pizza", description: "Classic New York pizza in a cozy setting near the Brooklyn Bridge." },
+        { name: "The River Café", description: "Upscale dining with breathtaking views and romantic ambiance." }
+      ]
+    }
+  };
+
+  // Default ideas for any city
+  const defaultIdeas = {
+    ideas: [
+      { title: "Local Food Adventure", description: `Explore different neighborhoods in ${city} and try cuisines you've never had before.` },
+      { title: "Art & Culture Tour", description: `Visit local galleries, museums, and cultural spots in ${city} and discuss your favorite discoveries.` },
+      { title: "Sunset Picnic", description: `Find a beautiful spot in ${city} to watch the sunset together with your favorite snacks.` },
+      { title: "Farmers Market Date", description: `Explore the local farmers market in ${city} and cook a meal together with fresh ingredients.` },
+      { title: "Coffee Shop Hopping", description: `Discover cozy coffee shops around ${city} and spend the day talking and people-watching.` }
+    ],
+    restaurants: [
+      { name: "Local Italian Spot", description: `Find a cozy Italian restaurant in ${city} known for homemade pasta and intimate atmosphere.` },
+      { name: "Farm-to-Table Restaurant", description: `Look for a restaurant in ${city} that focuses on fresh, local ingredients and seasonal menus.` },
+      { name: "Rooftop Bar & Grill", description: `Find a rooftop restaurant in ${city} with great views and a romantic setting for dinner.` }
+    ]
+  };
+
+  const cityKey = Object.keys(cityIdeas).find(key => 
+    city.toLowerCase().includes(key.toLowerCase())
+  );
+
+  if (cityKey) {
+    const cityData = cityIdeas[cityKey];
+    // Return 3 random ideas and restaurants
+    const shuffledIdeas = cityData.ideas.sort(() => 0.5 - Math.random()).slice(0, 3);
+    const shuffledRestaurants = cityData.restaurants.sort(() => 0.5 - Math.random()).slice(0, 3);
+    return { ideas: shuffledIdeas, restaurants: shuffledRestaurants };
+  }
+
+  // Fallback to default ideas
+  const shuffledIdeas = defaultIdeas.ideas.sort(() => 0.5 - Math.random()).slice(0, 3);
+  const shuffledRestaurants = defaultIdeas.restaurants.sort(() => 0.5 - Math.random()).slice(0, 3);
+  return { ideas: shuffledIdeas, restaurants: shuffledRestaurants };
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -150,39 +173,56 @@ const handler = async (req: Request): Promise<Response> => {
         }
 
         // Generate date ideas
-        const dateIdeas = generateDateIdeas(user.city || 'your city', relationship.name);
+        const { ideas: dateIdeas, restaurants } = generateDateIdeas(user.city || 'your city');
         
         // Create email HTML
         const emailHtml = `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h1 style="color: #e11d48; margin-bottom: 20px;">💕 Date Night Ideas for You & ${relationship.name}</h1>
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #ffffff;">
+            <h1 style="color: #e91e63; margin-bottom: 20px; font-size: 28px;">💖 Time for a Date!</h1>
             
-            <p style="color: #6b7280; margin-bottom: 30px;">
-              Hey ${user.full_name || 'there'}! Here are some specially curated date night ideas for this week:
+            <p style="color: #333; margin-bottom: 15px; font-size: 16px;">
+              Hey lovebirds,
             </p>
 
-            <div style="space-y: 20px;">
+            <p style="color: #333; margin-bottom: 15px; font-size: 16px;">
+              Remember, the best dates are the ones where you laugh together and make new memories.
+            </p>
+
+            <p style="color: #333; margin-bottom: 30px; font-size: 16px;">
+              It's been a little while since your last special outing together. How about planning a cozy, fun date this week?
+            </p>
+
+            <p style="color: #333; margin-bottom: 20px; font-size: 16px; font-weight: bold;">
+              Here are some cute ideas and delicious restaurant picks to help you out:
+            </p>
+
+            <h2 style="color: #e91e63; margin-bottom: 15px; font-size: 22px;">Creative and Affordable Date Ideas in ${user.city || 'Your City'}</h2>
+            
+            <div style="margin-bottom: 30px;">
               ${dateIdeas.map((idea, index) => `
-                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 20px; margin-bottom: 20px;">
-                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-                    <h3 style="color: #dc2626; margin: 0; font-size: 18px;">${idea.title}</h3>
-                    <span style="background: #dc2626; color: white; padding: 4px 8px; border-radius: 6px; font-size: 12px;">${idea.category}</span>
-                  </div>
-                  <p style="color: #6b7280; margin: 10px 0; line-height: 1.5;">${idea.description}</p>
-                  <p style="color: #059669; font-weight: bold; margin: 0;">Estimated Cost: ${idea.estimatedCost}</p>
+                <div style="margin-bottom: 15px;">
+                  <h3 style="color: #333; margin: 0 0 5px 0; font-size: 18px; font-weight: bold;">${idea.title}:</h3>
+                  <p style="color: #666; margin: 0; line-height: 1.5; font-size: 16px;">${idea.description}</p>
                 </div>
               `).join('')}
             </div>
 
-            <div style="background: #f9fafb; border-radius: 12px; padding: 20px; margin-top: 30px;">
-              <h4 style="color: #374151; margin-top: 0;">💡 Pro Tip</h4>
-              <p style="color: #6b7280; margin-bottom: 0;">
-                The best dates are about spending quality time together. Pick the idea that excites you both the most, 
-                or use these as inspiration to create your own unique experience!
-              </p>
+            <h2 style="color: #e91e63; margin-bottom: 15px; font-size: 22px;">Affordable Restaurants in ${user.city || 'Your City'} Perfect for a Date</h2>
+            
+            <div style="margin-bottom: 30px;">
+              ${restaurants.map((restaurant, index) => `
+                <div style="margin-bottom: 15px;">
+                  <h3 style="color: #333; margin: 0 0 5px 0; font-size: 18px; font-weight: bold;">${restaurant.name}:</h3>
+                  <p style="color: #666; margin: 0; line-height: 1.5; font-size: 16px;">${restaurant.description}${restaurant.website ? ` <a href="https://${restaurant.website}" style="color: #e91e63;">Website</a>` : ''}</p>
+                </div>
+              `).join('')}
             </div>
 
-            <p style="color: #9ca3af; font-size: 12px; margin-top: 30px; text-align: center;">
+            <p style="color: #333; margin-bottom: 10px; font-size: 16px;">
+              Now pick one, put it on the calendar, and go make some memories ✨
+            </p>
+
+            <p style="color: #999; font-size: 12px; margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
               You're receiving this because you opted in for weekly date night ideas. 
               You can manage your preferences in your relationship settings.
             </p>
