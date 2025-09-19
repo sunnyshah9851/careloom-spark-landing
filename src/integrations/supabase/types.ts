@@ -38,6 +38,33 @@ export type Database = {
         }
         Relationships: []
       }
+      date_idea_logs: {
+        Row: {
+          created_at: string
+          id: string
+          relationship_id: string
+          sent_at: string
+          user_id: string
+          week_of: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          relationship_id: string
+          sent_at?: string
+          user_id: string
+          week_of: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          relationship_id?: string
+          sent_at?: string
+          user_id?: string
+          week_of?: string
+        }
+        Relationships: []
+      }
       events: {
         Row: {
           created_at: string
@@ -261,6 +288,7 @@ export type Database = {
           birthday_notification_frequency: string | null
           city: string | null
           created_at: string
+          date_ideas_frequency: string | null
           email: string | null
           id: string
           last_nudge_sent: string | null
@@ -278,6 +306,7 @@ export type Database = {
           birthday_notification_frequency?: string | null
           city?: string | null
           created_at?: string
+          date_ideas_frequency?: string | null
           email?: string | null
           id?: string
           last_nudge_sent?: string | null
@@ -295,6 +324,7 @@ export type Database = {
           birthday_notification_frequency?: string | null
           city?: string | null
           created_at?: string
+          date_ideas_frequency?: string | null
           email?: string | null
           id?: string
           last_nudge_sent?: string | null
