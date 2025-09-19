@@ -510,6 +510,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      setup_date_ideas_cron: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       setup_reminder_cron: {
         Args: Record<PropertyKey, never>
         Returns: string
