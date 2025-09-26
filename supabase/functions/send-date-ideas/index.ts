@@ -1,10 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 import { Resend } from "npm:resend@2.0.0";
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const resendApiKey = Deno.env.get('RESEND_API_KEY')!;
+const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 const resend = new Resend(resendApiKey);
@@ -25,68 +27,90 @@ interface Restaurant {
   website?: string;
 }
 
-const generateDateIdeas = (city: string): { ideas: DateIdea[], restaurants: Restaurant[] } => {
-  const cityIdeas: Record<string, { ideas: DateIdea[], restaurants: Restaurant[] }> = {
-    "Manhattan": {
-      ideas: [
-        { title: "Stroll in Central Park", description: "Spend a leisurely afternoon exploring the iconic Central Park, rent a rowboat for a romantic paddle around the lake, or simply enjoy a picnic." },
-        { title: "Visit the High Line", description: "Walk along this elevated park built on a former railway line, it offers stunning views of the city and features rotating art installations." },
-        { title: "Comedy Night at Upright Citizens Brigade", description: "Enjoy a night of laughs at this well-known improv comedy club located in Hell's Kitchen." },
-        { title: "Brooklyn Bridge Walk", description: "Take a romantic evening stroll across the iconic Brooklyn Bridge and enjoy the stunning city skyline views." },
-        { title: "Museum Date at MoMA", description: "Explore modern art together at the Museum of Modern Art and discuss your favorite pieces over coffee." }
-      ],
-      restaurants: [
-        { name: "Malatesta Trattoria", description: "Located in West Village, this cozy Italian restaurant is known for its homemade pasta in a rustic setting.", website: "malatestatrattoria.com" },
-        { name: "The Spotted Pig", description: "A gastropub in the heart of Greenwich Village, offering a unique British and Italian influenced menu in a quirky atmosphere.", website: "thespottedpig.com" },
-        { name: "Supper", description: "A romantic spot in East Village serving traditional Italian fare in a candle-lit, brick-walled setting.", website: "supperrestaurant.com" }
-      ]
-    },
-    "Brooklyn": {
-      ideas: [
-        { title: "DUMBO Waterfront Park", description: "Enjoy stunning views of Manhattan skyline while walking along the waterfront or having a picnic." },
-        { title: "Brooklyn Museum & Botanic Garden", description: "Explore art and nature together in this beautiful cultural complex." },
-        { title: "Coney Island Adventure", description: "Take a nostalgic trip to Coney Island for boardwalk fun and classic amusement rides." }
-      ],
-      restaurants: [
-        { name: "Cecconi's DUMBO", description: "Italian dining with spectacular views of the Manhattan skyline." },
-        { name: "Juliana's Pizza", description: "Classic New York pizza in a cozy setting near the Brooklyn Bridge." },
-        { name: "The River Café", description: "Upscale dining with breathtaking views and romantic ambiance." }
-      ]
-    }
-  };
+interface DateIdeasResponse {
+  ideas: DateIdea[];
+  restaurants: Restaurant[];
+}
 
-  // Default ideas for any city
-  const defaultIdeas = {
-    ideas: [
-      { title: "Local Food Adventure", description: `Explore different neighborhoods in ${city} and try cuisines you've never had before.` },
-      { title: "Art & Culture Tour", description: `Visit local galleries, museums, and cultural spots in ${city} and discuss your favorite discoveries.` },
-      { title: "Sunset Picnic", description: `Find a beautiful spot in ${city} to watch the sunset together with your favorite snacks.` },
-      { title: "Farmers Market Date", description: `Explore the local farmers market in ${city} and cook a meal together with fresh ingredients.` },
-      { title: "Coffee Shop Hopping", description: `Discover cozy coffee shops around ${city} and spend the day talking and people-watching.` }
+const generateDateIdeasWithAI = async (city: string, partnerName: string): Promise<DateIdeasResponse> => {
+  console.log(`Generating AI date ideas for ${partnerName} in ${city}`);
+  
+  const prompt = `Generate 3 creative, affordable date ideas and 3 restaurant recommendations for a couple in ${city}. 
+  Make the suggestions personalized and thoughtful. Include both indoor and outdoor options where possible.
+  
+  Return the response in this exact JSON format:
+  {
+    "ideas": [
+      {"title": "Date Idea Title", "description": "Detailed description of the date idea"},
+      {"title": "Date Idea Title", "description": "Detailed description of the date idea"},
+      {"title": "Date Idea Title", "description": "Detailed description of the date idea"}
     ],
-    restaurants: [
-      { name: "Local Italian Spot", description: `Find a cozy Italian restaurant in ${city} known for homemade pasta and intimate atmosphere.` },
-      { name: "Farm-to-Table Restaurant", description: `Look for a restaurant in ${city} that focuses on fresh, local ingredients and seasonal menus.` },
-      { name: "Rooftop Bar & Grill", description: `Find a rooftop restaurant in ${city} with great views and a romantic setting for dinner.` }
+    "restaurants": [
+      {"name": "Restaurant Name", "description": "Description with cuisine type and ambiance", "website": "website.com (optional)"},
+      {"name": "Restaurant Name", "description": "Description with cuisine type and ambiance", "website": "website.com (optional)"},
+      {"name": "Restaurant Name", "description": "Description with cuisine type and ambiance", "website": "website.com (optional)"}
     ]
-  };
-
-  const cityKey = Object.keys(cityIdeas).find(key => 
-    city.toLowerCase().includes(key.toLowerCase())
-  );
-
-  if (cityKey) {
-    const cityData = cityIdeas[cityKey];
-    // Return 3 random ideas and restaurants
-    const shuffledIdeas = cityData.ideas.sort(() => 0.5 - Math.random()).slice(0, 3);
-    const shuffledRestaurants = cityData.restaurants.sort(() => 0.5 - Math.random()).slice(0, 3);
-    return { ideas: shuffledIdeas, restaurants: shuffledRestaurants };
   }
+  
+  Make sure the suggestions are specific to ${city} and include local landmarks, neighborhoods, or attractions when possible.`;
 
-  // Fallback to default ideas
-  const shuffledIdeas = defaultIdeas.ideas.sort(() => 0.5 - Math.random()).slice(0, 3);
-  const shuffledRestaurants = defaultIdeas.restaurants.sort(() => 0.5 - Math.random()).slice(0, 3);
-  return { ideas: shuffledIdeas, restaurants: shuffledRestaurants };
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are a helpful assistant that generates creative, affordable date ideas and restaurant recommendations for couples. Always respond with valid JSON in the exact format requested.' 
+          },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.8,
+        max_tokens: 1500,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    const aiResponse = data.choices[0].message.content;
+    
+    console.log('OpenAI raw response:', aiResponse);
+    
+    // Parse the JSON response
+    const parsedResponse = JSON.parse(aiResponse);
+    
+    if (!parsedResponse.ideas || !parsedResponse.restaurants) {
+      throw new Error('Invalid response format from OpenAI');
+    }
+    
+    console.log('Generated date ideas successfully:', parsedResponse);
+    return parsedResponse;
+    
+  } catch (error) {
+    console.error('Error generating date ideas with AI:', error);
+    
+    // Fallback to simple generic ideas if AI fails
+    return {
+      ideas: [
+        { title: "Local Food Adventure", description: `Explore different neighborhoods in ${city} and try cuisines you've never had before.` },
+        { title: "Art & Culture Tour", description: `Visit local galleries, museums, and cultural spots in ${city} and discuss your favorite discoveries.` },
+        { title: "Sunset Picnic", description: `Find a beautiful spot in ${city} to watch the sunset together with your favorite snacks.` }
+      ],
+      restaurants: [
+        { name: "Local Italian Spot", description: `Find a cozy Italian restaurant in ${city} known for homemade pasta and intimate atmosphere.` },
+        { name: "Farm-to-Table Restaurant", description: `Look for a restaurant in ${city} that focuses on fresh, local ingredients and seasonal menus.` },
+        { name: "Rooftop Bar & Grill", description: `Find a rooftop restaurant in ${city} with great views and a romantic setting for dinner.` }
+      ]
+    };
+  }
 };
 
 const handler = async (req: Request): Promise<Response> => {
@@ -113,7 +137,6 @@ const handler = async (req: Request): Promise<Response> => {
       .select(`
         id,
         name,
-        city,
         profile_id,
         profiles!inner(
           id,
@@ -159,12 +182,12 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
-        // Use relationship's city if available, otherwise fall back to user's city
-        const cityForIdeas = relationship.city || user.city || 'your city';
-        console.log(`Generating date ideas for ${relationship.name} in ${cityForIdeas}`);
+        // Use user's city for generating ideas
+        const userCity = user.city || 'your city';
+        console.log(`Generating date ideas for ${relationship.name} in ${userCity}`);
 
-        // Generate date ideas
-        const { ideas: dateIdeas, restaurants } = generateDateIdeas(cityForIdeas);
+        // Generate date ideas using AI
+        const { ideas: dateIdeas, restaurants } = await generateDateIdeasWithAI(userCity, relationship.name);
         
         // Create email HTML
         const emailHtml = `
@@ -187,7 +210,7 @@ const handler = async (req: Request): Promise<Response> => {
               Here are some cute ideas and delicious restaurant picks to help you out:
             </p>
 
-            <h2 style="color: #e91e63; margin-bottom: 15px; font-size: 22px;">Creative and Affordable Date Ideas in ${cityForIdeas}</h2>
+            <h2 style="color: #e91e63; margin-bottom: 15px; font-size: 22px;">Creative and Affordable Date Ideas in ${userCity}</h2>
             
             <div style="margin-bottom: 30px;">
               ${dateIdeas.map((idea, index) => `
@@ -198,7 +221,7 @@ const handler = async (req: Request): Promise<Response> => {
               `).join('')}
             </div>
 
-            <h2 style="color: #e91e63; margin-bottom: 15px; font-size: 22px;">Affordable Restaurants in ${cityForIdeas} Perfect for a Date</h2>
+            <h2 style="color: #e91e63; margin-bottom: 15px; font-size: 22px;">Affordable Restaurants in ${userCity} Perfect for a Date</h2>
             
             <div style="margin-bottom: 30px;">
               ${restaurants.map((restaurant, index) => `
