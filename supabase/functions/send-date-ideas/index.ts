@@ -113,6 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
       .select(`
         id,
         name,
+        city,
         profile_id,
         profiles!inner(
           id,
@@ -145,7 +146,12 @@ const handler = async (req: Request): Promise<Response> => {
     let emailsSent = 0;
     const errors = [];
 
-    for (const relationship of relationships) {
+    // Helper function to add delay between emails
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    for (let i = 0; i < relationships.length; i++) {
+      const relationship = relationships[i];
+      
       try {
         const user = relationship.profiles as any;
         if (!user.email) {
@@ -153,8 +159,12 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
+        // Use relationship's city if available, otherwise fall back to user's city
+        const cityForIdeas = relationship.city || user.city || 'your city';
+        console.log(`Generating date ideas for ${relationship.name} in ${cityForIdeas}`);
+
         // Generate date ideas
-        const { ideas: dateIdeas, restaurants } = generateDateIdeas(user.city || 'your city');
+        const { ideas: dateIdeas, restaurants } = generateDateIdeas(cityForIdeas);
         
         // Create email HTML
         const emailHtml = `
@@ -177,7 +187,7 @@ const handler = async (req: Request): Promise<Response> => {
               Here are some cute ideas and delicious restaurant picks to help you out:
             </p>
 
-            <h2 style="color: #e91e63; margin-bottom: 15px; font-size: 22px;">Creative and Affordable Date Ideas in ${user.city || 'Your City'}</h2>
+            <h2 style="color: #e91e63; margin-bottom: 15px; font-size: 22px;">Creative and Affordable Date Ideas in ${cityForIdeas}</h2>
             
             <div style="margin-bottom: 30px;">
               ${dateIdeas.map((idea, index) => `
@@ -188,7 +198,7 @@ const handler = async (req: Request): Promise<Response> => {
               `).join('')}
             </div>
 
-            <h2 style="color: #e91e63; margin-bottom: 15px; font-size: 22px;">Affordable Restaurants in ${user.city || 'Your City'} Perfect for a Date</h2>
+            <h2 style="color: #e91e63; margin-bottom: 15px; font-size: 22px;">Affordable Restaurants in ${cityForIdeas} Perfect for a Date</h2>
             
             <div style="margin-bottom: 30px;">
               ${restaurants.map((restaurant, index) => `
@@ -221,9 +231,21 @@ const handler = async (req: Request): Promise<Response> => {
         console.log('Email sent successfully to:', user.email, emailResponse);
         emailsSent++;
 
+        // Add 5-second delay between emails to avoid rate limits (except for the last email)
+        if (i < relationships.length - 1) {
+          console.log('Waiting 5 seconds before sending next email...');
+          await delay(5000);
+        }
+
       } catch (error) {
         console.error(`Error processing relationship ${relationship.id}:`, error);
         errors.push(`Failed to process relationship ${relationship.id}: ${(error as any).message}`);
+        
+        // Still add delay even on error to maintain rate limiting
+        if (i < relationships.length - 1) {
+          console.log('Waiting 5 seconds before processing next relationship...');
+          await delay(5000);
+        }
       }
     }
 
