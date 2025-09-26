@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
-import { Resend } from "npm:resend@2.0.0";
+import { Resend } from "npm:resend";
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -153,25 +153,6 @@ const handler = async (req: Request): Promise<Response> => {
           continue;
         }
 
-        // Check if we've already sent date ideas this week
-        const { data: existingLog, error: logError } = await supabase
-          .from('date_idea_logs')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('relationship_id', relationship.id)
-          .eq('week_of', weekOf)
-          .maybeSingle();
-
-        if (logError && logError.code !== 'PGRST116') {
-          console.error('Error checking date idea logs:', logError);
-          continue;
-        }
-
-        if (existingLog) {
-          console.log(`Already sent date ideas to ${user.email} for relationship ${relationship.name} this week`);
-          continue;
-        }
-
         // Generate date ideas
         const { ideas: dateIdeas, restaurants } = generateDateIdeas(user.city || 'your city');
         
@@ -238,22 +219,7 @@ const handler = async (req: Request): Promise<Response> => {
         });
 
         console.log('Email sent successfully to:', user.email, emailResponse);
-
-        // Log the sent email
-        const { error: insertLogError } = await supabase
-          .from('date_idea_logs')
-          .insert({
-            user_id: user.id,
-            relationship_id: relationship.id,
-            week_of: weekOf,
-          });
-
-        if (insertLogError) {
-          console.error('Error inserting date idea log:', insertLogError);
-          errors.push(`Failed to log email for ${user.email}: ${insertLogError.message}`);
-        } else {
-          emailsSent++;
-        }
+        emailsSent++;
 
       } catch (error) {
         console.error(`Error processing relationship ${relationship.id}:`, error);
