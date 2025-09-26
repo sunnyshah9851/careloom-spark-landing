@@ -147,7 +147,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     for (const relationship of relationships) {
       try {
-        const user = relationship.profiles;
+        const user = relationship.profiles as any;
         if (!user.email) {
           console.log(`Skipping relationship ${relationship.id} - no email address`);
           continue;
@@ -223,7 +223,7 @@ const handler = async (req: Request): Promise<Response> => {
 
       } catch (error) {
         console.error(`Error processing relationship ${relationship.id}:`, error);
-        errors.push(`Failed to process relationship ${relationship.id}: ${error.message}`);
+        errors.push(`Failed to process relationship ${relationship.id}: ${(error as any).message}`);
       }
     }
 
@@ -244,7 +244,7 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error) {
     console.error('Error in send-date-ideas function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as any).message }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

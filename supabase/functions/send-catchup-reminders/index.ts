@@ -172,7 +172,7 @@ const handler = async (req: Request): Promise<Response> => {
           userEmail: profile.email,
           friendsCount: 0,
           success: false,
-          error: error.message,
+          error: (error as any).message,
         });
       }
     }

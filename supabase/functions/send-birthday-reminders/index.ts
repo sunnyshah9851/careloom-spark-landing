@@ -299,7 +299,7 @@ const sendReminderEmail = async (
       relationship.city || relationship.profiles.city,
       eventType,
       relationship.profile_id,
-      eventType === 'birthday' ? relationship.birthday : undefined,
+      eventType === 'birthday' ? (relationship.birthday || undefined) : undefined,
       relationship.name
     );
 
@@ -408,7 +408,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Process each relationship
     for (const rel of relationships || []) {
-      const recipientEmail = rel.profiles.email;
+      const recipientEmail = (rel.profiles as any).email;
       
       // Check birthday reminders
       if (rel.birthday && rel.birthday_notification_frequency !== 'none') {
@@ -429,11 +429,11 @@ const handler = async (req: Request): Promise<Response> => {
           const daysUntil = getFrequencyDays(rel.birthday_notification_frequency);
           const success = await sendReminderEmail(
             recipientEmail,
-            rel.profiles.full_name,
+            (rel.profiles as any).full_name,
             rel.name,
             'birthday',
             daysUntil,
-            rel
+            rel as any
           );
 
           if (success) {
@@ -484,11 +484,11 @@ const handler = async (req: Request): Promise<Response> => {
           const daysUntil = getFrequencyDays(rel.anniversary_notification_frequency);
           const success = await sendReminderEmail(
             recipientEmail,
-            rel.profiles.full_name,
+            (rel.profiles as any).full_name,
             rel.name,
             'anniversary',
             daysUntil,
-            rel
+            rel as any
           );
 
           if (success) {
@@ -529,7 +529,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   } catch (error) {
     console.error('Function error:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: (error as any).message }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

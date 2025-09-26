@@ -40,7 +40,8 @@ const handler = async (req: Request): Promise<Response> => {
 
       diagnostics.cronJobs = cronError ? { error: cronError.message } : cronJobs;
     } catch (e) {
-      diagnostics.cronJobs = { error: e.message };
+      console.error('Error checking cron jobs:', e);
+      diagnostics.cronJobs = { error: (e as any).message };
     }
 
     // 2. Check if the setup function exists and works
@@ -48,7 +49,8 @@ const handler = async (req: Request): Promise<Response> => {
       const { data: setupResult, error: setupError } = await supabase.rpc('setup_reminder_cron');
       diagnostics.setupFunction = setupError ? { error: setupError.message } : { result: setupResult };
     } catch (e) {
-      diagnostics.setupFunction = { error: e.message };
+      console.error('Error testing setup function:', e);
+      diagnostics.setupFunction = { error: (e as any).message };
     }
 
     // 3. Check if the birthday reminders function works
@@ -61,7 +63,8 @@ const handler = async (req: Request): Promise<Response> => {
         { error: birthdayError.message } : 
         { success: true, data: birthdayData, relationshipsFound: birthdayData?.debugInfo?.length || 0 };
     } catch (e) {
-      diagnostics.birthdayFunction = { error: e.message };
+      console.error('Error testing birthday function:', e);
+      diagnostics.birthdayFunction = { error: (e as any).message };
     }
 
     // 4. Check if the date ideas function works
@@ -74,7 +77,8 @@ const handler = async (req: Request): Promise<Response> => {
         { error: dateIdeasError.message } : 
         { success: true, data: dateIdeasData };
     } catch (e) {
-      diagnostics.dateIdeasFunction = { error: e.message };
+      console.error('Error testing date ideas function:', e);
+      diagnostics.dateIdeasFunction = { error: (e as any).message };
     }
 
     // 5. Check database extensions
@@ -86,7 +90,8 @@ const handler = async (req: Request): Promise<Response> => {
 
       diagnostics.extensions = extError ? { error: extError.message } : extensions;
     } catch (e) {
-      diagnostics.extensions = { error: e.message };
+      console.error('Error checking extensions:', e);
+      diagnostics.extensions = { error: (e as any).message };
     }
 
     // 6. Check if there are any relationships with reminders enabled
@@ -105,7 +110,8 @@ const handler = async (req: Request): Promise<Response> => {
         { error: relError.message } : 
         { count: relationships?.length || 0, data: relationships };
     } catch (e) {
-      diagnostics.relationships = { error: e.message };
+      console.error('Error checking relationships:', e);
+      diagnostics.relationships = { error: (e as any).message };
     }
 
     // 7. Check if there are any recent reminder logs
@@ -121,7 +127,8 @@ const handler = async (req: Request): Promise<Response> => {
         { error: logError.message } : 
         { count: logs?.length || 0, data: logs };
     } catch (e) {
-      diagnostics.recentLogs = { error: e.message };
+      console.error('Error checking recent logs:', e);
+      diagnostics.recentLogs = { error: (e as any).message };
     }
 
     console.log('=== DIAGNOSTICS COMPLETE ===');
@@ -142,7 +149,7 @@ const handler = async (req: Request): Promise<Response> => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: (error as any).message
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -152,4 +159,4 @@ const handler = async (req: Request): Promise<Response> => {
   }
 };
 
-serve(handler); 
+serve(handler);
