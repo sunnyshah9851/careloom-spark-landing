@@ -122,6 +122,72 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const { testMode, testEmail, testCity, testPartnerName } = await req.json().catch(() => ({}));
+    console.log('Test mode:', testMode, 'Test email:', testEmail);
+
+    // Test mode: send to specific email
+    if (testMode && testEmail) {
+      console.log('Running in test mode, sending to:', testEmail);
+      
+      const city = testCity || 'New York';
+      const partnerName = testPartnerName || 'your partner';
+      
+      const { dateIdeas, restaurants } = await generateDateIdeasWithAI(city, partnerName);
+      
+      const emailHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #fefcfa;">
+          <div style="background: linear-gradient(135deg, #9d4e65 0%, #c08862 100%); padding: 30px; text-align: center; border-radius: 12px; color: white;">
+            <h1 style="margin: 0; font-size: 28px;">💕 Date Night Ideas for You & ${partnerName}</h1>
+            <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Personalized suggestions for ${city}</p>
+          </div>
+          
+          <div style="background: white; padding: 30px; border-radius: 12px; margin-top: 20px;">
+            <h2 style="color: #9d4e65; font-size: 22px; margin: 0 0 20px 0;">✨ Date Ideas Just for You</h2>
+            ${dateIdeas.map(idea => `
+              <div style="margin-bottom: 20px; padding: 20px; background: #f9f4f1; border-radius: 8px; border-left: 4px solid #db889b;">
+                <h3 style="color: #4c333e; font-size: 18px; margin: 0 0 10px 0;">${idea.title}</h3>
+                <p style="color: #666; font-size: 15px; line-height: 1.6; margin: 0;">${idea.description}</p>
+              </div>
+            `).join('')}
+            
+            <h2 style="color: #9d4e65; font-size: 22px; margin: 30px 0 20px 0;">🍽️ Restaurant Recommendations</h2>
+            ${restaurants.map(restaurant => `
+              <div style="margin-bottom: 20px; padding: 20px; background: #fef9f4; border-radius: 8px; border-left: 4px solid #c08862;">
+                <h3 style="color: #4c333e; font-size: 18px; margin: 0 0 8px 0;">${restaurant.name}</h3>
+                <p style="color: #8b6f47; font-size: 14px; margin: 0 0 8px 0; font-weight: 500;">${restaurant.cuisine} • ${restaurant.priceRange}</p>
+                <p style="color: #666; font-size: 15px; line-height: 1.6; margin: 0;">${restaurant.description}</p>
+              </div>
+            `).join('')}
+            
+            <p style="color: #999; font-size: 12px; margin-top: 40px; text-align: center; border-top: 1px solid #eee; padding-top: 20px;">
+              [TEST MODE] This is a test email for ${city}.
+            </p>
+          </div>
+        </div>
+      `;
+      
+      const emailResponse = await resend.emails.send({
+        from: 'Careloom <noreply@update.careloom.io>',
+        to: [testEmail],
+        subject: `[TEST] 💕 Date Night Ideas for You & ${partnerName}`,
+        html: emailHtml,
+      });
+      
+      console.log('Test email sent successfully to:', testEmail);
+      
+      return new Response(JSON.stringify({ 
+        success: true, 
+        testMode: true,
+        emailsSent: 1,
+        testEmail,
+        city,
+        emailId: emailResponse.data?.id
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+
     // Get current Monday's date
     const now = new Date();
     const currentMonday = new Date(now);
