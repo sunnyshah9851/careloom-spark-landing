@@ -289,7 +289,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const emailResponse = await resend.emails.send({
-      from: "Careloom <careloom@resend.dev>",
+      from: "Careloom <noreply@update.careloom.io>",
       to: [userEmail],
       subject: subjectLine,
       html: emailHtml,

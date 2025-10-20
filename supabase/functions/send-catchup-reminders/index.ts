@@ -129,7 +129,7 @@ const handler = async (req: Request): Promise<Response> => {
         `;
 
         const { error: emailError } = await resend.emails.send({
-          from: 'Careloom <reminders@careloom.app>',
+          from: 'Careloom <noreply@update.careloom.io>',
           to: [profile.email],
           subject: `Time to catch up with ${friendsNeedingReminders.length} friend${friendsNeedingReminders.length > 1 ? 's' : ''} 🌍`,
           html: emailContent,

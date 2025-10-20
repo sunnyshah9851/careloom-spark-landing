@@ -346,7 +346,7 @@ const sendReminderEmail = async (
     `;
 
     await resend.emails.send({
-      from: "Careloom <careloom@resend.dev>",
+      from: "Careloom <noreply@update.careloom.io>",
       to: [recipientEmail],
       subject,
       html: emailHtml,

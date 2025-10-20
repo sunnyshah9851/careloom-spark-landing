@@ -245,7 +245,7 @@ const handler = async (req: Request): Promise<Response> => {
 
         // Send email
         const emailResponse = await resend.emails.send({
-          from: 'datenotifier@resend.dev',
+          from: 'Careloom <noreply@update.careloom.io>',
           to: [user.email],
           subject: `💕 Date Night Ideas for You & ${relationship.name}`,
           html: emailHtml,
