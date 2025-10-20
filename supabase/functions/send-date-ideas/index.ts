@@ -132,7 +132,7 @@ const handler = async (req: Request): Promise<Response> => {
       const city = testCity || 'New York';
       const partnerName = testPartnerName || 'your partner';
       
-      const { dateIdeas, restaurants } = await generateDateIdeasWithAI(city, partnerName);
+      const { ideas: dateIdeas, restaurants } = await generateDateIdeasWithAI(city, partnerName);
       
       const emailHtml = `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background: #fefcfa;">
@@ -154,8 +154,7 @@ const handler = async (req: Request): Promise<Response> => {
             ${restaurants.map(restaurant => `
               <div style="margin-bottom: 20px; padding: 20px; background: #fef9f4; border-radius: 8px; border-left: 4px solid #c08862;">
                 <h3 style="color: #4c333e; font-size: 18px; margin: 0 0 8px 0;">${restaurant.name}</h3>
-                <p style="color: #8b6f47; font-size: 14px; margin: 0 0 8px 0; font-weight: 500;">${restaurant.cuisine} • ${restaurant.priceRange}</p>
-                <p style="color: #666; font-size: 15px; line-height: 1.6; margin: 0;">${restaurant.description}</p>
+                <p style="color: #666; font-size: 15px; line-height: 1.6; margin: 0;">${restaurant.description}${restaurant.website ? ` <a href="https://${restaurant.website}" style="color: #9d4e65;">Website</a>` : ''}</p>
               </div>
             `).join('')}
             
